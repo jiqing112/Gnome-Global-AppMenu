@@ -34,7 +34,7 @@ const Settings = MyExtension.imports.settings.settings;
 
 
 function _(str) {
-   let resultConf = Gettext.dgettext("globalAppMenu@lestcape", str);
+   let resultConf = Gettext.dgettext(MyExtension.uuid, str);
    if(resultConf != str) {
       return resultConf;
    }
@@ -230,7 +230,7 @@ MyApplet.prototype = {
          this.orientation = orientation;
          this.execInstallLanguage();
 
-         this.set_applet_tooltip(_("Global Application Menu"));
+         this.set_applet_tooltip(_("Gnome Global Application Menu"));
 
          this.currentWindow = null;
          this.sendWindow = null;
@@ -266,8 +266,10 @@ MyApplet.prototype = {
          this._applet_context_menu = new ConfigurableMenus.ConfigurableMenu(this, 0.0, orientation, true);
          this._menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
          this._menuManager.addMenu(this._applet_context_menu);
+         this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
 
          this._createSettings();
+         this._cleanAppmenu();
 
          this.indicatorDbus = new IndicatorAppMenuWatcher.IndicatorAppMenuWatcher(
             IndicatorAppMenuWatcher.AppmenuMode.MODE_STANDARD, this._getIconSize());
@@ -360,6 +362,7 @@ MyApplet.prototype = {
          this._system.activeJAyantanaModule(this.enableJayantana);
          this._system.shellShowAppmenu(true);
          this._system.shellShowMenubar(true);
+         this._system.activeQtPlatform(true);
          this._system.activeUnityMenuProxy(true);
          return true;
       }
@@ -434,6 +437,7 @@ MyApplet.prototype = {
    _finalizeEnvironment: function() {
       this._system.shellShowAppmenu(false);
       this._system.shellShowMenubar(false);
+      this._system.activeQtPlatform(false);
       this._system.activeUnityMenuProxy(false);
       this._system.activeJAyantanaModule(false);
       // FIXME When we can call system.activeUnityGtkModule(false)?
@@ -592,8 +596,8 @@ MyApplet.prototype = {
    _cleanAppmenu: function() {
       this._closeMenu();
       this.menu = null;
-      this.actorIcon.set_child(null);
-      this.gradient.setText("");
+      this.actorIcon.set_child(this.defaultIcon);
+      this.gradient.setText(_("Activities"));
    },
 
    _isNewApp: function(newLabel, newIcon) {
@@ -657,7 +661,7 @@ MyApplet.prototype = {
       let localeFolder = Gio.file_new_for_path(GLib.get_home_dir() + "/.local/share/locale");
       Gettext.bindtextdomain(this.uuid, localeFolder.get_path());
       try {
-         let moFolder = Gio.file_new_for_path(localeFolder.get_parent().get_path() + "/cinnamon/applets/" + this.uuid + "/po/mo/");
+         let moFolder = Gio.file_new_for_path(localeFolder.get_parent().get_path() + "/gnome-shell/extensions/" + this.uuid + "/po/mo/");
          let children = moFolder.enumerate_children('standard::name,standard::type,time::modified',
                                                      Gio.FileQueryInfoFlags.NONE, null);
          let info, child, moFile, moLocale, moPath, src, dest, modified, destModified;

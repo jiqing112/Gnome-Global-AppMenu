@@ -5,10 +5,11 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 const Gettext = imports.gettext;
-Gettext.bindtextdomain('globalAppMenu@lestcape', GLib.get_home_dir() + "/.local/share/locale");
+const UUID = 'gnomeGlobalAppMenu@lestcape';
+Gettext.bindtextdomain(UUID, GLib.build_filenamev([GLib.get_user_data_dir(), "locale"]));
 
 function _(str) {
-   let resultConf = Gettext.dgettext("globalAppMenu@lestcape", str);
+   let resultConf = Gettext.dgettext(UUID, str);
    if(resultConf != str) {
       return resultConf;
    }
@@ -59,11 +60,11 @@ Application.prototype = {
          } else {
             let env = this._getEnvironment();
             if(env && !("UBUNTU_MENUPROXY" in env)) {
-               let path = "/etc/profile.d/cinnamon-globalmenu.sh";
+               let path = "/etc/profile.d/proxy-globalmenu.sh";
                let file = Gio.file_new_for_path(path);
                if(file.get_parent().query_exists(null) && !file.query_exists(null)) {
                   let rawData =  '';
-                  rawData += 'if [ "$DESKTOP_SESSION" = "cinnamon" ] && [ -z "$UBUNTU_MENUPROXY" ]; then\n';
+                  rawData += 'if [[ "$DESKTOP_SESSION" = "cinnamon" ] || ["$DESKTOP_SESSION" = gnome"] && [ -z "$UBUNTU_MENUPROXY" ]]; then\n';
                   rawData += '   UBUNTU_MENUPROXY=0\n';
                   rawData += '   export "UBUNTU_MENUPROXY=$UBUNTU_MENUPROXY"\n';
                   rawData += 'fi\n';
@@ -88,7 +89,7 @@ Application.prototype = {
                delete env["UBUNTU_MENUPROXY"];
                this._saveEnvironment(env);
             }
-            let path = "/etc/profile.d/cinnamon-globalmenu.sh";
+            let path = "/etc/profile.d/proxy-globalmenu.sh";
             let file = Gio.file_new_for_path(path);
             if(file.query_exists(null)) {    
                file['delete'](null);

@@ -16,7 +16,15 @@ const SettingsWidgets = cimports.settings.settingsWidgets;
 const JsonSettingsWidgets = cimports.settings.jsonSettingsWidgets;
 const Config = cimports.settings.config;
 
-const _ = Gettext.gettext;
+const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
+function _(str) {
+    let resultConf = Gettext.dgettext(MyExtension.uuid, str);
+    if(resultConf != str) {
+        return resultConf;
+    }
+    return Gettext.gettext(str);
+};
+
 const home = GLib.get_home_dir();
 const translations = {};
 
@@ -61,11 +69,14 @@ const XLETSettingsButton = new GObject.Class({
 function translate(uuid, string) {
     //check for a translation for this xlet
     if (!(uuid in translations)) {
+        Gettext.textdomain(uuid);
         try {
-            translations[uuid] = gettext.translation(uuid, GLib.build_filenamev([home, ".local", "share", "locale"])).gettext;
+           Gettext.bindtextdomain(uuid, GLib.build_filenamev([GLib.get_user_data_dir(), "locale"]));
+           translations[uuid] = Gettext.gettext;
         } catch(eg) {
             try {
-                translations[uuid] = gettext.translation(uuid, "/usr/share/locale").gettext;
+                Gettext.bindtextdomain(uuid, "/usr/share/locale");
+                translations[uuid] = Gettext.gettext;
             } catch(e) {
                 translations[uuid] = null;
             }
@@ -230,7 +241,7 @@ const XLetSidePage = new GObject.Class({
         //    if (Gio.file_new_for_path(icon_path).query_exists(null))
         //        this.window.set_icon_from_file(icon_path);
         //}
-        //this.window.set_title(translate(this.uuid, this.xlet_meta["name"]));
+        this.topWindow.set_title(translate(this.uuid, this.xlet_meta["name"]));
         this.prev_button.connect("clicked", Lang.bind(this, this.previous_instance));
         this.next_button.connect("clicked", Lang.bind(this, this.next_instance));
     },
@@ -276,7 +287,7 @@ const XLetSidePage = new GObject.Class({
                     }
                     for (let key in settings_map[setting]) {
                         //global.log('KEY PAIR:', key, settings_map[setting][key])
-                        if (key in ["description", "tooltip", "units"]) {
+                        if (["description", "tooltip", "units"].indexOf(key) != -1) {
                             try {
                                 settings_map[setting][key] = translate(this.uuid, settings_map[setting][key]);
                             } catch(e) {}

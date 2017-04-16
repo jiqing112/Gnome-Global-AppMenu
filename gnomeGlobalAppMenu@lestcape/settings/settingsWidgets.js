@@ -1036,7 +1036,6 @@ const ComboBox = new GObject.Class({
 
     on_my_value_changed: function(widget) {
         let [ok, tree_iter] = widget.get_active_iter();
-
         if (ok) {
             this.content_widget.set_active_iter(tree_iter);
             this.value = this.model.get_value(tree_iter, 0)
@@ -1059,7 +1058,6 @@ const ComboBox = new GObject.Class({
 
     set_options: function(options) {
         // assume all keys are the same type (mixing types is going to cause an error somewhere)
-
         this.model = Gtk.ListStore.new([GObject.TYPE_STRING, GObject.TYPE_STRING]);
 
         // Set the columns
@@ -1067,7 +1065,7 @@ const ComboBox = new GObject.Class({
             let option = options[i];
             let iter = this.model.append();
             this.option_map[option[0]] = iter;
-            this.model.set(iter, [0, 1], [option[0].toString(), option[1].toString()])
+            this.model.set(iter, [0, 1], [option[0].toString(), option[1].toString()]);
         }
 
         this.content_widget.set_model(this.model);

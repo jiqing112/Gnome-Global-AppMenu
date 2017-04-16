@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-12-11 03:01-0600\n"
-"PO-Revision-Date: 2016-12-17 13:52-0600\n"
+"PO-Revision-Date: 2017-04-16 14:13-0500\n"
 "Last-Translator: Losywee <Losywee@gmail.com>\n"
 "Language-Team: OSPCNT <Losywee@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -19,8 +19,8 @@ msgstr ""
 "Language: zh_CN\n"
 
 #: applet.js:261
-msgid "Global Application Menu"
-msgstr "全局应用菜单"
+msgid "Gnome Global Application Menu"
+msgstr "Gnome 全局应用菜单"
 
 #: applet.js:292
 msgid "You need restart your computer, to active the unity-gtk-module"

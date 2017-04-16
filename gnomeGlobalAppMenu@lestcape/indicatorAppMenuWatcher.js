@@ -17,12 +17,14 @@
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Shell = imports.gi.Shell;
+const Meta = imports.gi.Meta;
 
 const Lang = imports.lang;
 const Signals = imports.signals;
 
 const Main = imports.ui.main;
 const Util = imports.misc.util;
+
 
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
 const DBusMenu = MyExtension.imports.dbusMenu;
@@ -144,11 +146,24 @@ SystemProperties.prototype = {
       return isReady;
    },
 
+   activeQtPlatform: function(active) {
+      let envMenuProxy = GLib.getenv('QT_QPA_PLATFORMTHEME');
+      if(active && (envMenuProxy.indexOf("appmenu") == -1)) {
+         GLib.setenv('QT_QPA_PLATFORMTHEME', "appmenu-qt5", true);
+         return false;
+      } else if(active && (envMenuProxy.indexOf("appmenu") != -1)) {
+         GLib.setenv('QT_QPA_PLATFORMTHEME', "qgnomeplatform", true);
+      }
+      return true;
+   },
+
    activeUnityMenuProxy: function(active) {
       let envMenuProxy = GLib.getenv('UBUNTU_MENUPROXY');
-      if(envMenuProxy != "1") {
+      if(active && (envMenuProxy != "1")) {
          GLib.setenv('UBUNTU_MENUPROXY', "1", true);
          return false;
+      } else if(!active && envMenuProxy == "1") {
+         GLib.setenv('UBUNTU_MENUPROXY', "0", true);
       }
       return true;
    },
@@ -158,16 +173,16 @@ SystemProperties.prototype = {
       if(show && !this.isEnvironmentSet()) {
           let destFile = Gio.file_new_for_path(FILE_PATH).get_child('utils').get_child('environment.js');
           this._changeModeGFile(destFile, 755);
-          Util.spawn_async([destFile.get_path(), '-i'], Lang.bind(this, this._onEnvironmentChanged));
+          Util.spawn([destFile.get_path(), '-i'], Lang.bind(this, this._onEnvironmentChanged));
       } else if(!show && this.isEnvironmentSet()) {
           let destFile = Gio.file_new_for_path(FILE_PATH).get_child('utils').get_child('environment.js');
           this._changeModeGFile(destFile, 755);
-          Util.spawn_async([destFile.get_path(), '-u'], Lang.bind(this, this._onEnvironmentChanged));
+          Util.spawn([destFile.get_path(), '-u'], Lang.bind(this, this._onEnvironmentChanged));
       }
    },
 
    isEnvironmentSet: function() {
-      let path = "/etc/profile.d/gnome-globalmenu.sh";
+      let path = "/etc/profile.d/proxy-globalmenu.sh";
       let file = Gio.file_new_for_path(path);
       return file.query_exists(null);
    },
@@ -258,11 +273,6 @@ SystemProperties.prototype = {
 
    _setXSettingGtkModules: function(envGtkList) {
       this.xSetting.set_strv('enabled-gtk-modules', envGtkList);
-   },
-
-   _isGnomeShellSessionStart: function() {
-      let stringFile = this._readFile(GLib.get_home_dir() + "/.xsession-errors");
-      return ((!stringFile) || (stringFile.indexOf("About to start Gnome Shell") == stringFile.lastIndexOf("About to start Gnome Shell")));
    },
 
    _readFile: function(path) {
@@ -710,25 +720,30 @@ IndicatorAppMenuWatcher.prototype = {
    _onWindowChanged: function() {
       let xid = this._guessWindowXId(global.display.focus_window);
       if(xid) {
-         if(global.display.focus_window.set_hide_titlebar_when_maximized)
-             global.display.focus_window.set_hide_titlebar_when_maximized(true);
-         let registerWin = null;
-         if(xid in this._registeredWindows) {
-            registerWin = this._registeredWindows[xid];
-            if((!registerWin.fail) && 
-               ((!registerWin.appMenu)||(!registerWin.window))) {
-               this._registerAllWindows();
+         if(global.display.focus_window.get_window_type() != Meta.WindowType.DESKTOP) {
+            if(global.display.focus_window.set_hide_titlebar_when_maximized)
+               global.display.focus_window.set_hide_titlebar_when_maximized(true);
+            let registerWin = null;
+            if(xid in this._registeredWindows) {
                registerWin = this._registeredWindows[xid];
+               if((!registerWin.fail) && 
+                  ((!registerWin.appMenu)||(!registerWin.window))) {
+                  this._registerAllWindows();
+                  registerWin = this._registeredWindows[xid];
+               }
+            } else {
+               this._registerAllWindows();
+               if(xid in this._registeredWindows)
+                  registerWin = this._registeredWindows[xid];
+            }
+            this._updateIcon(xid);
+            if(registerWin) {
+               this.emit('appmenu-changed', registerWin.window);
+               this._xidLast = xid;
             }
          } else {
-            this._registerAllWindows();
-            if(xid in this._registeredWindows)
-               registerWin = this._registeredWindows[xid];
-         }
-         this._updateIcon(xid);
-         if(registerWin) {
-            this.emit('appmenu-changed', registerWin.window);
-            this._xidLast = xid;
+            this.emit('appmenu-changed', null);
+            this._xidLast = null;
          }
       } else {
          //this.emit('appmenu-changed', null);

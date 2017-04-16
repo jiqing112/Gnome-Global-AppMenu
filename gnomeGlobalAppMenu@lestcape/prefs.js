@@ -25,8 +25,13 @@ const WIN_HEIGHT = 600;
 const WIN_H_PADDING = 20;
 
 const Gettext = imports.gettext;
-//const Gettext = imports.gettext.domain(MyExtension.metadata['gettext-domain']);
-const _ = Gettext.gettext;
+function _(str) {
+    let resultConf = Gettext.dgettext(MyExtension.uuid, str);
+    if(resultConf != str) {
+        return resultConf;
+    }
+    return Gettext.gettext(str);
+};
 
 const ClassicGnomePreferencesWidget = new GObject.Class({
     Name: 'ClassicGnome.ClassicGnomePreferencesWidget',

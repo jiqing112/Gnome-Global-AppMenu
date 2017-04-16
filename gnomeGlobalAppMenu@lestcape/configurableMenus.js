@@ -2119,6 +2119,10 @@ GradientLabelMenuItem.prototype = {
       this.actor._delagate = this;
    },
 
+   _onButtonPressEvent: function(actor, event) {
+      return false;
+   },
+
    setText: function(text) {
       this._text = text;
       this._updateSize();

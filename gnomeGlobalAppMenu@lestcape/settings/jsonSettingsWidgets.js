@@ -296,7 +296,7 @@ function json_settings_factory(subclass) {
                 } else if (prop == "options") {
                     kwargs.options = [];
                     for (let label in properties[prop]) {
-                        kwargs.options.push([label, properties[prop][label]]);
+                        kwargs.options.push([properties[prop][label], label]);
                     }
                 }
             }
