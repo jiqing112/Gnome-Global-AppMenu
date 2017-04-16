@@ -1751,7 +1751,7 @@ ConfigurablePopupBaseMenuItem.prototype = {
 
    _onButtonPressEvent: function(actor, event) {
       this.activate(event, false);
-      return false;
+      return true;
    },
 
    _onButtonReleaseEvent: function(actor, event) {
@@ -3408,7 +3408,7 @@ ConfigurablePopupMenuBase.prototype = {
          menuItem._subMenuDestroyId = null;
       //}
       } catch(e) {
-         global.logError("Try to disconnect unexisting menu: " + menu + " signals in menuitem: " + menuItem);
+         //global.logError("Try to disconnect unexisting menu: " + menu + " signals in menuitem: " + menuItem);
       }
    },
 
@@ -4319,6 +4319,9 @@ ConfigurableMenu.prototype = {
          case "windows":
             this._effectWindowsOpen();
             break;
+         default:
+            this._effectNoneOpen();
+            break;
       }
    },
 
@@ -4341,6 +4344,9 @@ ConfigurableMenu.prototype = {
             break;
          case "windows":
             this._effectWindowsClose();
+            break;
+         default:
+            this._effectNoneClose();
             break;
       }
    },

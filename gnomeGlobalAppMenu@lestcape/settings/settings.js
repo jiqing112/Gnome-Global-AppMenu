@@ -591,7 +591,6 @@ XletSettingsBase.prototype = {
 
     _ensureSettingsFiles: function() {
         let configPath = [GLib.get_home_dir(), Config.USER_DOMAIN_FOLDER, Config.USER_CONFIG_FOLDER, this.uuid].join("/");
-        Main.notify("called" + configPath);
         let configDir = Gio.file_new_for_path(configPath);
         if (!configDir.query_exists(null)) configDir.make_directory_with_parents(null);
         this.file = configDir.get_child(this.instanceId + ".json");
