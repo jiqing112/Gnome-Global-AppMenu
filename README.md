@@ -20,7 +20,7 @@ Author of language translation:
 - Spanish(Es):      Lester Carballo Pérez(lestcape@gmail.com)
 
 --------------
-![](https://raw.githubusercontent.com/lestcape/Global-AppMenu/master/globalAppMenu%40lestcape/Capture.png)
+![](https://raw.githubusercontent.com/lestcape/Gnome-Global-AppMenu/master/gnomeGlobalAppMenu%40lestcape/Capture.png)
 
 Description
 --------------
@@ -37,6 +37,7 @@ Known issues (Try at your own risk):
 * Not all apps are tested and then the extension could takes ages to load and can freeze Gnome Shell forever.
 * There are some unsupported apps that can not be integrate into the extension, like Blender, as has his own GUI toolkit.
 * For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
+* Some Gnome applications like Nautilus, remove the possibility to export the menu in recently versions (you can use instead an alternative applications).
 
 Experimental JAyatana support (try at your own risk):
 --------------
