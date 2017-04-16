@@ -1,0 +1,266 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Global Application Menu 0.1-Beta\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-12-11 03:01-0600\n"
+"PO-Revision-Date: 2016-12-17 13:52-0600\n"
+"Last-Translator: Losywee <Losywee@gmail.com>\n"
+"Language-Team: OSPCNT <Losywee@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Language: zh_CN\n"
+
+#: applet.js:261
+msgid "Global Application Menu"
+msgstr "全局应用菜单"
+
+#: applet.js:292
+msgid "You need restart your computer, to active the unity-gtk-module"
+msgstr "您需要重启电脑激活unity-gtk-module"
+
+#: applet.js:423
+msgid "The environment variable cannot be changed"
+msgstr ""
+
+#: applet.js:425
+msgid "The environment variable was set, a logout will be required to apply the changes"
+msgstr ""
+
+#: utils/environment.js:45
+msgid "Global Menu Environment Usage"
+msgstr ""
+
+#: utils/environment.js:46
+msgid "Install environment variables"
+msgstr ""
+
+#: utils/environment.js:47
+msgid "Uninstall environment variables"
+msgstr ""
+
+#: utils/environment.js:139
+msgid "Please enter your password to configure the Menu Proxy environment variable"
+msgstr ""
+
+#: utils/environment.js:150
+msgid "Could not acquire root privileges"
+msgstr ""
+
+#: utils/environment.js:162
+msgid "Could not find current file"
+msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-
+#. size->description
+msgid "Maximum size of the application name:"
+msgstr "应用名最大大小："
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
+msgid "Set the maximum size of the application name."
+msgstr "设置最大应用名大小。"
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
+msgid "characters"
+msgstr "字符"
+
+#. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
+msgid "Show a linear gradient effect in the application name"
+msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
+msgid "Select if you want to show a linear gradient effect in the application name."
+msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
+msgid "Submenu"
+msgstr "子菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
+msgid "Show icons in the menu items"
+msgstr "显示菜单项图标"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
+msgid "Select if you want to show icons in the menu items."
+msgstr "选择是否显示应用项图标"
+
+#. globalAppMenu@lestcape->settings-schema.json->align-menu-
+#. launcher->description
+msgid "Align all menus with his launcher"
+msgstr "在启动器对齐所有图标"
+
+#. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
+msgid "Select if you want to align all menus with his launcher."
+msgstr "选择是否对齐启动器菜单项"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect->description
+msgid "Effect on opening and closing:"
+msgstr "打开和关闭效果："
+
+#. globalAppMenu@lestcape->settings-schema.json->effect->tooltip
+msgid "Select the effect on the menu opening and closing."
+msgstr "选择菜单打开和关闭的效果。"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "None"
+msgstr "空"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Dispel"
+msgstr "清除"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Hide Horizontal"
+msgstr "水平方向隐藏"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Hide Vertical"
+msgstr "垂直方向隐藏"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Scale"
+msgstr "比例"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Windows"
+msgstr "窗口"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect-time->description
+msgid "Duration of effect:"
+msgstr "持续效果："
+
+#. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
+msgid "The time on seconds to perform the effect(More time is slower)."
+msgstr "通过秒来显示效果（数值越大越慢）"
+
+#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
+#. mainmenu->description
+msgid "Automatically activate the main menu"
+msgstr "自动激活主菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
+#. mainmenu->tooltip
+msgid "Select if you want to automatically activate the main menu."
+msgstr "选择是否自动激活主菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->description
+msgid "Open the menu when I move my mouse over it"
+msgstr "当鼠标移到该位置时打开菜单。"
+
+#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
+msgid "Enable opening the menu when the mouse enters the applet"
+msgstr "当鼠标进入应用的时候启用菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
+#. icon->description
+msgid "Desaturate the application icon"
+msgstr "减淡图标饱和度："
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
+msgid "Select if you want to desaturate the application icon"
+msgstr "选择是否减淡图标饱和度。"
+
+#. globalAppMenu@lestcape->settings-schema.json->open-active-
+#. submenu->description
+msgid "Automatically open the submenu"
+msgstr "自动打开子菜单。"
+
+#. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically open the submenu when the mouse is inside of the "
+"launcher."
+msgstr "选择当鼠标停留在启动器时是否打开子菜单。"
+
+#. globalAppMenu@lestcape->settings-schema.json->close-active-
+#. submenu->description
+msgid "Automatically close the submenu"
+msgstr "自动关闭子菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically close the submenu when the mouse is out of the "
+"launcher."
+msgstr "选择鼠标离开启动器时是否自动关闭子菜单。"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
+msgid "Show the application name in the panel"
+msgstr "在面板显示应用名"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
+msgid "Select if you want to show the application name in the panel."
+msgstr "选择是否在面板显示应用名"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
+msgid "Main menu"
+msgstr "主菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->description
+msgid "Display the main menu in the panel"
+msgstr "在面板显示主菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->tooltip
+msgid "Select if you want to display the main menu in the panel."
+msgstr "选择是否在面板显示主菜单。"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-menuitem->description
+msgid "Menu items"
+msgstr "子菜单"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-support->description
+msgid "Support"
+msgstr "支持我们"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-application->description
+msgid "Applications"
+msgstr "应用"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
+msgid "Show the boxpointers"
+msgstr "显示边框指针"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
+msgid "Select if you want to show the boxpointer of all floating menus."
+msgstr "选择是否在所有的浮动菜单显示边框指针"
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
+msgid "Statically set the menu proxy environment variable (Experimental)"
+msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
+msgid "Select if you want to set statically the menu proxy environment variable."
+msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
+msgid "Enable the support for JAyantana (Experimental)"
+msgstr "启用JAyantana支持（实验性功能）"
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
+msgid "Select if you want to enable the support for JAyantana."
+msgstr "选择是否开启JAyantana功能"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
+msgid "Show the application icon in the panel"
+msgstr "显示应用图标到面板"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
+msgid "Select if you want to show the application icon in the panel."
+msgstr "选择是否显示应用图标到面板"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
+msgid "Desaturate icons in the menu items"
+msgstr "减淡子菜单图标"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
+msgid "Select if you want to desaturate icons in the menu items."
+msgstr "选择是否减淡子菜单图标。"
+
+#. globalAppMenu@lestcape->metadata.json->description
+msgid "Adds global application menu support to Cinnamon"
+msgstr "给Cinnamon添加全局应用菜单支持。"
