@@ -271,6 +271,19 @@ MyApplet.prototype = {
          this._createSettings();
          this._cleanAppmenu();
 
+         this.indicatorDbus = null;
+         this._sessionUpdated();
+         Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated)); 
+      }
+      catch(e) {
+         Main.notify("Init error %s".format(e.message));
+         global.logError("Init error %s".format(e.message));
+      }
+   },
+
+   _sessionUpdated: function() {
+      let sensitive = !Main.sessionMode.isLocked && !Main.sessionMode.isGreeter;
+      if(!this.indicatorDbus || (sensitive && !this.indicatorDbus.isWatching())) {
          this.indicatorDbus = new IndicatorAppMenuWatcher.IndicatorAppMenuWatcher(
             IndicatorAppMenuWatcher.AppmenuMode.MODE_STANDARD, this._getIconSize());
          
@@ -283,34 +296,30 @@ MyApplet.prototype = {
              Main.notify(_("You need restart your computer, to active the unity-gtk-module"));
          }
       }
-      catch(e) {
-         Main.notify("Init error %s".format(e.message));
-         global.logError("Init error %s".format(e.message));
-      }
    },
 
-    _onButtonPressEvent: function (actor, event) {
-        if (this._applet_enabled) {
-            if (event.get_button() == 1) {
-                if (!this._draggable.inhibit) {
-                    if (Main.overview.shouldToggleByCornerOrButton())
-                        Main.overview.toggle();
-                    return true;
-                } else {
-                    if (this._applet_context_menu.isOpen) {
-                        this._applet_context_menu.toggle();
-                    }
-                    this.on_applet_clicked(event);
-                }
+   _onButtonPressEvent: function (actor, event) {
+      if (this._applet_enabled) {
+         if (event.get_button() == 1) {
+            if (!this._draggable.inhibit) {
+               if (Main.overview.shouldToggleByCornerOrButton())
+                  Main.overview.toggle();
+               return true;
+            } else {
+               if (this._applet_context_menu.isOpen) {
+                  this._applet_context_menu.toggle();
+               }
+               this.on_applet_clicked(event);
             }
-            if (event.get_button() == 3) {
-                if (this._applet_context_menu.getMenuItems().length > 0) {
-                    this._applet_context_menu.toggle();
-                }
+         }
+         if (event.get_button() == 3) {
+            if (this._applet_context_menu.getMenuItems().length > 0) {
+               this._applet_context_menu.toggle();
             }
-        }
-        return true;
-    },
+         }
+      }
+      return true;
+   },
 
    _createSettings: function() {
       this.settings = new Settings.AppletSettings(this, this.uuid, this.instance_id);

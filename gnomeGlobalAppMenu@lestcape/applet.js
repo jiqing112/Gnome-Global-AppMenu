@@ -228,16 +228,25 @@ AppletContextMenu.prototype = {
      */
     _init: function(launcher, orientation) {
         PopupMenu.PopupMenu.prototype._init.call(this, launcher.actor, orientation);
+        this.launcher = launcher;
         Main.uiGroup.add_actor(this.actor);
         this.actor.hide();
-        this.connect("open-state-changed", Lang.bind(this, this._onOpenStateChanged, launcher.actor));
-        launcher.connect("orientation-changed", Lang.bind(this, function(a, orientation) {
+        this.connect("open-state-changed", Lang.bind(this, this._onOpenStateChanged, this.launcher.actor));
+        this._orientationId = this.launcher.connect("orientation-changed", Lang.bind(this, function(a, orientation) {
             this.setArrowSide(orientation);
         }));
     },
 
     _onOpenStateChanged: function(menu, open, sourceActor) {
         sourceActor.change_style_pseudo_class("checked", open);
+    },
+
+    destroy: function() {
+        if(this._orientationId) {
+            this.launcher.disconnect(this._orientationId);
+            this._orientationId = null;
+        }
+        PopupMenu.PopupMenu.prototype.destroy.call(this);
     }
 };
 
@@ -268,11 +277,11 @@ AppletPopupMenu.prototype = {
         Main.uiGroup.add_actor(this.actor);
         this.actor.hide();
         this.launcher = launcher;
-        if (launcher instanceof Applet) {
-            this.connect("open-state-changed", Lang.bind(this, this._onOpenStateChanged, launcher));
-            launcher.connect("orientation-changed", Lang.bind(this, this._onOrientationChanged));
-        } else if (launcher._applet) {
-            launcher._applet.connect("orientation-changed", Lang.bind(this, this._onOrientationChanged));
+        if (this.launcher instanceof Applet) {
+            this.connect("open-state-changed", Lang.bind(this, this._onOpenStateChanged, this.launcher));
+            this._orientationId = this.launcher.connect("orientation-changed", Lang.bind(this, this._onOrientationChanged));
+        } else if (this.launcher._applet) {
+            this._orientationId = this.launcher._applet.connect("orientation-changed", Lang.bind(this, this._onOrientationChanged));
         }
     },
 
@@ -283,6 +292,14 @@ AppletPopupMenu.prototype = {
     _onOpenStateChanged: function(menu, open, sourceActor) {
         if (!sourceActor._applet_context_menu.isOpen)
             sourceActor.actor.change_style_pseudo_class("checked", open);
+    },
+
+    destroy: function() {
+        if(this._orientationId) {
+            this.launcher.disconnect(this._orientationId);
+            this._orientationId = null;
+        }
+        PopupMenu.PopupMenu.prototype.destroy.call(this);
     }
 };
 

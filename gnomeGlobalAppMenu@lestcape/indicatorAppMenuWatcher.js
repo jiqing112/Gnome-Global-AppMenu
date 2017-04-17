@@ -394,7 +394,7 @@ IndicatorAppMenuWatcher.prototype = {
    },
 
    isWatching: function() {
-      return (this._ownName);
+      return (this._ownName != null);
    },
 
    getMenuForWindow: function(wind) {
@@ -453,10 +453,12 @@ IndicatorAppMenuWatcher.prototype = {
    },
 
    _lostName: function() {
+      this._everAcquiredName = false;
       if(this._everAcquiredName)
          global.log("%s Lost name %s".format(LOG_NAME, WATCHER_INTERFACE));
       else
          global.logWarning("%s Failed to acquire %s".format(LOG_NAME, WATCHER_INTERFACE));
+      this._ownName = null;
    },
 
    // Async because we may need to check the presence of a menubar object as well as the creation is async.
@@ -719,7 +721,7 @@ IndicatorAppMenuWatcher.prototype = {
 
    _onWindowChanged: function() {
       let xid = this._guessWindowXId(global.display.focus_window);
-      if(xid) {
+      if(xid && this._registeredWindows) {
          if(global.display.focus_window.get_window_type() != Meta.WindowType.DESKTOP) {
             if(global.display.focus_window.set_hide_titlebar_when_maximized)
                global.display.focus_window.set_hide_titlebar_when_maximized(true);
@@ -834,6 +836,8 @@ IndicatorAppMenuWatcher.prototype = {
          }
          this._registeredWindows = null;
       }
+      this._everAcquiredName = false;
+      this._ownName = null;
    }
 };
 Signals.addSignalMethods(IndicatorAppMenuWatcher.prototype);
