@@ -731,7 +731,7 @@ BoxPointer.prototype = {
         let margin = (4 * borderRadius + borderWidth + arrowBase);
         let halfMargin = margin / 2;
 
-        let themeNode = this.actor.get_theme_node();
+        themeNode = this.actor.get_theme_node();
         let gap = themeNode.get_length('-boxpointer-gap');
 
         let resX, resY;
@@ -6841,7 +6841,7 @@ ConfigurableGridSection.prototype = {
       //return portSize;
       let spaceBox = new Clutter.ActorBox();
       x = box.x1 + leftEmptySpace;
-      let spaceBox = this._calculateSpaceBox(this._spaceActor, x, y, box);
+      spaceBox = this._calculateSpaceBox(this._spaceActor, x, y, box);
       this._spaceActor.allocate(spaceBox, flags);
       this.box.set_skip_paint(this._spaceActor, false);
       //Main.notify("" + spaceBox.y2 + "-" + spaceBox.y1 + "-" + spaceBox.x2 + "-" + spaceBox.x1);
@@ -8185,7 +8185,7 @@ MenuFactory.prototype = {
               PopupMenu using a non instance of the class PopupMenuAbstractFactory");
       }
       // The shell menu
-      let shellItem = this._createShellItem(factoryMenu, launcher, orientation, menuManager);
+      shellItem = this._createShellItem(factoryMenu, launcher, orientation, menuManager);
       this._attachToMenu(shellItem, factoryMenu);
       this._menuManager.push(menuManager);
       return shellItem;
@@ -8356,7 +8356,7 @@ MenuFactory.prototype = {
       let factoryItemParent = factoryItem.getParent();
       let parentMenu = null;
       if(factoryItemParent) {
-         let shellItemParent = factoryItemParent.getShellItem();
+         shellItemParent = factoryItemParent.getShellItem();
          if(shellItemParent instanceof ConfigurablePopupMenuSection)
             parentMenu = shellItemParent;
          else
