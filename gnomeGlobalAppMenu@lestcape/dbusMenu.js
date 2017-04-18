@@ -197,7 +197,7 @@ DbusMenuItem.prototype = {
 
    // Will steal the properties object
    _init: function(id, childrenIds, properties, client) {
-      ConfigurableMenus.PopupMenuAbstractFactory.prototype._init.call(this, id, childrenIds, this._createParameters(properties, client));
+      ConfigurableMenus.PopupMenuAbstractFactory.prototype._init.call(this, id, childrenIds, this._createParameters(id, properties, client));
    },
 
    updatePropertiesAsVariant: function(properties) {
@@ -221,7 +221,7 @@ DbusMenuItem.prototype = {
       if("icon-data" in properties)
          this.setGdkIcon(this._getGdkIcon(propStore.getVariant("icon-data")));
       if(("children-display" in properties)||("type" in properties))
-         this.setFactoryType(this._getFactoryType(propStore.getString('children-display'), propStore.getString('type')));
+         this.setFactoryType(this._getFactoryType(this._id, propStore.getString('children-display'), propStore.getString('type')));
       if("action" in properties)
          this.setAction(propStore.getString("action"));
       if("param-type" in properties)
@@ -229,18 +229,22 @@ DbusMenuItem.prototype = {
    },
 
    getItemById: function(id) {
-      return this._client.getItem(id);
+      if(this._client)
+         return this._client.getItem(id);
+      return -1;
    },
 
    handleEvent: function(event, params) {
       if(event in ConfigurableMenus.FactoryEventTypes) {
-         this._client.sendEvent(this._id, event, params, 0);
+         if(this._client) {
+            this._client.sendEvent(this._id, event, params, 0);
+         }
       }
    },
 
    // FIXME We really don't need the PropertyStore object, and some private function
    // could make a clean on our "unsave" variants.
-   _createParameters: function(properties, client) {
+   _createParameters: function(id, properties, client) {
       this._client = client;
       let propStore = new PropertyStore(properties);
       let params = {};
@@ -263,7 +267,7 @@ DbusMenuItem.prototype = {
       if("icon-data" in properties)
          params.iconData = this._getGdkIcon(propStore.getVariant("icon-data"));
       if(("children-display" in properties)||("type" in properties))
-         params.type = this._getFactoryType(propStore.getString('children-display'), propStore.getString('type'))
+         params.type = this._getFactoryType(id, propStore.getString('children-display'), propStore.getString('type'))
       if("action" in properties)
          params.action = propStore.getString("action");
       if("param-type" in properties)
@@ -274,7 +278,7 @@ DbusMenuItem.prototype = {
    _getAccel: function(accelName) {
       if(accelName) {
          // Main.notify("found" + accelName);
-         [key, mods] = Gtk.accelerator_parse(accelName);
+         let [key, mods] = Gtk.accelerator_parse(accelName);
          return Gtk.accelerator_get_label(key, mods);
       }
       return null;
@@ -334,9 +338,9 @@ DbusMenuItem.prototype = {
       return key;
    },
 
-   _getFactoryType: function(childDisplay, childType) {
-      if((childDisplay) || (childType)) {
-         if((childDisplay == "rootmenu")||(this._id == this._client.getRootId()))
+   _getFactoryType: function(id, childDisplay, childType) {
+      if(this._client && (childDisplay || childType)) {
+         if((childDisplay == "rootmenu")||(id == this._client.getRootId()))
             return ConfigurableMenus.FactoryClassTypes.RootMenuClass;
          if(childDisplay == "submenu")
             return ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass;
@@ -734,10 +738,8 @@ DBusClientGtk.prototype = {
 
    _endActionsUpdate: function(result, error, type) {//FIXME not all values are updated.
       if(error) {
-         global.logWarning("While reading menu actions: " + error);
-         return;
-      }
-      if((result) && (result[0])) {
+         //global.logWarning("While reading menu actions: " + error);
+      } else if((result) && (result[0])) {
          let propertiesHash = result[0];
          let isNotCreate = false;
 

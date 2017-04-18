@@ -148,10 +148,10 @@ SystemProperties.prototype = {
 
    activeQtPlatform: function(active) {
       let envMenuProxy = GLib.getenv('QT_QPA_PLATFORMTHEME');
-      if(active && (envMenuProxy.indexOf("appmenu") == -1)) {
+      if(active && (!envMenuProxy || (envMenuProxy.indexOf("appmenu") == -1))) {
          GLib.setenv('QT_QPA_PLATFORMTHEME', "appmenu-qt5", true);
          return false;
-      } else if(active && (envMenuProxy.indexOf("appmenu") != -1)) {
+      } else if(active && envMenuProxy && (envMenuProxy.indexOf("appmenu") != -1)) {
          GLib.setenv('QT_QPA_PLATFORMTHEME', "qgnomeplatform", true);
       }
       return true;
@@ -469,7 +469,8 @@ IndicatorAppMenuWatcher.prototype = {
          var windowPath = this._registeredWindows[xid].windowObjectPath;
          var appPath = this._registeredWindows[xid].appObjectPath;
          var is_gtk = this._registeredWindows[xid].isGtk;
-         if((sender)&&(menubarPath)) {
+         var wind = this._registeredWindows[xid].window;
+         if((sender)&&(menubarPath)&&(!wind || (wind.get_window_type() != Meta.WindowType.DESKTOP))) {
             if(!is_gtk) {
                this._validateMenu(sender, menubarPath, Lang.bind(this, function(r, name, menubarPath) {
                   if(r) {
@@ -500,7 +501,7 @@ IndicatorAppMenuWatcher.prototype = {
    },
 
    _onMenuClientReady: function(xid, client) {
-      if(client != null) {
+      if(this._registeredWindows && (client != null)) {
          this._registeredWindows[xid].appMenu = client;
          let root = client.getRoot();
          root.connectAndRemoveOnDestroy({
@@ -531,7 +532,7 @@ IndicatorAppMenuWatcher.prototype = {
          if(appMenu) {
             appMenu.destroy();
          }
-         if(this._xidLast == xid)
+         if(this.isWatching() && (this._xidLast == xid))
             this.emit('appmenu-changed', this._registeredWindows[xid].window);
       }
    },
@@ -815,6 +816,8 @@ IndicatorAppMenuWatcher.prototype = {
          // which results in our unholy debounce hack (see extension.js)
          Gio.DBus.session.unown_name(this._ownName);
          this._dbusImpl.unexport();
+         this._everAcquiredName = false;
+         this._ownName = null;
          if(this._focusWindowId > 0) {
             global.screen.get_display().disconnect(this._focusWindowId);
             this._focusWindowId = 0;
@@ -836,8 +839,6 @@ IndicatorAppMenuWatcher.prototype = {
          }
          this._registeredWindows = null;
       }
-      this._everAcquiredName = false;
-      this._ownName = null;
    }
 };
 Signals.addSignalMethods(IndicatorAppMenuWatcher.prototype);

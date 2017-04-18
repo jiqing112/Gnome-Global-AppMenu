@@ -208,6 +208,7 @@ function patchStIcon() {
        St.Icon._real_init = St.Icon.prototype._init;
        St.Icon.prototype._init = function(params) {
           this._important = false;
+          this._icon_type = null;
           if(params && (params !== undefined)) {
               if("icon_type" in params) {
                   this._icon_type = params["icon_type"];

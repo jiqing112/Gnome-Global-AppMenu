@@ -91,7 +91,11 @@ ScrollItemsBox.prototype = {
    },
 
    destroy: function() {
-      this.actor.destroy();
+      if(this.actor) {
+         this.emit('destroy');
+         this.actor.destroy();
+         this.actor = null;
+      }
    },
 
    _getTopMenu: function(actor) {
@@ -731,7 +735,6 @@ BoxPointer.prototype = {
         let margin = (4 * borderRadius + borderWidth + arrowBase);
         let halfMargin = margin / 2;
 
-        themeNode = this.actor.get_theme_node();
         let gap = themeNode.get_length('-boxpointer-gap');
 
         let resX, resY;
@@ -1589,7 +1592,10 @@ CheckButton.prototype = {
     },
 
     destroy: function() {
-        this.actor.destroy();
+        if(this.actor) {
+            this.actor.destroy();
+            this.actor = null;
+        }
     }
 };
 
@@ -1636,7 +1642,10 @@ RadioBox.prototype = {
     },
 
     destroy: function() {
-        this.actor.destroy();
+        if(this.actor) {
+            this.actor.destroy();
+            this.actor = null;
+        }
     }
 };
 
@@ -1888,8 +1897,8 @@ ConfigurablePopupBaseMenuItem.prototype = {
 
    destroy: function() {
       if(this.actor) {
-         this.actor.destroy();
          this.emit('destroy');
+         this.actor.destroy();
          this.actor = null;
       }
    },
@@ -2413,6 +2422,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          this._triangle.hide();
 
       this.actor.add(this._triangle, { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false });
+      this.menu = null;
       this._vectorBlocker = null;
       this._openMenuOnActivation = false;
       this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
@@ -2707,8 +2717,9 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
             this.menu.disconnect(this._menuOpenId);
             this._menuOpenId = 0;
          }
-         if(this._withMenu)
+         if(this._withMenu && this.menu) {
             this.menu.destroy();
+         }
          ConfigurableBasicPopupMenuItem.prototype.destroy.call(this);
          this.actor = null;
       }
@@ -2926,7 +2937,7 @@ ConfigurableMenuManager.prototype = {
             let oldMenu = this._activeMenu;
             this._activeMenu = null;
             oldMenu.close(false);
-            this.emit('close-menu', this.oldMenu);
+            this.emit('close-menu', oldMenu);
          }
          newMenu.open(true);
       } else {
@@ -3391,7 +3402,6 @@ ConfigurablePopupMenuBase.prototype = {
                   this._disconnectSubMenuSignals(menu.launcher, menu);
             }
          }));
-
       } else {
          global.logError("Try to reconnected menu: " + menu + " signals in menuitem: " + menuItem);
       }
@@ -3399,18 +3409,18 @@ ConfigurablePopupMenuBase.prototype = {
 
    _disconnectSubMenuSignals: function(menuItem, menu) {
      try {
-      //if(menuItem._subMenuActivateId) {
-         menu.disconnect(menuItem._subMenuActivateId);
-         menuItem._subMenuActivateId = null;
-      //}
-      //if(menuItem._subMenuActiveChangeId) {
-         menu.disconnect(menuItem._subMenuActiveChangeId);
-         menuItem._subMenuActiveChangeId = null;
-      //}
-      //if(menuItem._subMenuDestroyId) {
-         menu.disconnect(menuItem._subMenuDestroyId);
-         menuItem._subMenuDestroyId = null;
-      //}
+         if(menuItem._subMenuActivateId) {
+             menu.disconnect(menuItem._subMenuActivateId);
+             menuItem._subMenuActivateId = null;
+         }
+         if(menuItem._subMenuActiveChangeId) {
+             menu.disconnect(menuItem._subMenuActiveChangeId);
+             menuItem._subMenuActiveChangeId = null;
+         }
+         if(menuItem._subMenuDestroyId) {
+             menu.disconnect(menuItem._subMenuDestroyId);
+             menuItem._subMenuDestroyId = null;
+         }
       } catch(e) {
          //global.logError("Try to disconnect unexisting menu: " + menu + " signals in menuitem: " + menuItem);
       }
@@ -3654,9 +3664,16 @@ ConfigurablePopupMenuBase.prototype = {
    },
 
    destroy: function() {
-      this.destroyAllMenuItems();
-      this.actor.destroy();
-      this.emit('destroy');
+     if(this.actor) {
+         //FIXME: Hack, aparently this is needed.
+         let index = Main._findModal(this.actor);
+         if (index >= 0)
+             Main.popModal(this.actor);
+         this.destroyAllMenuItems();
+         this.emit('destroy');
+         this.actor.destroy();
+         this.actor = null;
+      }
    }
 };
 Signals.addSignalMethods(ConfigurablePopupMenuBase.prototype);
@@ -4914,7 +4931,7 @@ ConfigurableMenu.prototype = {
    },
 
    destroy: function() {
-      if(this.actor) {
+     if(this.actor) {
          if(this._vectorBlocker) {
             this._vectorBlocker.release();
             this._vectorBlocker = null;
@@ -6834,17 +6851,6 @@ ConfigurableGridSection.prototype = {
    },
 
    _updateSpace: function(availWidth) {
-      //let estimateHeight = this._getPreferredAllocationHeight(availWidth);
-      //Main.notify("" + viewPortHeight);
-      //let portSize = 20;
-      //this._spaceActor.height = this._getPreferredAllocationHeight(availWidth) - portSize*50;
-      //return portSize;
-      let spaceBox = new Clutter.ActorBox();
-      x = box.x1 + leftEmptySpace;
-      spaceBox = this._calculateSpaceBox(this._spaceActor, x, y, box);
-      this._spaceActor.allocate(spaceBox, flags);
-      this.box.set_skip_paint(this._spaceActor, false);
-      //Main.notify("" + spaceBox.y2 + "-" + spaceBox.y1 + "-" + spaceBox.x2 + "-" + spaceBox.x1);
    },
 
    _calculateSpaceBox: function(child, x, y, box) {
@@ -7463,18 +7469,22 @@ ConfigurableAppletMenu.prototype = {
    },
 
    destroy: function() {
-      this.parent._applet_label.get_parent().remove_actor(this.parent._applet_label);
-      this.parent._applet_icon_box.get_parent().remove_actor(this.parent._applet_icon_box);
+      if(this.actor) {
+         this.parent._applet_label.get_parent().remove_actor(this.parent._applet_label);
+         this.parent._applet_icon_box.get_parent().remove_actor(this.parent._applet_icon_box);
 
-      this.parent.actor.add(this.parent._applet_icon_box, { y_align: St.Align.MIDDLE, y_fill: false });
-      this.parent.actor.add(this.parent._applet_label, { y_align: St.Align.MIDDLE, y_fill: false });
-      this.disconnectCategories();
-      this.parent.actor.add_style_class_name('applet-box');
-      if(this.parent.orientation == St.Side.TOP)
-         this.parent.actor.add_style_class_name('menu-applet-panel-top-box');
-      else
-         this.parent.actor.add_style_class_name('menu-applet-panel-bottom-box'); 
-      this.actor.destroy();
+         this.parent.actor.add(this.parent._applet_icon_box, { y_align: St.Align.MIDDLE, y_fill: false });
+         this.parent.actor.add(this.parent._applet_label, { y_align: St.Align.MIDDLE, y_fill: false });
+         this.disconnectCategories();
+         this.parent.actor.add_style_class_name('applet-box');
+         if(this.parent.orientation == St.Side.TOP)
+            this.parent.actor.add_style_class_name('menu-applet-panel-top-box');
+         else
+            this.parent.actor.add_style_class_name('menu-applet-panel-bottom-box');
+         this.emit('destroy');
+         this.actor.destroy();
+         this.actor = null;
+      }
    },
 
    _takeControl: function() {
@@ -7999,8 +8009,6 @@ PopupMenuAbstractFactory.prototype = {
          if(focus && shellItem.actor && shellItem.actor.contains(focus)) {
             if(shellItem.sourceActor)
                shellItem.sourceActor.grab_key_focus();
-            else if((shellItem.menu)&&(shellItem.menu.sourceActor))
-               shellItem.menu.sourceActor.grab_key_focus();
             else
                global.stage.set_key_focus(null);
          }
@@ -8113,12 +8121,13 @@ PopupMenuAbstractFactory.prototype = {
       if(this._externalSignalsHandlers) {
          // Emit the destroy first, to allow know to external lisener,
          // then, disconnect the lisener handler.
-         this.emit("destroy");
-         this.destroyShellItem();
-         this.shellItem = null;
+
          this._disconnectSignals(this, this._externalSignalsHandlers);
          this._externalSignalsHandlers = null;
          this._internalSignalsHandlers = null;
+         this.emit('destroy');
+         this.destroyShellItem();
+         this.shellItem = null;
       }
    }
 };
@@ -8176,7 +8185,6 @@ MenuFactory.prototype = {
    },
 
    buildShellMenu: function(factoryMenu, launcher, orientation, menuManager) {
-      let shellItem = this.getShellMenu(factoryMenu);
       if(factoryMenu.shellItem)
          return factoryMenu.shellItem;
 
@@ -8185,7 +8193,7 @@ MenuFactory.prototype = {
               PopupMenu using a non instance of the class PopupMenuAbstractFactory");
       }
       // The shell menu
-      shellItem = this._createShellItem(factoryMenu, launcher, orientation, menuManager);
+      let shellItem = this._createShellItem(factoryMenu, launcher, orientation, menuManager);
       this._attachToMenu(shellItem, factoryMenu);
       this._menuManager.push(menuManager);
       return shellItem;
@@ -8209,7 +8217,7 @@ MenuFactory.prototype = {
       });
       this._menuLikend.push(factoryItem);
       factoryItem.connectAndRemoveOnDestroy({
-         'destroy'           : Lang.bind(this, this._onDestroyMainMenu)
+         'destroy' : Lang.bind(this, this._onDestroyMainMenu)
       });
    },
 
@@ -8356,7 +8364,7 @@ MenuFactory.prototype = {
       let factoryItemParent = factoryItem.getParent();
       let parentMenu = null;
       if(factoryItemParent) {
-         shellItemParent = factoryItemParent.getShellItem();
+         let shellItemParent = factoryItemParent.getShellItem();
          if(shellItemParent instanceof ConfigurablePopupMenuSection)
             parentMenu = shellItemParent;
          else
