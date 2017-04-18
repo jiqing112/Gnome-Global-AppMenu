@@ -8,6 +8,7 @@ const Clutter = imports.gi.Clutter;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
+const Meta = imports.gi.Meta;
 
 const Main = imports.ui.main;
 const Util = imports.misc.util;
@@ -32,6 +33,91 @@ const AllowedLayout = {  // the panel layout that an applet is suitable for
     BOTH: 'both'
 };
 
+function KeybindingManager() {
+    this._init();
+}
+
+KeybindingManager.prototype = {
+    _init: function() {
+        this.bindings = {};
+        this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));
+    },
+
+    _stageEventHandler: function(actor, event) {
+        if (event.type() == Clutter.EventType.KEY_PRESS) {
+            let symbol = event.get_key_symbol();
+            let keyCode = event.get_key_code();
+            let modifierState = event.get_state();
+
+            // This relies on the fact that Clutter.ModifierType is the same as Gdk.ModifierType
+            let action = global.display.get_keybinding_action(keyCode, modifierState);
+            if (action && Meta.external_binding_name_for_action(action).indexOf("external-grab") != -1) {
+                global.display.emit("accelerator-activated", action, null, global.get_current_time());
+            }
+        }
+    },
+
+    addHotKey: function(name, bindings_string, callback) {
+        if (!bindings_string)
+            return false;
+        return this.addHotKeyArray(name, bindings_string.split("::"), callback);
+    },
+
+    addHotKeyArray: function(name, bindings, callback) {
+        if (name in this.bindings) {
+            if (this.bindings[name].toString() == bindings.toString()) {
+              return true;
+            }
+            global.display.remove_custom_keybinding(name);
+        }
+
+        if (!bindings) {
+            global.logError("Missing bindings array for keybinding: " + name);
+            return false;
+        }
+
+        let empty = true;
+        for (let i = 0; empty && (i < bindings.length); i++) {
+            empty = bindings[i].toString().trim() == "";
+        }
+
+        if (empty) {
+            if (name in this.bindings)
+                delete this.bindings[name];
+            global.display.rebuild_keybindings();
+            return true;
+        }
+
+        if (!global.display.add_custom_keybinding(name, bindings, callback)) {
+            global.logError("Warning, unable to bind hotkey with name '" + name + "'.  The selected keybinding could already be in use.");
+            global.display.rebuild_keybindings();
+            return false;
+        } else {
+            this.bindings[name] = bindings;
+        }
+
+        global.display.rebuild_keybindings();
+        return true;
+    },
+
+    removeHotKey: function(name) {
+        if (name in this.bindings) {
+            global.display.remove_custom_keybinding(name);
+            global.display.rebuild_keybindings();
+            delete this.bindings[name];
+        }
+    },
+
+    destroy: function() {
+        if(this.hackId) {
+            global.stage.connect(this.hackId);
+            this.hackId = null;
+        }
+        for (name in this.bindings) {
+            this.removeHotKey(name);
+        }
+    },
+};
 
 /**
  * #SpicesAboutDialog:
@@ -383,6 +469,7 @@ Applet.prototype = {
 
         this.context_menu_item_remove = null;
         this.context_menu_separator = null;
+        this.keybindingManager = new KeybindingManager();
     },
 
     _onDragBegin: function() {

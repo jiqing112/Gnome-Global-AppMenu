@@ -633,10 +633,6 @@ const SettingsWidget = new GObject.Class({
     get_value: function() {
        return null;
     },
-
-    get_range: function() {
-       return [0, 0];
-    }
 });
 
 const SettingsLabel = new GObject.Class({
@@ -736,13 +732,13 @@ const SpinButton = new GObject.Class({
         this.pack_start(this.label, false, false, 0);
         this.pack_end(this.content_widget, false, false, 0);
 
-        let range = SettingsWidget.prototype.get_range.call(this);
+        let range = this.get_range();
         if ((params.mini == null) || (params.maxi == null)) {
-            params.mini = range[0];
             params.maxi = range[1];
+            params.mini = range[0];
         } else if (range != null) {
-            params.mini = Math.max(params.mini, range[0]);
             params.maxi = Math.min(params.maxi, range[1]);
+            params.mini = Math.max(params.mini, range[0]);
         }
 
         if (!params.page) {

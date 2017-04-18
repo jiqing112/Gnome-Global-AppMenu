@@ -474,11 +474,11 @@ MyApplet.prototype = {
    },
 
    _updateKeybinding: function() {
-      /*Main.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
-         if(this.menu && !Main.overview.visible && !Main.expo.visible) {
+      this.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
+         if(this.menu && !Main.overview.visible) {
             this.menu.toogleSubmenu(true);
          }
-      }));*/
+      }));
    },
 
    _onEffectTypeChanged: function() {
@@ -654,6 +654,7 @@ MyApplet.prototype = {
    on_applet_removed_from_panel: function() {
       this.indicatorDbus.destroy();
       this._finalizeEnvironment();
+      this.keybindingManager.destroy();
    },
 
    on_applet_clicked: function(event) {

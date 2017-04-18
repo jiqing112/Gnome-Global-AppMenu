@@ -273,6 +273,7 @@ function init() {
     const ExtensionUtils = imports.misc.extensionUtils.getCurrentExtension();
     window.cimports = ExtensionUtils.imports;
 
+    const Shell = imports.gi.Shell;
     const Main = imports.ui.main;
     ///const Overrides = imports.ui.overrides;
     ///const Format = imports.misc.format;
@@ -335,7 +336,7 @@ function init() {
             if(!global.display._custom_keybindings)
                 global.display._custom_keybindings = {};
             global.display._custom_keybindings[name] = [];
-            let modes = Cinnamon.ActionMode.ALL;
+            let modes = Shell.ActionMode.ALL;
             for (let pos in bindings) {
                 let action = global.display.grab_accelerator(bindings[pos]);
                 global.display._custom_keybindings[name].push(action);

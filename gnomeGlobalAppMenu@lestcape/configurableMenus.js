@@ -7231,7 +7231,7 @@ ConfigurableMenuApplet.prototype = {
    close: function(animate, forced) {
       if(this._floating) {
          ConfigurableMenu.prototype.close.call(this, false);
-      } else if((forced)&&(this.isOpen)) {
+      } else if((forced)&&(this.isOpen) && this.actor) {
          this.actor.hide();
          if(global.menuStackLength > 0)
              global.menuStackLength -= 1;
