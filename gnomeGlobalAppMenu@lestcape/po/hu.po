@@ -1,267 +1,284 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
-#, fuzzy
+# Hungarian translation for Gnome-Global-AppMenu.
+# Copyright (C) 2017 Free Software Foundation, Inc.
+# This file is distributed under the same license as the Gnome-Global-AppMenu package.
+#
+# Balázs Úr <urbalazs@gmail.com>, 2017.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: https://github.com/lestcape/Gnome-Global-AppMenu/issues\n"
 "POT-Creation-Date: 2015-05-14 06:58-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2017-04-19 21:11+0100\n"
+"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
+"Language-Team: Hungarian <openscope@googlegroups.com>\n"
+"Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: \n"
+"X-Generator: Lokalize 2.0\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 1.5.4\n"
 
 #: applet.js:261
 msgid "Gnome Global Application Menu"
-msgstr ""
+msgstr "GNOME globális alkalmazásmenü"
 
 #: applet.js:292
 msgid "You need restart your computer, to active the unity-gtk-module"
-msgstr ""
+msgstr "Újra kell indítania a számítógépet a unity-gtk-module bekapcsolásához"
 
 #: applet.js:423
 msgid "The environment variable cannot be changed"
-msgstr ""
+msgstr "A környezeti változót nem lehet megváltoztatni"
 
 #: applet.js:425
-msgid "The environment variable was set, a logout will be required to apply the changes"
+msgid ""
+"The environment variable was set, a logout will be required to apply the "
+"changes"
 msgstr ""
+"A környezeti változó be lett állítva, ki kell majd jelentkeznie a "
+"változtatások alkalmazásához"
 
 #: utils/environment.js:45
 msgid "Global Menu Environment Usage"
-msgstr ""
+msgstr "Globális menü környezeti használat"
 
 #: utils/environment.js:46
 msgid "Install environment variables"
-msgstr ""
+msgstr "Környezeti változók telepítése"
 
 #: utils/environment.js:47
 msgid "Uninstall environment variables"
-msgstr ""
+msgstr "Környezeti változók eltávolítása"
 
 #: utils/environment.js:139
-msgid "Please enter your password to configure the Menu Proxy environment variable"
-msgstr ""
+msgid ""
+"Please enter your password to configure the Menu Proxy environment variable"
+msgstr "Adja meg a jelszavát a menüproxy környezeti változó beállításához"
 
 #: utils/environment.js:150
 msgid "Could not acquire root privileges"
-msgstr ""
+msgstr "Nem sikerül rendszergazda jogosultságokat szerezni"
 
 #: utils/environment.js:162
 msgid "Could not find current file"
-msgstr ""
+msgstr "Nem található a jelenlegi fájl"
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-
 #. size->description
 msgid "Maximum size of the application name:"
-msgstr ""
+msgstr "Az alkalmazás nevének legnagyobb mérete:"
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
 msgid "Set the maximum size of the application name."
-msgstr ""
+msgstr "Az alkalmazásnév legnagyobb méretének beállítása."
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
 msgid "characters"
-msgstr ""
+msgstr "karakter"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
 msgid "Show a linear gradient effect in the application name"
-msgstr ""
+msgstr "Lineáris színátmeneti hatás megjelenítése az alkalmazás nevében"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
-msgid "Select if you want to show a linear gradient effect in the application name."
+msgid ""
+"Select if you want to show a linear gradient effect in the application name."
 msgstr ""
+"Válassza ki, ha lineáris színátmeneti hatást szeretne megjeleníteni az "
+"alkalmazás nevében."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
 msgid "Submenu"
-msgstr ""
+msgstr "Almenü"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
 msgid "Show icons in the menu items"
-msgstr ""
+msgstr "Ikonok megjelenítése a menüpontokban"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
 msgid "Select if you want to show icons in the menu items."
-msgstr ""
+msgstr "Válassza ki, ha ikonokat szeretne megjeleníteni a menüpontokban."
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-
 #. launcher->description
 msgid "Align all menus with his launcher"
-msgstr ""
+msgstr "Az összes menü igazítása az indítójához"
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
 msgid "Select if you want to align all menus with his launcher."
-msgstr ""
+msgstr "Válassza ki, ha az összes menüt az indítójához szeretné igazítani."
 
 #. globalAppMenu@lestcape->settings-schema.json->effect->description
 msgid "Effect on opening and closing:"
-msgstr ""
+msgstr "Hatás megnyitáskor és bezáráskor:"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect->tooltip
 msgid "Select the effect on the menu opening and closing."
-msgstr ""
+msgstr "Válassza ki a hatást a menü megnyitásakor és bezárásakor."
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
 msgid "None"
-msgstr ""
+msgstr "Nincs"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
 msgid "Dispel"
-msgstr ""
+msgstr "Eloszlatás"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
 msgid "Hide Horizontal"
-msgstr ""
+msgstr "Elrejtés vízszintesen"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
 msgid "Hide Vertical"
-msgstr ""
+msgstr "Elrejtés függőlegesen"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
 msgid "Scale"
-msgstr ""
+msgstr "Méretezés"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
 msgid "Windows"
-msgstr ""
+msgstr "Ablakok"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->description
 msgid "Duration of effect:"
-msgstr ""
+msgstr "Hatás időtartama:"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
 msgid "The time on seconds to perform the effect (more time is slower)."
-msgstr ""
+msgstr "Az idő másodpercben a hatás végrehajtásához (a több idő lassabb)."
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
 #. mainmenu->description
 msgid "Automatically activate the main menu"
-msgstr ""
+msgstr "A főmenü automatikus aktiválása"
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
 #. mainmenu->tooltip
 msgid "Select if you want to automatically activate the main menu."
-msgstr ""
+msgstr "Válassza ki, ha automatikusan aktiválni szeretné a főmenüt."
 
 #. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->description
 msgid "Open the menu when I move my mouse over it"
-msgstr ""
+msgstr "Menü megnyitása, ha az egeret fölé húzom"
 
 #. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
 msgid "Enable opening the menu when the mouse enters the applet."
-msgstr ""
+msgstr "A menü megnyitásának engedélyezése, ha az egér eléri a kisalkalmazást."
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
 #. icon->description
 msgid "Desaturate the application icon"
-msgstr ""
+msgstr "Az alkalmazás ikonjának telítetlenné tétele"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
 msgid "Select if you want to desaturate the application icon."
-msgstr ""
+msgstr "Válassza ki, ha az alkalmazás ikonját telítetlenné szeretné tenni."
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-
 #. submenu->description
 msgid "Automatically open the submenu"
-msgstr ""
+msgstr "Az almenü automatikus megnyitása"
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
 msgid ""
 "Select if you want to automatically open the submenu when the mouse is inside "
 "of the launcher."
 msgstr ""
+"Válassza ki, ha automatikusan meg szeretné nyitni az almenüt, amikor az egér "
+"az indítón belül van."
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-
 #. submenu->description
 msgid "Automatically close the submenu"
-msgstr ""
+msgstr "Az almenü automatikus bezárása"
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
 msgid ""
 "Select if you want to automatically close the submenu when the mouse is out "
 "of the launcher."
 msgstr ""
+"Válassza ki, ha automatikusan be szeretné zárni az almenüt, amikor az egér az "
+"indítón kívül van."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
 msgid "Show the application name in the panel"
-msgstr ""
+msgstr "Az alkalmazás nevének megjelenítése a panelen"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
 msgid "Select if you want to show the application name in the panel."
-msgstr ""
+msgstr "Válassza ki, ha az alkalmazás nevét meg szeretné jeleníteni a panelen."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
 msgid "Main menu"
-msgstr ""
+msgstr "Főmenü"
 
 #. globalAppMenu@lestcape->settings-schema.json->display-in-panel->description
 msgid "Display the main menu in the panel"
-msgstr ""
+msgstr "A főmenü megjelenítése a panelen"
 
 #. globalAppMenu@lestcape->settings-schema.json->display-in-panel->tooltip
 msgid "Select if you want to display the main menu in the panel."
-msgstr ""
+msgstr "Válassza ki, ha a főmenüt meg szeretné jeleníteni a panelen."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-menuitem->description
 msgid "Menu items"
-msgstr ""
+msgstr "Menüpontok"
 
 #. globalAppMenu@lestcape->settings-schema.json->head-support->description
 msgid "Support"
-msgstr ""
+msgstr "Támogatás"
 
 #. globalAppMenu@lestcape->settings-schema.json->head-application->description
 msgid "Applications"
-msgstr ""
+msgstr "Alkalmazások"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
 msgid "Show the boxpointers"
-msgstr ""
+msgstr "A dobozmutatók megjelenítése"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
 msgid "Select if you want to show the boxpointer of all floating menus."
 msgstr ""
+"Válassza ki, ha az összes lebegő menü dobozmutatóját meg szeretné jeleníteni."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
 msgid "Statically set the menu proxy environment variable (Experimental)"
-msgstr ""
+msgstr "A menüproxy környezeti változó statikus beállítása (kísérleti)"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
-msgid "Select if you want to set statically the menu proxy environment variable."
+msgid ""
+"Select if you want to set statically the menu proxy environment variable."
 msgstr ""
+"Válassza ki, ha a menüproxy környezeti változót statikusan szeretné "
+"beállítani."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
 msgid "Enable the support for JAyantana (Experimental)"
-msgstr ""
+msgstr "A JAyantana támogatásának engedélyezése (kísérleti)"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
 msgid "Select if you want to enable the support for JAyantana."
-msgstr ""
+msgstr "Válassza ki, ha a engedélyezni szeretné a JAyantana támogatást."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
 msgid "Show the application icon in the panel"
-msgstr ""
+msgstr "Az alkalmazás ikonjának megjelenítése a panelen"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
 msgid "Select if you want to show the application icon in the panel."
 msgstr ""
+"Válassza ki, ha az alkalmazás ikonját meg szeretné jeleníteni a panelen."
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
 msgid "Desaturate icons in the menu items"
-msgstr ""
+msgstr "Ikonok telítetlenné tétele a menüpontokban"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
 msgid "Select if you want to desaturate icons in the menu items."
-msgstr ""
+msgstr "Válassza ki, ha ikonokat telítetlenné szeretné tenni a menüpontokban."
 
 #. globalAppMenu@lestcape->metadata.json->description
 msgid "Adds global application menu support to Cinnamon"
-msgstr ""
+msgstr "Globális alkalmazásmenü támogatást ad a Cinnamonhoz"
+

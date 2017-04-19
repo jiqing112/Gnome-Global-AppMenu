@@ -41,7 +41,7 @@
         "type" : "checkbox",
         "default" : false,
         "description": "Desaturate the application icon",
-        "tooltip": "Select if you want to desaturate the application icon",
+        "tooltip": "Select if you want to desaturate the application icon.",
         "indent": true,
         "dependency": "show-app-icon"
     },
@@ -102,7 +102,7 @@
         "type": "checkbox",
         "default": false,
         "description": "Open the menu when I move my mouse over it",
-        "tooltip": "Enable opening the menu when the mouse enters the applet"
+        "tooltip": "Enable opening the menu when the mouse enters the applet."
     },
     "separator-submenu-top" : {
         "type": "separator"
@@ -160,7 +160,7 @@
         "step": 0.05,
         "units": "seconds",
         "description": "Duration of effect:",
-        "tooltip": "The time on seconds to perform the effect(More time is slower)."
+        "tooltip": "The time on seconds to perform the effect (more time is slower)."
     },
     "separator-menuitem-top" : {
         "type": "separator"
