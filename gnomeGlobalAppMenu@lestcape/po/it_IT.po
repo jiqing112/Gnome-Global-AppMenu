@@ -1,0 +1,285 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <matteoiervasi@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-04-20 22:09+0200\n"
+"PO-Revision-Date: 2017-04-20 22:38+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Last-Translator: Matteo Iervasi <matteoiervasi@gmail.com>\n"
+"Language: it_IT\n"
+
+#: applet.js:261
+msgid "Gnome Global Application Menu"
+msgstr ""
+
+#: applet.js:292
+msgid "You need restart your computer, to active the unity-gtk-module"
+msgstr "È necessario riavviare il computer per attivare unity-gtk-module"
+
+#: applet.js:423
+msgid "The environment variable cannot be changed"
+msgstr "La variabile d'ambiente non può essere cambiata"
+
+#: applet.js:425
+msgid ""
+"The environment variable was set, a logout will be required to apply the "
+"changes"
+msgstr ""
+"La variabile d'ambiente è stata impostata, eseguire un logout per applicare "
+"le modifiche"
+
+#: utils/environment.js:45
+msgid "Global Menu Environment Usage"
+msgstr "Utilizzo dell'ambiente Global Menu"
+
+#: utils/environment.js:46
+msgid "Install environment variables"
+msgstr "Imposta variabili d'ambiente"
+
+#: utils/environment.js:47
+msgid "Uninstall environment variables"
+msgstr "Cancella variabili d'ambiente"
+
+#: utils/environment.js:139
+msgid ""
+"Please enter your password to configure the Menu Proxy environment variable"
+msgstr ""
+"Inserire la password per configurare la variabile d'ambiente Menu Proxy"
+
+#: utils/environment.js:150
+msgid "Could not acquire root privileges"
+msgstr "Impossibile acquisire i privilegi di root"
+
+#: utils/environment.js:162
+msgid "Could not find current file"
+msgstr "Impossibile trovare il file corrente"
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-
+#. size->description
+msgid "Maximum size of the application name:"
+msgstr "Lunghezza massima del nome dell'applicazione:"
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
+msgid "Set the maximum size of the application name."
+msgstr "Imposta la massima lunghezza del nome dell'applicazione."
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
+msgid "characters"
+msgstr "caratteri"
+
+#. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
+msgid "Show a linear gradient effect in the application name"
+msgstr "Mostra un effetto sfumatura nel nome dell'applicazione"
+
+#. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
+msgid ""
+"Select if you want to show a linear gradient effect in the application name."
+msgstr ""
+"Selezione se vuoi mostrare un effetto sfumatura nel nome dell'applicazione"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
+msgid "Submenu"
+msgstr "Sottomenù"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
+msgid "Show icons in the menu items"
+msgstr "Visualizza le icone nelle voci del menù"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
+msgid "Select if you want to show icons in the menu items."
+msgstr "Seleziona se vuoi visualizzare le icone nelle voci del menù."
+
+#. globalAppMenu@lestcape->settings-schema.json->align-menu-
+#. launcher->description
+msgid "Align all menus with his launcher"
+msgstr "Allinea tutti i menù con il launcher"
+
+#. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
+msgid "Select if you want to align all menus with his launcher."
+msgstr "Seleziona se vuoi allineare tutti i menù con il launcher."
+
+#. globalAppMenu@lestcape->settings-schema.json->effect->description
+msgid "Effect on opening and closing:"
+msgstr "Effetto di apertura e chiusura:"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect->tooltip
+msgid "Select the effect on the menu opening and closing."
+msgstr "Selezionare l'effetto di apertura e chiusura del menù."
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "None"
+msgstr "Nessuno"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Dispel"
+msgstr "Dissolvenza"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Hide Horizontal"
+msgstr "Nascondi in orizzontale"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Hide Vertical"
+msgstr "Nascondi in verticale"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Scale"
+msgstr "Scala"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Windows"
+msgstr "Finestre"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect-time->description
+msgid "Duration of effect:"
+msgstr "Durata dell'effetto:"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
+msgid "The time on seconds to perform the effect (more time is slower)."
+msgstr ""
+"Tempo in secondi di durata dell'effetto (più tempo corrisponde a un effetto "
+"più lento)."
+
+#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
+#. mainmenu->description
+msgid "Automatically activate the main menu"
+msgstr "Attiva automaticamente il menù principale"
+
+#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
+#. mainmenu->tooltip
+msgid "Select if you want to automatically activate the main menu."
+msgstr "Seleziona se vuoi attivare automaticamente il menù principale."
+
+#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->description
+msgid "Open the menu when I move my mouse over it"
+msgstr "Apri il menù quando muovo il mouse sopra di esso"
+
+#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
+msgid "Enable opening the menu when the mouse enters the applet."
+msgstr "Abilita l'apertura del menù quando il mouse ci passa sopra."
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
+#. icon->description
+msgid "Desaturate the application icon"
+msgstr "Desatura l'icona dell'applicazione"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
+msgid "Select if you want to desaturate the application icon."
+msgstr "Seleziona se vuoi desaturare l'icona dellìapplicazione."
+
+#. globalAppMenu@lestcape->settings-schema.json->open-active-
+#. submenu->description
+msgid "Automatically open the submenu"
+msgstr "Apri automaticamente il sottomenù"
+
+#. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically open the submenu when the mouse is "
+"inside of the launcher."
+msgstr ""
+"Seleziona se vuoi aprire automaticamente il sottomenù quando il mouse è "
+"all'interno."
+
+#. globalAppMenu@lestcape->settings-schema.json->close-active-
+#. submenu->description
+msgid "Automatically close the submenu"
+msgstr "Chiudi automaticamente il sottomenù"
+
+#. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically close the submenu when the mouse is out "
+"of the launcher."
+msgstr ""
+"Seleziona se vuoi chiudere automaticamente il sottomenù quando il mouse è "
+"all'esterno."
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
+msgid "Show the application name in the panel"
+msgstr "Visualizza il nome dell'applicazione nel pannello"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
+msgid "Select if you want to show the application name in the panel."
+msgstr ""
+"Seleziona se vuoi visualizzare il nome dell'applicazione nel pannello."
+
+#. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
+msgid "Main menu"
+msgstr "Menù principale"
+
+#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->description
+msgid "Display the main menu in the panel"
+msgstr "Visualizza il menù principale nel pannello"
+
+#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->tooltip
+msgid "Select if you want to display the main menu in the panel."
+msgstr "Seleziona se vuoi visualizzare il menù principale nel pannello."
+
+#. globalAppMenu@lestcape->settings-schema.json->head-menuitem->description
+msgid "Menu items"
+msgstr "Voci menù"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-support->description
+msgid "Support"
+msgstr "Supporto"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-application->description
+msgid "Applications"
+msgstr "Applicazioni"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
+msgid "Show the boxpointers"
+msgstr "Visualizza i boxpointers"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
+msgid "Select if you want to show the boxpointer of all floating menus."
+msgstr "Seleziona se vuoi mostrare i boxpointer di tutti i floating-menù."
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
+msgid "Statically set the menu proxy environment variable (Experimental)"
+msgstr ""
+"Imposta staticamente la variabile d'ambiente menù proxy (Sperimentale)"
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
+msgid ""
+"Select if you want to set statically the menu proxy environment variable."
+msgstr ""
+"Seleziona se vuoi impostare staticamente la variabile d'ambiente menù proxy."
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
+msgid "Enable the support for JAyantana (Experimental)"
+msgstr "Abilita supporto a JAyatana (Sperimentale)"
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
+msgid "Select if you want to enable the support for JAyantana."
+msgstr "Seleziona se vuoi abilitare il supporto a JA.yatana"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
+msgid "Show the application icon in the panel"
+msgstr "Visualizza l'icona dell'applicazione nel pannello"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
+msgid "Select if you want to show the application icon in the panel."
+msgstr ""
+"Seleziona se vuoi visualizzare l'icona dell'applicazione nel pannello."
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
+msgid "Desaturate icons in the menu items"
+msgstr "Desatura le icone nelle voci dei menù"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
+msgid "Select if you want to desaturate icons in the menu items."
+msgstr "Seleziona se vuoi desaturare le icone nelle voci dei menù."
+
+#. globalAppMenu@lestcape->metadata.json->description
+msgid "Adds global application menu support to Cinnamon"
+msgstr "Abilita supporto al global menù in Cinnamon"
