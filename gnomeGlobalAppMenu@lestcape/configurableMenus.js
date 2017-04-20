@@ -1697,7 +1697,7 @@ ConfigurablePopupBaseMenuItem.prototype = {
          hover: true,
          sensitive: true,
          style_class: null,
-         focusOnHover: false,
+         focusOnHover: true,
       });
       this.actor = new St.BoxLayout({
          style_class: 'popup-menu-item',
@@ -1796,11 +1796,12 @@ ConfigurablePopupBaseMenuItem.prototype = {
    },
 
    setActive: function(active) {
-      let activeChanged = active != this.active;
-      
-      if(activeChanged) {
+      if(active != this.active) {
          this.active = active;
-         this.actor.change_style_pseudo_class('active', active);
+         if(this.active)
+             this.actor.add_style_pseudo_class('active');
+         else
+             this.actor.remove_style_pseudo_class('active');
          if(this.focusOnHover && this.active) this.actor.grab_key_focus();
 
          this.emit('active-changed', active);
@@ -1817,7 +1818,10 @@ ConfigurablePopupBaseMenuItem.prototype = {
       this.actor.reactive = sensitive;
       this.actor.can_focus = sensitive;
 
-      this.actor.change_style_pseudo_class('insensitive', !sensitive);
+      if(!sensitive)
+          this.actor.add_style_pseudo_class('insensitive');
+      else
+          this.actor.remove_style_pseudo_class('insensitive');
       this.emit('sensitive-changed', sensitive);
    },
 
@@ -2761,7 +2765,6 @@ ConfigurableMenuManager.prototype = {
       this._desaturateItemIcon = false;
       this._effectType = "none";
       this._effectTime = POPUP_ANIMATION_TIME;
-      this._lastMenuClose = null;
    },
 
    addMenu: function(menu, position) {
@@ -2883,7 +2886,6 @@ ConfigurableMenuManager.prototype = {
          }
          this._activeMenu = menu;
       } else if(this._menuStack.length > 0) {
-         this._lastMenuClose = menu;
          this._activeMenu = this._menuStack.pop();
       }
       // Check what the focus was before calling pushModal/popModal
@@ -2949,13 +2951,10 @@ ConfigurableMenuManager.prototype = {
       if(!this._isFloating(menu))
          return false;
       if(this._openSubMenu) {
-         if(this.grabbed && this._activeMenu && this._activeMenu.isChildMenu(menu) &&
-           (this._lastMenuClose != menu)) {
-            this._lastMenuClose = null;
+         if(this.grabbed && this._activeMenu && this._activeMenu.isChildMenu(menu)) {
             menu.open(true);
             return false;
          }
-         this._lastMenuClose = null;
          if((!this._isFloating(menu)) || (!this._shouldMadeSourceAction(menu)) ||
             ((!this._closeSubMenu)&&(menu == this._activeMenu)))
             return false;
@@ -4155,9 +4154,9 @@ ConfigurableMenu.prototype = {
    _onKeyPressEvent: function(actor, event) {
       if(this.isOpen) {
          let close = false;
-         if(event.get_key_symbol() == Clutter.Escape)
+         if(event.get_key_symbol() == Clutter.Escape) {
             close = true;
-         else if(event.get_key_symbol() == this._getClutterScapeKey()) {
+         } else if(event.get_key_symbol() == this._getClutterScapeKey()) {
             let topMenu = this.getTopMenu();
             if(topMenu)
                topMenu.actor.grab_key_focus();
@@ -4165,9 +4164,9 @@ ConfigurableMenu.prototype = {
                close = true;
          }
          if(close) {
-            this.close(true);
             if((this.launcher)&&(this.launcher.setActive))
                this.launcher.setActive(true);
+            this.close(true);
             return true;
          }
       }
@@ -7335,20 +7334,24 @@ ConfigurableMenuApplet.prototype = {
             if((direction == Gtk.DirectionType.LEFT)||(direction == Gtk.DirectionType.RIGHT)) {
                this.actor.navigate_focus(this._activeSubMenuItem.actor, direction, true);
                this._activeSubMenuItem = global.stage.key_focus._delegate;
-               if(this._activeSubMenuItem && this._activeSubMenuItem.menu)
-                   this._activeSubMenuItem.menu.open(true);
+               if(this._activeSubMenuItem && this._activeSubMenuItem.menu) {
+                  this._activeSubMenuItem.menu.open(true);
+               }
                this.actor.grab_key_focus();
                return true;
             } else if(direction == this._getGtkScapeDirectionType()) {
                close = true;
             } else if(this._activeSubMenuItem && this._activeSubMenuItem.menu) {
-               this._activeSubMenuItem.menu.actor.grab_key_focus();
+               let first = this._getFirstMenuItem(this._activeSubMenuItem.menu);
+               if(first)
+                  first.setActive(true);
+               return true;
             }
          }
          if((close)||(event.get_key_symbol() == Clutter.Escape)) {
-            this.close(true);
             if((this.launcher)&&(this.launcher.setActive))
                this.launcher.setActive(true);
+            this.close(true);
             this.closeSubmenu();
             return true;
          }

@@ -33,6 +33,11 @@ const AllowedLayout = {  // the panel layout that an applet is suitable for
     BOTH: 'both'
 };
 
+const MOD_MASK =[
+    Clutter.KEY_Alt_L, Clutter.KEY_Alt_R, Clutter.KEY_Control_L,
+    Clutter.KEY_Control_R, Clutter.KEY_Shift_L, Clutter.KEY_Shift_R
+];
+
 function KeybindingManager() {
     this._init();
 }
@@ -41,19 +46,48 @@ KeybindingManager.prototype = {
     _init: function() {
         this.bindings = {};
         this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));
+        this.updateId = Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated)); 
+        this.actionGrab = null;
+        this.keyGrab = null;
     },
 
     _stageEventHandler: function(actor, event) {
+        let keyCode, modifierState, action;
         if (event.type() == Clutter.EventType.KEY_PRESS) {
-            let symbol = event.get_key_symbol();
-            let keyCode = event.get_key_code();
-            let modifierState = event.get_state();
-
-            // This relies on the fact that Clutter.ModifierType is the same as Gdk.ModifierType
-            let action = global.display.get_keybinding_action(keyCode, modifierState);
-            if (action && Meta.external_binding_name_for_action(action).indexOf("external-grab") != -1) {
-                global.display.emit("accelerator-activated", action, null, global.get_current_time());
+            keyCode = event.get_key_code();
+            modifierState = event.get_state();
+            this.keyGrab = event.get_key_symbol();
+            if(MOD_MASK.indexOf(event.get_key_symbol()) == -1) {
+                action = global.display.get_keybinding_action(keyCode, modifierState);
+                if (action && Meta.external_binding_name_for_action(action).indexOf("external-grab") != -1) {
+                    global.display.emit("accelerator-activated", action, null, global.get_current_time());
+                }
+            } else {
+                action = global.display.get_keybinding_action(keyCode, modifierState);
+                this.actionGrab = action;
             }
+        } else if (event.type() == Clutter.EventType.KEY_RELEASE) {
+            if((MOD_MASK.indexOf(this.keyGrab) > -1) && (this.keyGrab == event.get_key_symbol())) {
+                keyCode = event.get_key_code();
+                modifierState = event.get_state();
+                action = global.display.get_keybinding_action(keyCode, modifierState);
+                if (this.actionGrab && Meta.external_binding_name_for_action(this.actionGrab).indexOf("external-grab") != -1) {
+                    let action = this.actionGrab;
+                    this.actionGrab = null;
+                    global.display.emit("accelerator-activated", action, null, global.get_current_time());
+                }
+            }
+            this.keyGrab = null;
+        }
+    },
+
+    _sessionUpdated: function() {
+        let sensitive = !Main.sessionMode.isLocked && !Main.sessionMode.isGreeter;
+        if(sensitive) {
+            for (name in this.bindings) {
+                this.addHotKeyArray(name, this.bindings[name].bindings, this.bindings[name].callback);
+            }
+            this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));
         }
     },
 
@@ -65,7 +99,7 @@ KeybindingManager.prototype = {
 
     addHotKeyArray: function(name, bindings, callback) {
         if (name in this.bindings) {
-            if (this.bindings[name].toString() == bindings.toString()) {
+            if (this.bindings[name].bindings.toString() == bindings.toString()) {
               return true;
             }
             global.display.remove_custom_keybinding(name);
@@ -87,22 +121,36 @@ KeybindingManager.prototype = {
             global.display.rebuild_keybindings();
             return true;
         }
-
-        if (!global.display.add_custom_keybinding(name, bindings, callback)) {
+        //name
+        if (!global.display.add_custom_keybinding(name, bindings, Lang.bind(this, this._filter, callback))) {
             global.logError("Warning, unable to bind hotkey with name '" + name + "'.  The selected keybinding could already be in use.");
             global.display.rebuild_keybindings();
             return false;
         } else {
-            this.bindings[name] = bindings;
+            this.bindings[name] = { "bindings": bindings, "callback": callback };
         }
-
         global.display.rebuild_keybindings();
         return true;
     },
 
+    _filter: function(display, screen, event, kb, actionPreformed, callback) {
+        this.keyGrab = event.get_key_symbol();
+        if(MOD_MASK.indexOf(event.get_key_symbol()) == -1) {
+            callback(display, global.screen, event, kb, actionPreformed);
+        } else if (event.type() == Clutter.EventType.KEY_RELEASE) {
+            callback(display, global.screen, event, kb, actionPreformed);
+        } else {
+            global.stage.set_key_focus(Main.uiGroup);
+            if (event.type() == Clutter.EventType.KEY_PRESS) {
+                this.actionGrab = actionPreformed;
+            }
+        }
+    },
+
     removeHotKey: function(name) {
         if (name in this.bindings) {
-            global.display.remove_custom_keybinding(name);
+            //FIXME: This next line won't work on unloock screen.
+            //global.display.remove_custom_keybinding(name);
             global.display.rebuild_keybindings();
             delete this.bindings[name];
         }
@@ -110,10 +158,10 @@ KeybindingManager.prototype = {
 
     destroy: function() {
         if(this.hackId) {
-            global.stage.connect(this.hackId);
+            global.stage.disconnect(this.hackId);
             this.hackId = null;
         }
-        for (name in this.bindings) {
+        for (let name in this.bindings) {
             this.removeHotKey(name);
         }
     },

@@ -532,8 +532,9 @@ IndicatorAppMenuWatcher.prototype = {
          if(appMenu) {
             appMenu.destroy();
          }
-         if(this.isWatching() && (this._xidLast == xid))
+         if(this.isWatching() && (this._xidLast == xid) && (xid == this._guessWindowXId(global.display.focus_window))) {
             this.emit('appmenu-changed', this._registeredWindows[xid].window);
+         }
       }
    },
 

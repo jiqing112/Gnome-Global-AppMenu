@@ -344,8 +344,8 @@ function init() {
                     Main.wm.allowKeybinding(Meta.external_binding_name_for_action(action), modes);
                     global.display.connect('accelerator-activated', function (display, actionPreformed, deviceid, timestamp) {
                         if (actionPreformed == action) {
-                            let kb = null; //FIXME: What it's this?
-                            let event = null; //FIXME: This is a keyboard event, but?
+                            let kb = null; //FIXME: What it's this a keyboard map, the active keyboard state?
+                            let event = Clutter.get_current_event(); // This is the current keyboard event-
                             handler(display, global.screen, event, kb, actionPreformed);
                         }
                     });
@@ -358,7 +358,9 @@ function init() {
             if(global.display._custom_keybindings && (name in global.display._custom_keybindings)) {
                 let actions = global.display._custom_keybindings[name];
                 for(let pos in actions) {
-                    global.display.ungrab_accelerator(actions[pos]);
+                    if(actions[pos] != Meta.KeyBindingAction.NONE) {
+                        global.display.ungrab_accelerator(actions[pos]);
+                    }
                 }
                 delete global.display._custom_keybindings[name];
             }
