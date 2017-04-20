@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <timvisee@gmail.com>, 2017.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-05-14 06:58-0500\n"
-"PO-Revision-Date: 2017-04-20 12:36+0100\n"
+"PO-Revision-Date: 2017-04-20 13:06+0200\n"
 "Last-Translator: Tim Visee <timvisee@gmail.com>\n"
 "Language-Team: Tim Visee <timvisee@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: nl_NL\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 1.8.9\n"
 
 #: applet.js:261
 msgid "Gnome Global Application Menu"
@@ -174,11 +174,10 @@ msgstr "Open submenu's automatisch"
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
 msgid ""
-"Select if you want to automatically open the submenu when the mouse is inside "
-"of the launcher."
+"Select if you want to automatically open the submenu when the mouse is inside of the launcher."
 msgstr ""
-"Selecteer of je submenu's automatisch wilt openen als de muis cursor over de"
-"launcher heen beweegt."
+"Selecteer of je submenu's automatisch wilt openen als de muis cursor over delauncher heen "
+"beweegt."
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-
 #. submenu->description
@@ -187,11 +186,9 @@ msgstr "Sluit submenu's automatisch"
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
 msgid ""
-"Select if you want to automatically close the submenu when the mouse is out "
-"of the launcher."
+"Select if you want to automatically close the submenu when the mouse is out of the launcher."
 msgstr ""
-"Selecteer of je submenu's automatisch wilt sluiten als de muis cursor van de"
-"launcher af beweegt."
+"Selecteer of je submenu's automatisch wilt sluiten als de muis cursor van delauncher af beweegt."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
 msgid "Show the application name in the panel"
