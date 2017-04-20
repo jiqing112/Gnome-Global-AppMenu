@@ -1,0 +1,274 @@
+# Russian translations for Gnome Global Application Menu package.
+# Copyright (C) 2017 THE Gnome Global Application Menu'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Gnome Global Application Menu package.
+# Dragonic <dragonicua@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-14 06:58-0500\n"
+"PO-Revision-Date: 2017-04-20 17:48+0300\n"
+"Last-Translator: Dragonic <dragonicua@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n"
+"%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 2.0.1\n"
+
+#: applet.js:261
+msgid "Gnome Global Application Menu"
+msgstr "Глобальное меню для Gnome"
+
+#: applet.js:292
+msgid "You need restart your computer, to active the unity-gtk-module"
+msgstr "Для активации unity-gtk-module нужно перезагрузить компьютер"
+
+#: applet.js:423
+msgid "The environment variable cannot be changed"
+msgstr "Невозможно изменить переменную среды"
+
+#: applet.js:425
+msgid ""
+"The environment variable was set, a logout will be required to apply the changes"
+msgstr ""
+"Переменная среды установлена. Для того, чтобы внесенные изменения вступили в силу, "
+"нужно выйти из системы и войти снова"
+
+#: utils/environment.js:45
+msgid "Global Menu Environment Usage"
+msgstr "Использование Среды Глобального Меню"
+
+#: utils/environment.js:46
+msgid "Install environment variables"
+msgstr "Установить переменные среды"
+
+#: utils/environment.js:47
+msgid "Uninstall environment variables"
+msgstr "Удалить переменные среды"
+
+#: utils/environment.js:139
+msgid "Please enter your password to configure the Menu Proxy environment variable"
+msgstr "Введите ваш пароль, чтобы настроить переменную среды Menu Proxy"
+
+#: utils/environment.js:150
+msgid "Could not acquire root privileges"
+msgstr "Не удалось получить привилегии суперпользователя"
+
+#: utils/environment.js:162
+msgid "Could not find current file"
+msgstr "Не удалось найти текущий файл"
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-
+#. size->description
+msgid "Maximum size of the application name:"
+msgstr "Максимальная длина названия приложения:"
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
+msgid "Set the maximum size of the application name."
+msgstr "Установить максимальную длину названия приложения."
+
+#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
+msgid "characters"
+msgstr "символы"
+
+#. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
+msgid "Show a linear gradient effect in the application name"
+msgstr "Отображать линейный градиент в названиях приложений"
+
+#. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
+msgid "Select if you want to show a linear gradient effect in the application name."
+msgstr "Выберите для активации эффекта линейного градиента в названиях приложений."
+
+#. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
+msgid "Submenu"
+msgstr "Подменю"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
+msgid "Show icons in the menu items"
+msgstr "Отображать значки в пунктах меню"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
+msgid "Select if you want to show icons in the menu items."
+msgstr "Выберите для отображения значков в пунктах меню."
+
+#. globalAppMenu@lestcape->settings-schema.json->align-menu-
+#. launcher->description
+msgid "Align all menus with his launcher"
+msgstr "Выровнять все меню с их лаунчерами"
+
+#. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
+msgid "Select if you want to align all menus with his launcher."
+msgstr "Выберите, чтобы выровнять все меню с их лаунчерами."
+
+#. globalAppMenu@lestcape->settings-schema.json->effect->description
+msgid "Effect on opening and closing:"
+msgstr "Эффект анимации открытия и закрытия меню:"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect->tooltip
+msgid "Select the effect on the menu opening and closing."
+msgstr "Выбрать эффект открытия и закрытия меню."
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "None"
+msgstr "Нет"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Dispel"
+msgstr "Рассеивание"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Hide Horizontal"
+msgstr "Скрыть горизонтально"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Hide Vertical"
+msgstr "Скрыть вертикально"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Scale"
+msgstr "Масштабирование"
+
+#. configurableMenu@lestcape->settings-schema.json->effect->options
+msgid "Windows"
+msgstr "Окна"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect-time->description
+msgid "Duration of effect:"
+msgstr "Продолжительность эффекта:"
+
+#. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
+msgid "The time on seconds to perform the effect(More time is slower)."
+msgstr "Время выполнения эффекта в секундах (чем больше, тем медленнее)."
+
+#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
+#. mainmenu->description
+msgid "Automatically activate the main menu"
+msgstr "Автоматически активировать главное меню"
+
+#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
+#. mainmenu->tooltip
+msgid "Select if you want to automatically activate the main menu."
+msgstr "Выберите для автоматического открытия главного меню."
+
+#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->description
+msgid "Open the menu when I move my mouse over it"
+msgstr "Открывать меню при наведении курсора мыши"
+
+#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
+msgid "Enable opening the menu when the mouse enters the applet"
+msgstr "Открывать меню при каждом наведении курсора мыши на апплет"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
+#. icon->description
+msgid "Desaturate the application icon"
+msgstr "Обесцвечивать пиктограммы приложений"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
+msgid "Select if you want to desaturate the application icon"
+msgstr "Выберите для обесцвечивания пиктограмм приложений"
+
+#. globalAppMenu@lestcape->settings-schema.json->open-active-
+#. submenu->description
+msgid "Automatically open the submenu"
+msgstr "Автоматически открывать подменю"
+
+#. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically open the submenu when the mouse is inside of the "
+"launcher."
+msgstr "Выберите для автоматического открытия подменю при наведении курсора мыши."
+
+#. globalAppMenu@lestcape->settings-schema.json->close-active-
+#. submenu->description
+msgid "Automatically close the submenu"
+msgstr "Автоматически закрывать подменю"
+
+#. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically close the submenu when the mouse is out of the "
+"launcher."
+msgstr ""
+"Выберите для автоматического закрытия подменю когда курсор покидает пределы лаунчера."
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
+msgid "Show the application name in the panel"
+msgstr "Отображать названия приложений на панели задач"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
+msgid "Select if you want to show the application name in the panel."
+msgstr "Выберите для отображения названий приложений на панели задач."
+
+#. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
+msgid "Main menu"
+msgstr "Главное меню"
+
+#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->description
+msgid "Display the main menu in the panel"
+msgstr "Отображать главное меню на панели задач"
+
+#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->tooltip
+msgid "Select if you want to display the main menu in the panel."
+msgstr "Выберите для отображения главного меню на панели задач."
+
+#. globalAppMenu@lestcape->settings-schema.json->head-menuitem->description
+msgid "Menu items"
+msgstr "Пункты меню"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-support->description
+msgid "Support"
+msgstr "Поддержка"
+
+#. globalAppMenu@lestcape->settings-schema.json->head-application->description
+msgid "Applications"
+msgstr "Приложения"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
+msgid "Show the boxpointers"
+msgstr "Отображать стрелочные указатели"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
+msgid "Select if you want to show the boxpointer of all floating menus."
+msgstr "Выберите для отображения стрелочных указателей во всех всплывающих меню."
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
+msgid "Statically set the menu proxy environment variable (Experimental)"
+msgstr "Статически задать переменную среды menu proxy (экспериментально)"
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
+msgid "Select if you want to set statically the menu proxy environment variable."
+msgstr "Выберите, чтобы статически задать переменную среды menu proxy."
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
+msgid "Enable the support for JAyantana (Experimental)"
+msgstr "Включить поддержку JAyantana (экспериментально)"
+
+#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
+msgid "Select if you want to enable the support for JAyantana."
+msgstr "Выберите для включения поддержки JAyantana."
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
+msgid "Show the application icon in the panel"
+msgstr "Отображать значки приложений на панели задач"
+
+#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
+msgid "Select if you want to show the application icon in the panel."
+msgstr "Выберите для отображения пиктограмм приложений на панели задач."
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
+msgid "Desaturate icons in the menu items"
+msgstr "Обесцвечивать пиктограммы в пунктах меню"
+
+#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
+msgid "Select if you want to desaturate icons in the menu items."
+msgstr "Выберите для обесцвечивания пиктограмм приложений в пунктах меню."
+
+#. globalAppMenu@lestcape->metadata.json->description
+msgid "Adds global application menu support to Cinnamon"
+msgstr "Добавляет глобальное меню в Cinnamon"
+
+msgid "Keyboard shortcut to open and close the menu"
+msgstr "Быстрые клавиши для открытия и закрытия меню"
