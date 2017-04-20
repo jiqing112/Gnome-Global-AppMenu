@@ -34,34 +34,34 @@ https://github.com/rgcjonas/gnome-shell-extension-appindicator
 
 Known issues (Try at your own risk):
 --------------
-* Not all apps are tested and then the extension could takes ages to load and can freeze Gnome Shell forever.
-* There are some unsupported apps that can not be integrate into the extension, like Blender, as has his own GUI toolkit.
+* Not all apps are tested, so the extension may take ages to load and freeze Gnome Shell forever.
+* There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
 * For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
-* Some Gnome applications like Nautilus, remove the possibility to export the menu in recently versions (you can use instead an alternative applications).
+* Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative applications instead).
 
-Experimental JAyatana support (try at your own risk):
+Experimental JAyatana support (Try at your own risk):
 --------------
-JAyatana it's buggy and was removed intentional from Intellij Idea, Ubuntu 15.04 and others.
+JAyatana is buggy and was removed intentional from IntelliJ IDEA, Ubuntu 15.04 and others.
 
-Currently you can use the JAyatana support as a decision inside the extension. This will work for some java applications only and for others with several problems or also will not work. Some time you will need restart the Shell to see the menu, like for example with JDownloader. 
+Currently you can use the JAyatana support as an option inside the extension. This will work for some java applications only and for others with several problems or even will not work at all. Sometimes you'll have to restart the Shell to see the menu, like for example with JDownloader.
 
-I really don't know if this is caused by an improperly handled of the JavaEmbeddedFrame by Mutter (The Gnome Shell Windows Manager), if it's an specific behavior/bugs of JAyatana or whatever. What occurs is that some time the JavaEmbeddedFrame can steal the menu to the main windows and some time not. So, a Shell restart after opening JDownloader would fix the problem in most of cases, in others is possible you will need to kill the JDownloader process and then opening the application again. To remove the experimental tag, the JAyatana project will need to implement this stuff at less:
+I really don't know if this is caused by an improper handling of the JavaEmbeddedFrame by Mutter (The Gnome Shell Windows Manager), if it's a specific behavior/bugs of JAyatana or whatever. What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main windows and some time not. So, a Shell restart after opening JDownloader would fix the problem in most cases, it's also possible that you'll need to kill the JDownloader process and open the application again in the others. To remove the experimental tag, the JAyatana project will need to implement this stuff at less:
 
 1. Use the same sender in the DbusMenu implementation for the same windows and not a new one.
 2. Use the same menu item id for all layout-updates and not a new one.
 
-This is because force to reload all items and this is pretty hard for javascript.
+This is because force reload of all items is pretty hard for javascript.
 
-Aditionally, we need to find how resolve the JavaEmbeddedFrame situation.
+Aditionally, we need to find out how to resolve the JavaEmbeddedFrame situation.
 
-Change log
+Changelog
 --------------
 0.7-Beta
  - Initialized the support into the Gnome Shell enviroment.
 
 0.6-Beta
  - Added Croatian language, thanks to https://github.com/muzena
- - Added JAyanta support.
+ - Added JAyatana support.
  - Added keyboard navegation.
  - Added effects.
  - Added vector box: https://github.com/linuxmint/Cinnamon/issues/1775.
@@ -126,14 +126,14 @@ Installation instructions:
 --------------
 1. Install the unity-gtk-module packages (explanation below).
 2. Restart your computer.
-3. Download this extension from their website : https://github.com/lestcape/Gnome-Global-AppMenu
-4. Unzip the downloaded file and copy the folder gnomeGlobalAppMenu@lestcape at ~/.local/share/gnome-shell/extensions/
-5. Enable the extension in Gnome Tweek Settings.
-6. Logout and login again.
+3. Download this extension from its website: https://github.com/lestcape/Gnome-Global-AppMenu
+4. Unzip the downloaded file and copy the folder gnomeGlobalAppMenu@lestcape to ~/.local/share/gnome-shell/extensions/
+5. Enable the extension in Gnome Tweak Tool.
+6. Log out and then back in.
 
 unity-gtk-module:
 --------------
-This extension is designed to be used with the standars gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to
+This extension is designed to be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to
 be used on Unity desktop.
 
 Thats then will depend of your specific distro and possible you will need to use some equivalent different packages.
@@ -144,7 +144,7 @@ Thats then will depend of your specific distro and possible you will need to use
 * Arch users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
 * Fedora users, the unity-gtk-modules are in the official repositories.
 
-This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can not resolve or patch directly any problematic application that not export the menu, or if is not exported properly. We also can not do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications. 
+This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu, or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications.
 
 We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
 
