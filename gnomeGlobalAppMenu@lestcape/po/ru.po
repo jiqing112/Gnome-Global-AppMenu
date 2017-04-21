@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-05-14 06:58-0500\n"
-"PO-Revision-Date: 2017-04-20 17:48+0300\n"
+"PO-Revision-Date: 2017-04-21 17:55+0300\n"
 "Last-Translator: Dragonic <dragonicua@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -74,6 +74,9 @@ msgstr "Установить максимальную длину названи�
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
 msgid "characters"
 msgstr "символы"
+
+msgid "seconds"
+msgstr "секунды"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
 msgid "Show a linear gradient effect in the application name"
@@ -141,7 +144,7 @@ msgid "Duration of effect:"
 msgstr "Продолжительность эффекта:"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
-msgid "The time on seconds to perform the effect(More time is slower)."
+msgid "The time on seconds to perform the effect (more time is slower)."
 msgstr "Время выполнения эффекта в секундах (чем больше, тем медленнее)."
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
@@ -159,8 +162,8 @@ msgid "Open the menu when I move my mouse over it"
 msgstr "Открывать меню при наведении курсора мыши"
 
 #. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
-msgid "Enable opening the menu when the mouse enters the applet"
-msgstr "Открывать меню при каждом наведении курсора мыши на апплет"
+msgid "Enable opening the menu when the mouse enters the applet."
+msgstr "Открывать меню при каждом наведении курсора мыши на апплет."
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
 #. icon->description
@@ -168,8 +171,8 @@ msgid "Desaturate the application icon"
 msgstr "Обесцвечивать пиктограммы приложений"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
-msgid "Select if you want to desaturate the application icon"
-msgstr "Выберите для обесцвечивания пиктограмм приложений"
+msgid "Select if you want to desaturate the application icon."
+msgstr "Выберите для обесцвечивания пиктограмм приложений."
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-
 #. submenu->description
@@ -236,7 +239,7 @@ msgstr "Выберите для отображения стрелочных ук
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
 msgid "Statically set the menu proxy environment variable (Experimental)"
-msgstr "Статически задать переменную среды menu proxy (экспериментально)"
+msgstr "Статически задать переменную menu proxy (экспериментально)"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
 msgid "Select if you want to set statically the menu proxy environment variable."
@@ -271,4 +274,4 @@ msgid "Adds global application menu support to Cinnamon"
 msgstr "Добавляет глобальное меню в Cinnamon"
 
 msgid "Keyboard shortcut to open and close the menu"
-msgstr "Быстрые клавиши для открытия и закрытия меню"
+msgstr "Комбинация клавиш открытия и закрытия меню"
