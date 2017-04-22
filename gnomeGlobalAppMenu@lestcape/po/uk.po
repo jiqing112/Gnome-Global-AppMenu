@@ -249,12 +249,12 @@ msgid ""
 msgstr "Оберіть, щоб статично задати змінну середовища menu proxy."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
-msgid "Enable the support for JAyantana (Experimental)"
-msgstr "Увімкнути експериментальну підтримку JAyantana"
+msgid "Enable the support for JAyatana (Experimental)"
+msgstr "Увімкнути експериментальну підтримку JAyatana"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
-msgid "Select if you want to enable the support for JAyantana."
-msgstr "Оберіть для увімкнення підтримки JAyantana."
+msgid "Select if you want to enable the support for JAyatana."
+msgstr "Оберіть для увімкнення підтримки JAyatana."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
 msgid "Show the application icon in the panel"
