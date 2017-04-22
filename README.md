@@ -1,5 +1,9 @@
 Gnome Shell Extension: Gnome Global Application Menu Version: v0.7-Beta
 
+I don't want donations, i work only for users and not for companies or communities that receive money or donations.
+
+This extension it's a fork of an old extension that i make from cinnamon. The initial extension have not support for cinnamon anymore, as all extensions was stolen by Clement: https://github.com/linuxmint/cinnamon-spices-applets/issues/385 who not have respect for the works of other developers. 
+
 Last update: 16 April 2017
 
 ***
@@ -8,7 +12,7 @@ Special thanks to:
 
 - rgcjonas             (https://github.com/rgcjonas)               The initial code.
 - Canonical devs       (http://www.canonical.com/)                 The protocols and patches.
-- Cinnamon devs        (https://github.com/linuxmint/Cinnamon)     The support (specially: https://github.com/mtwebster).
+- Cinnamon devs        (https://github.com/mtwebster)              Who help me to find the xsettings.
 - Gnome Shell devs     (https://github.com/GNOME/gnome-shell)      The support.
 - rilian-la-te         (https://github.com/rilian-la-te)           Understand and fix a lot of things.
 - collinss             (https://github.com/collinss)               Has helped fix the behavior of firefox and thunderbird.
