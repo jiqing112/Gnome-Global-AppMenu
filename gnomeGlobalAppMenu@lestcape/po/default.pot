@@ -2,7 +2,7 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
@@ -239,11 +239,11 @@ msgid "Select if you want to set statically the menu proxy environment variable.
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
-msgid "Enable the support for JAyantana (Experimental)"
+msgid "Enable the support for JAyatana (Experimental)"
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
-msgid "Select if you want to enable the support for JAyantana."
+msgid "Select if you want to enable the support for JAyatana."
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
