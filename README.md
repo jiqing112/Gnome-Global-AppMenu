@@ -2,7 +2,7 @@ Gnome Shell Extension: Gnome Global Application Menu Version: v0.7-Beta
 --------------
 I don't want donations, I work only for users and not for companies or communities that receive money or donations.
 
-This is a fork of an old extension I made for Cinnamon. The initial extension doesn't support Cinnamon anymore, as all extensions were `forked by Clement`: https://github.com/linuxmint/cinnamon-spices-applets/issues/385 who has no respect for the other developers' work.
+This is a fork of an old extension I made for Cinnamon. The initial extension doesn't support Cinnamon anymore, as all extensions were `forked by Clement`
 
 Latest update: 16 April 2017
 
