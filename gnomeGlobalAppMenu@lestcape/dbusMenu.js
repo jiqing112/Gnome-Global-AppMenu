@@ -990,7 +990,7 @@ DBusClientGtk.prototype = {
             }
          }
 
-         if(id in this._items) {
+         if(this._items && (id in this._items)) {
             // We do, update our properties if necessary
             this._items[id].updatePropertiesAsVariant(properties);
 

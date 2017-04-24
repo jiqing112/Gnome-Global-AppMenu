@@ -67,8 +67,8 @@ MyMenuFactory.prototype = {
    setMainMenuArrowSide: function(arrowSide) {
       if(this._arrowSide != arrowSide) {
          this._arrowSide = arrowSide;
-         for(let pos in this._menuLikend) {
-            let shellMenu = this._menuLikend[pos].getShellItem();
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
             if(shellMenu)
                shellMenu.setArrowSide(this._arrowSide);
          }
@@ -78,8 +78,8 @@ MyMenuFactory.prototype = {
    setOpenOnHover: function(openOnHover) {
       if(this._openOnHover != openOnHover) {
          this._openOnHover = openOnHover;
-         for(let pos in this._menuLikend) {
-            let shellMenu = this._menuLikend[pos].getShellItem();
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
             if(shellMenu)
                shellMenu.setOpenOnHover(this._openOnHover);
          }
@@ -107,8 +107,8 @@ MyMenuFactory.prototype = {
    setFloatingState: function(floating) {
       if(this._floatingMenu != floating) {
          this._floatingMenu = floating;
-         for(let pos in this._menuLikend) {
-            let shellMenu = this._menuLikend[pos].getShellItem();
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
             if(shellMenu) {
                shellMenu.setFloatingState(this._floatingMenu);
             }
