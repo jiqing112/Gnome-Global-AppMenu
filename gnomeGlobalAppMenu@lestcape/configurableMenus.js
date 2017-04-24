@@ -2514,6 +2514,8 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          this._displayIcon = show;
          if(this._icon)
             this._icon.visible = (this._displayIcon)&&(this.haveIcon());
+         if(this._icon.visible)
+            this.label.remove_style_class_name('not-ornament');
       }
    },
 
@@ -2533,6 +2535,8 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       if(this._icon) {
          this._icon.visible = ((this._displayIcon) && (name && name != ""));
          this._icon.icon_name = name;
+         if(this._icon.visible)
+            this.label.remove_style_class_name('not-ornament');
       }
    },
 
@@ -2540,6 +2544,8 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       if(this._icon) {
          this._icon.visible = ((this._displayIcon) && (gicon != null));
          this._icon.gicon = gicon;
+         if(this._icon.visible)
+            this.label.remove_style_class_name('not-ornament');
       }
    },
 
@@ -8049,13 +8055,16 @@ MenuFactory.prototype = {
          this._updateImage(factoryItem, shellItem);
          this._updateVisible(factoryItem, shellItem);
          this._updateSensitive(factoryItem, shellItem);
-         factoryItem.connect('update-label', Lang.bind(this, this._updateLabel, shellItem));
-         factoryItem.connect('update-ornament', Lang.bind(this, this._updateOrnament, shellItem));
-         factoryItem.connect('update-accel', Lang.bind(this, this._updateAccel, shellItem));
-         factoryItem.connect('update-image', Lang.bind(this, this._updateImage, shellItem));
-         factoryItem.connect('update-visible', Lang.bind(this, this._updateVisible, shellItem));
-         factoryItem.connect('update-sensitive', Lang.bind(this, this._updateSensitive, shellItem));
-         factoryItem.connect('destroy', Lang.bind(this, this._onFactoryItemDestroyed, shellItem));
+
+         shellItem._internalSignalsHandlers = this._connectAndSaveId(factoryItem, {
+             'update-label':     Lang.bind(this, this._updateLabel, shellItem),
+             'update-ornament':  Lang.bind(this, this._updateOrnament, shellItem),
+             'update-accel':     Lang.bind(this, this._updateAccel, shellItem),
+             'update-image':     Lang.bind(this, this._updateImage, shellItem),
+             'update-visible':   Lang.bind(this, this._updateVisible, shellItem),
+             'update-sensitive': Lang.bind(this, this._updateSensitive, shellItem),
+             'destroy':          Lang.bind(this, this._onFactoryItemDestroyed, shellItem),
+         }, shellItem._internalSignalsHandlers);
       }
 
    },
