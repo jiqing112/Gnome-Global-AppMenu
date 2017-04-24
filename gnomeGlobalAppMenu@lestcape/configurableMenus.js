@@ -3625,11 +3625,18 @@ ConfigurablePopupMenuBase.prototype = {
       this.box.add(actor);
    },
 
+   getAllMenuItems: function() {
+      return this.box.get_children().map(function(actor) {
+         return actor._delegate;
+      })
+   },
+
    getMenuItems: function() {
       return this.box.get_children().map(function(actor) {
          return actor._delegate;
       }).filter(function(item) {
-         return item instanceof ConfigurablePopupBaseMenuItem || item instanceof ConfigurablePopupMenuSection;
+         return item instanceof ConfigurablePopupBaseMenuItem ||
+                item instanceof ConfigurablePopupMenuSection;
       });
    },
 
@@ -3787,6 +3794,12 @@ ConfigurableMenu.prototype = {
       } catch(e) {
          Main.notify("ErrorMenuCreation", e.message);
       }
+   },
+
+   getAllMenuItems: function() {
+      return this.box.get_children().map(function(actor) {
+         return actor._delegate;
+      })
    },
 
    getMenuItems: function() {
@@ -4232,12 +4245,6 @@ ConfigurableMenu.prototype = {
          }
       }
       return null;
-   },
-
-   _getAllMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
-         return actor._delegate;
-      });
    },
 
    _updatePanelVisibility: function() {
@@ -5008,6 +5015,12 @@ ConfigurablePopupMenuSection.prototype = {
       return null;
    },
 
+   getAllMenuItems: function() {
+      return this.box.get_children().map(function(actor) {
+         return actor._delegate;
+      })
+   },
+
    getMenuItems: function() {
       return this.box.get_children().map(function(actor) {
          return actor._delegate;
@@ -5088,12 +5101,6 @@ ConfigurablePopupMenuSection.prototype = {
    _setVectorBox: function(menuItem) {
       if(menuItem.setVectorBox)
          menuItem.setVectorBox(this._vectorBlocker);
-   },
-
-   _getAllMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
-         return actor._delegate;
-      });
    },
 
    _isFloating: function(menu) {
@@ -8269,19 +8276,23 @@ MenuFactory.prototype = {
    },
 
    _createChildrens: function(shellItem) {
-      if(shellItem) {
+      if(shellItem && shellItem.factoryItem) {
          let factoryItem = shellItem.factoryItem;
          if(shellItem instanceof ConfigurablePopupSubMenuMenuItem) {
             let children = factoryItem.getChildren();
-            for(let i = 0; i < children.length; ++i) {
-               let chItem = this._createItem(children[i]);
-               shellItem.menu.addMenuItem(chItem);
+            if(children) {
+               for(let i = 0; i < children.length; ++i) {
+                  let chItem = this._createItem(children[i]);
+                  shellItem.menu.addMenuItem(chItem);
+               }
             }
          } else if(shellItem instanceof ConfigurablePopupMenuSection) {
             let children = factoryItem.getChildren();
-            for(let i = 0; i < children.length; ++i) {
-               let chItem = this._createItem(children[i]);
-               shellItem.addMenuItem(chItem);
+            if(children) {
+               for(let i = 0; i < children.length; ++i) {
+                  let chItem = this._createItem(children[i]);
+                  shellItem.addMenuItem(chItem);
+               }
             }
          }
       }
@@ -8304,16 +8315,22 @@ MenuFactory.prototype = {
    },
 
    _onChildRemoved: function(factoryItem, child, shellItem) {
-      if(shellItem && (shellItem.factoryItem == factoryItem) && shellItem.getMenuItems) {
-         let family = shellItem.getMenuItems();
-         for(let i = 0; i < family.length; ++i) {
-             if(family[i].factoryItem == factoryItem) {
-                this._destroyShellItem(family[i]);
-                break;
-             }
+      if(shellItem && (shellItem.factoryItem == factoryItem)) {
+         if (shellItem instanceof ConfigurablePopupSubMenuMenuItem) {
+            // find it!
+            let family = shellItem.menu.getAllMenuItems();
+            for(let i = 0; i < family.length; ++i) {
+               if(family[i].factoryItem == child) {
+                  this._destroyShellItem(family[i]);
+                  break;
+               }
+            }
+         } else {
+            global.logWarning("Tried to remove a child from non-submenu item. Better recreate it as whole")
+            this._onTypeChanged(factoryItem, shellItem)
          }
       } else {
-         global.logWarning("Tried to move a child shell item in non existing shell item.");
+         global.logWarning("Tried to remove a child shell item in non existing shell item.");
       }
    },
 
@@ -8343,8 +8360,8 @@ MenuFactory.prototype = {
              shellItemParent = shellItem.getContainer();
          // First, we need to find our old position
          let pos = -1;
-         if((shellItemParent)&&(shellItemParent.getMenuItems)&&(shellItem)) {
-            let family = shellItemParent.getMenuItems();
+         if((shellItemParent)&&(shellItemParent.getAllMenuItems)&&(shellItem)) {
+            let family = shellItemParent.getAllMenuItems();
             for(let i = 0; i < family.length; ++i) {
                if(family[i] == shellItem)
                   pos = i;
@@ -8367,7 +8384,7 @@ MenuFactory.prototype = {
    _moveItemInMenu: function(menu, factoryItem, newpos) {
       // HACK: we're really getting into the internals of the PopupMenu implementation
       // First, find our wrapper. Children tend to lie. We do not trust the old positioning.
-      let family = menu.getMenuItems();
+      let family = menu.getAllMenuItems();
       for(let i = 0; i < family.length; ++i) {
          if(family[i].factoryItem == factoryItem) {
             // Now, remove it

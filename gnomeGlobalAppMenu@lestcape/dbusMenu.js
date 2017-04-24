@@ -473,13 +473,15 @@ DBusClient.prototype = {
    // items of the current submenu, but will not need update the child of a child, so we need to stop this not calling
    // directly sendEvent.
    fakeSendAboutToShow: function(lastId) {
-      let listId = this._items[lastId].getChildrenIds();
-      let id;
-      for(let pos in listId) {
-         id = listId[pos];
-         if(this._items[id].getFactoryType() == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
-            this._reportEvent(id, "opened", null, 0);
-            this._sendAboutToShow(id);
+      if(this._items) {
+         let listId = this._items[lastId].getChildrenIds();
+         let id;
+         for(let pos in listId) {
+            id = listId[pos];
+            if(this._items[id].getFactoryType() == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
+               this._reportEvent(id, "opened", null, 0);
+               this._sendAboutToShow(id);
+            }
          }
       }
    },
@@ -750,7 +752,7 @@ DBusClientGtk.prototype = {
                this._createActionsIds();
             }
             let id = this._actionsIds[actionId];
-            if(!(id in this._items))
+            if(!this._items || !(id in this._items))
                continue;
 
             let properties = propertiesHash[action];
@@ -772,17 +774,19 @@ DBusClientGtk.prototype = {
    },
 
    _createActionsIds: function() {
-      for(let id in this._items) {
-         let actionId = this._items[id].getAction();
-         if(actionId) {
-            this._actionsIds[actionId] = id;
-            this._createIconForActionId(id, actionId);
+      if(this._items) {
+         for(let id in this._items) {
+            let actionId = this._items[id].getAction();
+            if(actionId) {
+               this._actionsIds[actionId] = id;
+               this._createIconForActionId(id, actionId);
+            }
          }
       }
    },
 
    _createIconForActionId: function(id, actionId) {
-      if((id in this._items)&&(!this._items[id].getGdkIcon())) {
+      if(this._items && (id in this._items)&&(!this._items[id].getGdkIcon())) {
          let action = actionId.replace("unity.", "").replace("win.", "").replace("app.", "");
          let gtkIconName = null;
          try {
@@ -1019,7 +1023,7 @@ DBusClientGtk.prototype = {
             oldChildrenIds.forEach(function(childId) { 
                this._items[id].removeChild(childId); 
             }, this);
-         } else {
+         } else if(this._items) {
             // We don't, so let's create us
             this._items[id] = new DbusMenuItem(id, childrenIds, properties, this);
             //this._requestProperties(id);
@@ -1031,7 +1035,7 @@ DBusClientGtk.prototype = {
    },
 
    _reportEvent: function(id, event, params, timestamp) {
-      if(event == ConfigurableMenus.FactoryEventTypes.clicked) {
+      if(this._items && (event == ConfigurableMenus.FactoryEventTypes.clicked)) {
          let actionId = this._items[id].getAction();
          let proxy = this._findProxyForActionType(actionId);
          if(proxy) {
