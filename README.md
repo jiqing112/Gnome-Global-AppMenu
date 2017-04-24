@@ -1,10 +1,11 @@
 Gnome Shell Extension: Gnome Global Application Menu Version: v0.7-Beta
 --------------
-I don't want donations, i work only for users and not for companies or communities that receive money or donations.
+I don't want donations, I work only for users and not for companies or communities that receive money or donations.
 
-This extension it's a fork of an old extension that i make from cinnamon. The initial extension have not support for cinnamon anymore, as all extensions was `forked by Clement`
 
-Last update: 16 April 2017
+This is a fork of an old extension I made for Cinnamon. The initial extension doesn't support Cinnamon anymore, as all extensions were `forked by Clement`
+
+Latest update: 16 April 2017
 
 ***
 Special thanks to:
@@ -28,7 +29,7 @@ Author of language translation:
 
 Description
 --------------
-**Warning:** This is a third-party extension, is not official.
+**Warning:** This is a third-party extension, not official.
 
 This extension integrates the Ubuntu-Unity Application Menu (Global Menu) support into the Gnome Shell Desktop.
 
@@ -45,7 +46,7 @@ Known issues (Try at your own risk):
 
 Experimental JAyatana support (Try at your own risk):
 --------------
-JAyatana is buggy and was removed intentional from IntelliJ IDEA, Ubuntu 15.04 and others.
+JAyatana is buggy and was removed intentionally from IntelliJ IDEA, Ubuntu 15.04 and others.
 
 Currently you can use the JAyatana support as an option inside the extension. This will work for some java applications only and for others with several problems or even will not work at all. Sometimes you'll have to restart the Shell to see the menu, like for example with JDownloader.
 
@@ -66,10 +67,10 @@ Changelog
 0.6-Beta
  - Added Croatian language, thanks to https://github.com/muzena
  - Added JAyatana support.
- - Added keyboard navegation.
+ - Added keyboard navigation.
  - Added effects.
  - Added vector box: https://github.com/linuxmint/Cinnamon/issues/1775.
- - Improve the menu speed (preload kde menu when is possible).
+ - Improved the menu speed (preload kde menu when is possible).
  - Fixed some issues.
 
 0.5-Beta
@@ -93,7 +94,7 @@ Changelog
 
 0.2-Beta
   - Not crash the Shell when firefox drop the menu.
-  - Fix xchat and possible other gtk applications.
+  - Fixed xchat and possible other gtk applications.
 
 0.1-Beta
   - Initial release.
@@ -140,7 +141,7 @@ unity-gtk-module:
 This extension is designed to be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to
 be used on Unity desktop.
 
-Thats then will depend of your specific distro and possible you will need to use some equivalent different packages.
+You will probably need to use some equivalent packages depending on your specific distro.
 
 * Ubuntu users, be happy, you don't need to do anything if unity is working. :)
 * Mint users, all Ubuntu packages that we needed are availables on Mint repositories as well and can be installed.
@@ -157,8 +158,8 @@ Uninstall instructions:
 1. Disable the extension.
 2. Reset the gsettings values:
 
-  * gsettings reset org.gnome.settings-daemon.plugins.xsettings overrides
-  * gsettings reset org.gnome.settings-daemon.plugins.xsettings enabled-gtk-modules
+  * ```gsettings reset org.gnome.settings-daemon.plugins.xsettings overrides```
+  * ```gsettings reset org.gnome.settings-daemon.plugins.xsettings enabled-gtk-modules```
 
 3. If you don't use a global menu in other desktop, remove also the packages that you install.
 Restart your computer.
