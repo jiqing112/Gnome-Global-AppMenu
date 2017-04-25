@@ -397,12 +397,19 @@ IndicatorAppMenuWatcher.prototype = {
       return (this._ownName != null);
    },
 
+   getRootMenuForWindow: function(wind) {
+      let appmenu = this.getMenuForWindow(wind);
+      if(appmenu)
+         return appmenu.getRoot();
+      return null;
+   },
+
    getMenuForWindow: function(wind) {
       let xid = this._guessWindowXId(wind);
       if((xid) && (xid in this._registeredWindows)) {
          let appmenu = this._registeredWindows[xid].appMenu;
          if(appmenu)
-            return appmenu.getRoot();
+            return appmenu;
       }
       return null;
    },

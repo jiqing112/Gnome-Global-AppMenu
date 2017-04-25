@@ -425,6 +425,10 @@ DBusClient.prototype = {
       return 0;
    },
 
+   getItems: function() {
+       return this._items;
+   },
+
    getItem: function(id) {
       if((this._items)&&(id in this._items))
          return this._items[id];

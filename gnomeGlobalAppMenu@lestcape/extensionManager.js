@@ -30,6 +30,7 @@ const Applet = MyExtension.imports.applet;
 const ConfigurableMenus = MyExtension.imports.configurableMenus;
 const IndicatorAppMenuWatcher = MyExtension.imports.indicatorAppMenuWatcher;
 const Settings = MyExtension.imports.settings.settings;
+const HudProvider = MyExtension.imports.hudProvider;
 //const PopupMenu = MyExtension.imports.popupMenu;
 
 
@@ -267,15 +268,15 @@ MyApplet.prototype = {
          this._menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
          this._menuManager.addMenu(this._applet_context_menu);
          this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
+         this.hubProvider = new HudProvider.HudSearchProvider();
 
          this._createSettings();
          this._cleanAppmenu();
-
          this.indicatorDbus = null;
          this._sessionUpdated();
-         Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated)); 
-      }
-      catch(e) {
+         Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated));
+
+      } catch(e) {
          Main.notify("Init error %s".format(e.message));
          global.logError("Init error %s".format(e.message));
       }
@@ -285,8 +286,9 @@ MyApplet.prototype = {
       let sensitive = !Main.sessionMode.isLocked && !Main.sessionMode.isGreeter;
       if(!this.indicatorDbus || (sensitive && !this.indicatorDbus.isWatching())) {
          this.indicatorDbus = new IndicatorAppMenuWatcher.IndicatorAppMenuWatcher(
-            IndicatorAppMenuWatcher.AppmenuMode.MODE_STANDARD, this._getIconSize());
-         
+            IndicatorAppMenuWatcher.AppmenuMode.MODE_STANDARD, this._getIconSize()
+         );
+         this.hubProvider.setIndicator(this.indicatorDbus);
          this._isReady = this._initEnvironment();
 
          if(this._isReady) {
@@ -323,6 +325,7 @@ MyApplet.prototype = {
 
    _createSettings: function() {
       this.settings = new Settings.AppletSettings(this, this.uuid, this.instance_id);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "enable-search-provider", "enableProvider", this._onEnableProviderChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-environment", "enableEnvironment", this._onEnableEnvironmentChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-jayantana", "enableJayantana", this._onEnableJayantanaChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-icon", "showAppIcon", this._onShowAppIconChanged, null);
@@ -344,6 +347,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "effect", "effectType", this._onEffectTypeChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "effect-time", "effectTime", this._onEffectTimeChanged, null);
 
+      this._onEnableProviderChanged();
       this._onEnableEnvironmentChanged();
       this._onEnableJayantanaChanged();
       this._onDisplayInPanelChanged();
@@ -455,6 +459,14 @@ MyApplet.prototype = {
       // propertly way.
    },
 
+   _onEnableProviderChanged: function() {
+       if(this.enableProvider) {
+          this.hubProvider.enable();
+       } else {
+          this.hubProvider.disable();
+       }
+   },
+
    _onEnableEnvironmentChanged: function() {
       if(this.enableEnvironment != this._system.isEnvironmentSet()) {
          this._system.setEnvironmentVar(this.enableEnvironment, Lang.bind(this, this._envVarChanged));
@@ -561,7 +573,7 @@ MyApplet.prototype = {
          if(app) {
             newIcon = this.indicatorDbus.getIconForWindow(window);
             newLabel = app.get_name();
-            let dbusMenu = this.indicatorDbus.getMenuForWindow(window);
+            let dbusMenu = this.indicatorDbus.getRootMenuForWindow(window);
             if(dbusMenu) {
                newMenu = this.menuFactory.getShellMenu(dbusMenu);
                if(!newMenu) {
@@ -655,6 +667,7 @@ MyApplet.prototype = {
       this.indicatorDbus.destroy();
       this._finalizeEnvironment();
       this.keybindingManager.destroy();
+      this.hubProvider.disable();
    },
 
    on_applet_clicked: function(event) {

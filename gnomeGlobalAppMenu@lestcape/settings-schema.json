@@ -9,6 +9,12 @@
     "separator-support-bottom" : {
         "type": "separator"
     },
+    "enable-search-provider" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Enable a search provider for the window menu actions",
+        "tooltip": "Select if you want to enable a search provider for searching the window menu actions."
+    },
     "enable-environment" : {
         "type" : "checkbox",
         "default" : false,

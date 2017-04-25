@@ -1549,13 +1549,15 @@ function CheckButton() {
 
 CheckButton.prototype = {
     _init: function(state, params) {
-        this._params = { style_class: 'check-box',
-                         button_mask: St.ButtonMask.ONE,
-                         toggle_mode: true,
-                         can_focus: true,
-                         x_fill: true,
-                         y_fill: true,
-                         y_align: St.Align.MIDDLE };
+        this._params = {
+            style_class: 'check-box',
+            button_mask: St.ButtonMask.ONE,
+            toggle_mode: true,
+            can_focus: true,
+            x_fill: true,
+            y_fill: true,
+            y_align: St.Align.MIDDLE
+        };
 
         if(params != undefined) {
             this._params = Params.parse(params, this._params);
@@ -1610,13 +1612,15 @@ function RadioBox() {
 
 RadioBox.prototype = {
     _init: function(state) {
-        this.actor = new St.Button({ style_class: 'radiobutton',
-                                     button_mask: St.ButtonMask.ONE,
-                                     toggle_mode: true,
-                                     can_focus: true,
-                                     x_fill: true,
-                                     y_fill: true,
-                                     y_align: St.Align.MIDDLE });
+        this.actor = new St.Button({
+            style_class: 'radiobutton',
+            button_mask: St.ButtonMask.ONE,
+            toggle_mode: true,
+            can_focus: true,
+            x_fill: true,
+            y_fill: true,
+            y_align: St.Align.MIDDLE
+        });
 
         this.actor._delegate = this;
         this.actor.checked = state;
@@ -1831,12 +1835,16 @@ ConfigurablePopupBaseMenuItem.prototype = {
    // #St.Align.START)
    addActor: function(child, params) {
       if((params)&&((params.span)||(params.align))) {
-         params = Params.parse(params, { span: 1,
-                                         expand: false,
-                                         align: St.Align.START });
-         params = { x_align: params.align,
-                    expand: params.expand,
-                    x_fill: params.expand };
+         params = Params.parse(params, {
+             span: 1,
+             expand: false,
+             align: St.Align.START
+         });
+         params = {
+             x_align: params.align,
+             expand: params.expand,
+             x_fill: params.expand
+         };
       }
       this.actor.connect('destroy', Lang.bind(this, function() { this._removeChild(child); }));
       this.actor.add(child, params);
@@ -4216,9 +4224,9 @@ ConfigurableMenu.prototype = {
    },
 
    _getFirstMenuItem: function(menu) {
-      let items = menu._getAllMenuItems();
+      let items = menu.getAllMenuItems();
       for(let pos in items) {
-         if(items[pos]._getAllMenuItems) {
+         if(items[pos].getAllMenuItems) {
             let result = this._getFirstMenuItem(items[pos]);
             if(result)
                return result;
@@ -4231,10 +4239,10 @@ ConfigurableMenu.prototype = {
    },
 
    _getLastMenuItem: function(menu) {
-      let items = menu._getAllMenuItems();
+      let items = menu.getAllMenuItems();
       if(items.length > 0) {
          for(let pos = items.length - 1; pos > -1; pos--) {
-            if(items[pos]._getAllMenuItems) {
+            if(items[pos].getAllMenuItems) {
                let result = this._getLastMenuItem(items[pos]);
                if(result)
                   return result;
@@ -7746,6 +7754,23 @@ PopupMenuAbstractFactory.prototype = {
       }
    },
 
+   getIcon: function(size) {
+      let name = this.getIconName();
+      if(name) {
+         let gicon = null;
+         let iconTheme = Gtk.IconTheme.get_default();
+         let iconInfo = iconTheme.lookup_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK);
+         if (iconInfo === null) {
+            global.logError("unable to lookup icon for '" + name + "'");
+         } else {
+            // create a gicon for the icon
+            gicon = Gio.icon_new_for_string(iconInfo.get_filename());
+         }
+         return gicon;
+      }
+      return this.getGdkIcon();
+   },
+
    getIconName: function() {
       return this._iconName;
    },
@@ -7898,6 +7923,10 @@ PopupMenuAbstractFactory.prototype = {
             obj.disconnect(signalsHandlers[pos]);
          }
       }
+   },
+
+   active: function() {
+       this.handleEvent("clicked");
    },
 
    _onActivate: function(item, event, keepMenu) {
