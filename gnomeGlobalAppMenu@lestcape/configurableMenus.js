@@ -7459,7 +7459,6 @@ ConfigurableMenuApplet.prototype = {
       if((!this.floating)&&(event.get_button() == 1)&&(this.launcher._draggable.inhibit)) {
          return true;
       }
-     // Main.notify("called5555");
       return false;
    },
 

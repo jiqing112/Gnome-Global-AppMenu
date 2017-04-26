@@ -17,6 +17,7 @@
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const Gio = imports.gi.Gio;
+const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const Gettext = imports.gettext;
@@ -31,6 +32,7 @@ const ConfigurableMenus = MyExtension.imports.configurableMenus;
 const IndicatorAppMenuWatcher = MyExtension.imports.indicatorAppMenuWatcher;
 const Settings = MyExtension.imports.settings.settings;
 const HudProvider = MyExtension.imports.hudProvider;
+const RemoteMenu = MyExtension.imports.remoteMenu;
 //const PopupMenu = MyExtension.imports.popupMenu;
 
 
@@ -251,6 +253,11 @@ MyApplet.prototype = {
          this.effectType = "none";
          this.effectTime = 0.4;
 
+         this.appmenu = null;
+         this.targetApp = null;
+         this._appMenuNotifyId = 0;
+         this._actionGroupNotifyId = 0;
+
          this.actorIcon = new St.Bin();
 
          this.gradient = new ConfigurableMenus.GradientLabelMenuItem("", 10);
@@ -270,6 +277,9 @@ MyApplet.prototype = {
          this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
          this.hubProvider = new HudProvider.HudSearchProvider();
 
+         this._gtkSettings = Gtk.Settings.get_default();
+         this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
+                                                           Lang.bind(this, this._onAppMenuNotify));
          this._createSettings();
          this._cleanAppmenu();
          this.indicatorDbus = null;
@@ -315,7 +325,9 @@ MyApplet.prototype = {
             }
          }
          if (event.get_button() == 3) {
-            if (this._applet_context_menu.getMenuItems().length > 0) {
+            if(this.appmenu) {
+                this.appmenu.toggle();
+            } else if (this._applet_context_menu.getMenuItems().length > 0) {
                this._applet_context_menu.toggle();
             }
          }
@@ -563,17 +575,95 @@ MyApplet.prototype = {
       this.menuFactory.desaturateItemIcon(this.desaturateItemIcon);
    },
 
+   _onAppMenuOpenStateChanged: function(menu, open) {
+      /*if (open)
+         this.actor.add_style_pseudo_class('active');
+      else
+         this.actor.remove_style_pseudo_class('active');
+
+      // Setting the max-height won't do any good if the minimum height of the
+      // menu is higher then the screen; it's useful if part of the menu is
+      // scrollable so the minimum height is smaller than the natural height
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+      let verticalMargins = this.menu.actor.margin_top + this.menu.actor.margin_bottom;
+
+      // The workarea and margin dimensions are in physical pixels, but CSS
+      // measures are in logical pixels, so make sure to consider the scale
+      // factor when computing max-height
+      let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
+      this.menu.actor.style = ('max-height: %spx;').format(maxHeight);*/
+   },
+
+   _onMenuKeyPress: function(actor, event) {
+      /*if (global.focus_manager.navigate_from_event(event))
+         return Clutter.EVENT_STOP;
+
+      let symbol = event.get_key_symbol();
+      if (symbol == Clutter.KEY_Left || symbol == Clutter.KEY_Right) {
+         let group = global.focus_manager.get_group(this.actor);
+         if (group) {
+            let direction = (symbol == Clutter.KEY_Left) ? Gtk.DirectionType.LEFT : Gtk.DirectionType.RIGHT;
+            group.navigate_focus(this.actor, direction, false);
+            return Clutter.EVENT_STOP;
+         }
+      }
+      return Clutter.EVENT_PROPAGATE;*/
+    },
+
+   setAppMenu: function(menu) {
+      if (this.appmenu)
+         this.appmenu.destroy();
+
+      this.appmenu = menu;
+      if (this.appmenu) {
+         this.appmenu.actor.add_style_class_name('panel-menu');
+         this.appmenu.connect('open-state-changed', Lang.bind(this, this._onAppMenuOpenStateChanged));
+         this.appmenu.actor.connect('key-press-event', Lang.bind(this, this._onMenuKeyPress));
+
+         Main.uiGroup.add_actor(this.appmenu.actor);
+         this.appmenu.actor.hide();
+      }
+      this.emit('menu-set');
+   },
+
+   _onAppMenuNotify: function() {
+      let visible = (this.targetApp != null &&
+                     this._gtkSettings.gtk_shell_shows_app_menu &&
+                     !Main.overview.visibleTarget);
+      this.actor.reactive = (visible /*&& !isBusy*/);
+
+
+      let menu = null;
+      if (this.targetApp && this.targetApp.action_group && this.targetApp.menu) {
+         if (this.appmenu instanceof RemoteMenu.RemoteMenu &&
+            this.appmenu.actionGroup == this.targetApp.action_group)
+            return;
+
+         menu = new RemoteMenu.RemoteMenu(this.actor, this.targetApp.menu, this.targetApp.action_group);
+         menu.connect('activate', Lang.bind(this, function() {
+            let win = this.targetApp.get_windows()[0];
+            win.check_alive(global.get_current_time());
+         }));
+      }
+
+      this.setAppMenu(menu);
+      if (menu)
+         this._menuManager.addMenu(menu);
+   },
+
    _onAppmenuChanged: function(indicator, window) {
       let newLabel = null;
       let newIcon = null;
       let newMenu = null;
+      let app = null;
       this.currentWindow = window;
-      if(window) {
-         let app = this.indicatorDbus.getAppForWindow(window);
+      if(this.currentWindow) {
+         app = this.indicatorDbus.getAppForWindow(this.currentWindow);
          if(app) {
-            newIcon = this.indicatorDbus.getIconForWindow(window);
+            newIcon = this.indicatorDbus.getIconForWindow(this.currentWindow);
             newLabel = app.get_name();
-            let dbusMenu = this.indicatorDbus.getRootMenuForWindow(window);
+            let dbusMenu = this.indicatorDbus.getRootMenuForWindow(this.currentWindow);
             if(dbusMenu) {
                newMenu = this.menuFactory.getShellMenu(dbusMenu);
                if(!newMenu) {
@@ -583,7 +673,29 @@ MyApplet.prototype = {
             }
          }
       }
+      //this._tryToTrackAppMenu(app);
       this._tryToShow(newLabel, newIcon, newMenu);
+   },
+
+   _tryToTrackAppMenu: function(app) {
+      if(this.targetApp != app) {
+         if (this._appMenuNotifyId) {
+            this.targetApp.disconnect(this._appMenuNotifyId);
+            this._appMenuNotifyId = 0;
+         }
+         if (this._actionGroupNotifyId) {
+            this.targetApp.disconnect(this._actionGroupNotifyId);
+            this._actionGroupNotifyId = 0;
+         }
+         this.targetApp = app;
+         if (this.targetApp) {
+            this._appMenuNotifyId = this.targetApp.connect('notify::menu', Lang.bind(this, this._onAppMenuNotify));
+            this._actionGroupNotifyId = this.targetApp.connect('notify::action-group', Lang.bind(this, this._onAppMenuNotify));
+            if (!this.appmenu) {
+                this._onAppMenuNotify();
+            }
+         }
+      }
    },
 
    _tryToShow: function(newLabel, newIcon, newMenu) {

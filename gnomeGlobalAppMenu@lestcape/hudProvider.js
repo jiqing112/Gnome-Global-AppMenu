@@ -369,40 +369,6 @@ const HudListSearchResults = new Lang.Class({
         if (this._content.get_n_children() > 0)
             return this._content.get_child_at_index(0)._delegate;
         return null;
-    },
-
-    updateSearch: function(providerResults, terms, callback) {
-        this._terms = terms;
-
-        if (providerResults.length == 0) {
-            this._clearResultDisplay();
-            this.actor.hide();
-            callback();
-        } else {
-            let maxResults = this._getMaxDisplayedResults();
-            let results = this.provider.filterResults(providerResults, maxResults);
-            let hasMoreResults = results.length < providerResults.length;
-
-            this._ensureResultActors(results, Lang.bind(this, function(successful) {
-                if (!successful) {
-                    this._clearResultDisplay();
-                    callback();
-                    return;
-                }
-
-                // To avoid CSS transitions causing flickering when
-                // the first search result stays the same, we hide the
-                // content while filling in the results.
-                this.actor.hide();
-                this._clearResultDisplay();
-                results.forEach(Lang.bind(this, function(resultId) {
-                    this._addItem(this._resultDisplays[resultId]);
-                }));
-                this._setMoreIconVisible(hasMoreResults && this.provider.canLaunchSearch);
-                this.actor.show();
-                callback();
-            }));
-        }
     }
 });
 Signals.addSignalMethods(HudListSearchResults.prototype);
