@@ -27,10 +27,12 @@ const HudSearchProvider = new Lang.Class({
         this.id = 'hud';
         this.name = "Gnome Hud";
         this.isEnabled = false;
+        this.currentWindow = null;
         this.indicator = null;
+        this.display = null;
         this.appData = null;
         this._indicatorId = 0;
-        this._ensureDisplay();
+        this._focusId = 0;
     },
 
     enable: function() {
@@ -46,6 +48,7 @@ const HudSearchProvider = new Lang.Class({
                     Main.overview.viewSelector._searchResults._unregisterProvider(searchProvider);
                 };
             }
+            this._hackDisplay(true);
             Main.overview.addSearchProvider(this);
             this.isEnabled = true;
         }
@@ -54,6 +57,7 @@ const HudSearchProvider = new Lang.Class({
     disable: function() {
         if (this.isEnabled) {
             Main.overview.removeSearchProvider(this);
+            this._hackDisplay(false);
             this.isEnabled = false;
         }
     },
@@ -68,34 +72,52 @@ const HudSearchProvider = new Lang.Class({
             if(this.indicator && (this._indicatorId == 0)) {
                 this.indicator.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
             }
+            this.disable();
+            this.enable();
         }
     },
 
     _onAppmenuChanged: function(indicator, window)  {
-        this.appData = null;
-        this.currentWindow = window;
-        if(window) {
-            let app = this.indicator.getAppForWindow(window);
-            if(app) {
-                this.appData = {
-                   "icon": this.indicator.getIconForWindow(window),
-                   "label": app.get_name(),
-                   "dbusMenu": this.indicator.getMenuForWindow(window)
-                };
+        if(this.currentWindow != window) {
+            this.appData = null;
+            this.currentWindow = window;
+            if(this.currentWindow && this.indicator && this.isEnabled) {
+                let app = this.indicator.getAppForWindow(window);
+                if(app) {
+                    this.appData = {
+                        "icon": this.indicator.getIconForWindow(window),
+                        "label": app.get_name(),
+                        "dbusMenu": this.indicator.getMenuForWindow(window)
+                    };
+                }
             }
         }
     },
 
-    _ensureDisplay: function()  {
-        this.display = new HudListSearchResults(this);
-        this.display.actor.hide();
-
+    _hackDisplay: function(hack) {
         let sr = Main.overview.viewSelector._searchResults;
         if(sr && sr._content) {
-            if(sr._keyFocusIn) {
-                this.display.connect('key-focus-in', Lang.bind(sr, sr._keyFocusIn));
+            if(hack) {
+                if(!this.display) {
+                    this.display = new HudListSearchResults(this);
+                    this.display.actor.hide();
+                }
+                if(sr._keyFocusIn && (this._focusId == 0))
+                    this._focusId = this.display.connect('key-focus-in', Lang.bind(sr, sr._keyFocusIn));
+                if(!sr._content.contains(this.display.actor))
+                    sr._content.add(this.display.actor);
+            } else {
+                try {
+                    if(this._focusId != 0)
+                        this.display.disconnect(this._focusId);
+                } catch(e) {} // Do nothing, this mean there a loock screen.
+                if(sr._content.contains(this.display.actor))
+                    sr._content.remove_actor(this.display.actor);
+                if(this.display) {
+                    this.display.destroy();
+                    this.display = null;
+                }
             }
-            sr._content.add(this.display.actor);
         }
     },
 
@@ -132,9 +154,9 @@ const HudSearchProvider = new Lang.Class({
     },
 
     _searchFor: function(item, terms) {
+        let label = item.getLabel().toLowerCase();
         for(let pos in terms) {
-            let label = item.getLabel();
-            if(label.indexOf(terms[pos]) != -1) {
+            if(label.indexOf(terms[pos].toLowerCase()) != -1) {
                 return 1;
             }
         }
@@ -348,5 +370,39 @@ const HudListSearchResults = new Lang.Class({
             return this._content.get_child_at_index(0)._delegate;
         return null;
     },
+
+    updateSearch: function(providerResults, terms, callback) {
+        this._terms = terms;
+
+        if (providerResults.length == 0) {
+            this._clearResultDisplay();
+            this.actor.hide();
+            callback();
+        } else {
+            let maxResults = this._getMaxDisplayedResults();
+            let results = this.provider.filterResults(providerResults, maxResults);
+            let hasMoreResults = results.length < providerResults.length;
+
+            this._ensureResultActors(results, Lang.bind(this, function(successful) {
+                if (!successful) {
+                    this._clearResultDisplay();
+                    callback();
+                    return;
+                }
+
+                // To avoid CSS transitions causing flickering when
+                // the first search result stays the same, we hide the
+                // content while filling in the results.
+                this.actor.hide();
+                this._clearResultDisplay();
+                results.forEach(Lang.bind(this, function(resultId) {
+                    this._addItem(this._resultDisplays[resultId]);
+                }));
+                this._setMoreIconVisible(hasMoreResults && this.provider.canLaunchSearch);
+                this.actor.show();
+                callback();
+            }));
+        }
+    }
 });
 Signals.addSignalMethods(HudListSearchResults.prototype);
