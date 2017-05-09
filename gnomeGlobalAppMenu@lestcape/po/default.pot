@@ -273,3 +273,9 @@ msgstr ""
 #. globalAppMenu@lestcape->settings-schema.json->search-provider->tooltip
 msgid "Select if you want to enable a search provider for searching the window menu actions."
 msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->...
+msgid "Keyboard shortcut to open and close the menu"
+msgstr ""
+
+
