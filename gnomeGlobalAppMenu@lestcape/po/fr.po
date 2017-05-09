@@ -37,7 +37,7 @@ msgstr "La variable d'environnement a été modifiée, une déconnexion sera né
 
 #: utils/environment.js:45
 msgid "Global Menu Environment Usage"
-msgstr ""
+msgstr "Environnement d'utilisation du menu global"
 
 #: utils/environment.js:46
 msgid "Install environment variables"
@@ -82,7 +82,7 @@ msgstr "Sélectionnez si vous voulez montrer un effet de dégradé dans le nom d
 
 #. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
 msgid "Submenu"
-msgstr "Sous-menu"
+msgstr "Sous-menus"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
 msgid "Show icons in the menu items"
@@ -186,10 +186,9 @@ msgid "Automatically close the submenu"
 msgstr "Fermer automatiquement le sous-menu"
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
-msgid ""
-"Select if you want to automatically close the submenu when the mouse is out "
+msgid "Select if you want to automatically close the submenu when the mouse is out "
 "of the launcher."
-msgstr ""
+msgstr "Choisissez si vous voulez fermer automatiquement le sous-menu quand la souris s'en éloigne."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
 msgid "Show the application name in the panel"
@@ -226,7 +225,7 @@ msgstr "Applications"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
 msgid "Show the boxpointers"
-msgstr "Montrer les pointes"
+msgstr "Montrer les pointes des menus"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
 msgid "Select if you want to show the boxpointer of all floating menus."
@@ -262,8 +261,16 @@ msgstr "Désaturer les icônes dans les items des menus"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
 msgid "Select if you want to desaturate icons in the menu items."
-msgstr "Sélectionnez si vous voulez désaturer les icônes dans les items des menus"
+msgstr "Sélectionnez si vous voulez désaturer les icônes des items des menus."
 
 #. globalAppMenu@lestcape->metadata.json->description
 msgid "Adds global application menu support to Cinnamon"
-msgstr "Ajouter le support du menu d'application global pour cinnamon"
+msgstr "Ajouter le support du menu d'application global pour Cinnamon"
+
+#. globalAppMenu@lestcape->settings-schema.json->search-provider
+msgid "Enable a search provider for the window menu actions"
+msgstr "Activer le fournisseur de recherche pour les actions des menus"
+
+#. globalAppMenu@lestcape->settings-schema.json->search-provider->tooltip
+msgid "Select if you want to enable a search provider for searching the window menu actions."
+msgstr "Sélectionnez si vous voulez activer le fournisseur de recherche pour les actions des menus."
