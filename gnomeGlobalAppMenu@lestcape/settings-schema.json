@@ -24,8 +24,8 @@
     "enable-jayantana" : {
         "type" : "checkbox",
         "default" : false,
-        "description": "Enable the support for JAyantana (Experimental)",
-        "tooltip": "Select if you want to enable the support for JAyantana."
+        "description": "Enable the support for JAyatana (Experimental)",
+        "tooltip": "Select if you want to enable the support for JAyatana."
     },
     "separator-application-top" : {
         "type": "separator"
