@@ -177,8 +177,8 @@ msgstr "Ouvrir automatiquement le sous-menu"
 msgid ""
 "Select if you want to automatically open the submenu when the mouse is inside "
 "of the launcher."
-msgstr "Choisissez si vous voulez ouvrir automatiquement le sous-menu"
-"quand la souris survole le lanceur."
+msgstr "Choisissez si vous voulez ouvrir automatiquement un sous-menu "
+"quand la souris le survole."
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-
 #. submenu->description
@@ -274,3 +274,7 @@ msgstr "Activer le fournisseur de recherche pour les actions des menus"
 #. globalAppMenu@lestcape->settings-schema.json->search-provider->tooltip
 msgid "Select if you want to enable a search provider for searching the window menu actions."
 msgstr "Sélectionnez si vous voulez activer le fournisseur de recherche pour les actions des menus."
+
+#. globalAppMenu@lestcape->settings-schema.json->
+msgid "Keyboard shortcut to open and close the menu"
+msgstr "Raccourci clavier pour ouvrir/fermer le menu"
