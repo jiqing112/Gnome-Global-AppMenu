@@ -265,3 +265,11 @@ msgstr ""
 #. globalAppMenu@lestcape->metadata.json->description
 msgid "Adds global application menu support to Cinnamon"
 msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->search-provider
+msgid "Enable a search provider for the window menu actions"
+msgstr ""
+
+#. globalAppMenu@lestcape->settings-schema.json->search-provider->tooltip
+msgid "Select if you want to enable a search provider for searching the window menu actions."
+msgstr ""
