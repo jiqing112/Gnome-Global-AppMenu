@@ -258,11 +258,8 @@ MyApplet.prototype = {
          this._appMenuNotifyId = 0;
          this._actionGroupNotifyId = 0;
 
-         this.actorIcon = new St.Bin();
-
          this.gradient = new ConfigurableMenus.GradientLabelMenuItem("", 10);
-         this.actor.add(this.actorIcon, { y_align: St.Align.MIDDLE, y_fill: false });
-         this.actor.add(this.gradient.actor, { y_align: St.Align.MIDDLE, y_fill: false });
+         this.actor.add(this.gradient.actor);
          this.actor.connect("enter-event", Lang.bind(this, this._onAppletEnterEvent));
 
          this.menuFactory = new MyMenuFactory();
@@ -314,14 +311,10 @@ MyApplet.prototype = {
       if (this._applet_enabled) {
          if (event.get_button() == 1) {
             if (!this._draggable.inhibit) {
-               if (Main.overview.shouldToggleByCornerOrButton())
-                  Main.overview.toggle();
-               return true;
-            } else {
                if (this._applet_context_menu.isOpen) {
                   this._applet_context_menu.toggle();
                }
-               this.on_applet_clicked(event);
+               return this.on_applet_clicked(event);
             }
          }
          if (event.get_button() == 3) {
@@ -522,14 +515,11 @@ MyApplet.prototype = {
    },
 
    _onShowAppIconChanged: function() {
-      this.actorIcon.visible = this.showAppIcon;
+      this.gradient.showIcon(this.showAppIcon);
    },
 
    _onDesaturateAppIconChanged: function() {
-      if(this.desaturateAppIcon)
-         this.actorIcon.add_effect_with_name("desaturate", new Clutter.DesaturateEffect());
-      else
-         this.actorIcon.remove_effect_by_name("desaturate");
+      this.gradient.desaturateIcon(this.desaturateAppIcon);
    },
 
    _onShowAppNameChanged: function() {
@@ -715,7 +705,7 @@ MyApplet.prototype = {
       }
       if(this._isNewApp(newLabel, newIcon)) {
          this.gradient.setText(newLabel);
-         this.actorIcon.set_child(newIcon);
+         this.gradient.setIcon(newIcon);
       }
    },
 
@@ -729,12 +719,14 @@ MyApplet.prototype = {
    _cleanAppmenu: function() {
       this._closeMenu();
       this.menu = null;
-      this.actorIcon.set_child(this.defaultIcon);
-      this.gradient.setText(_("Activities"));
+      //this.gradient.setIcon(this.defaultIcon);
+      //this.gradient.setText(_("Activities"));
+      this.gradient.setIcon(null);
+      this.gradient.setText("");
    },
 
    _isNewApp: function(newLabel, newIcon) {
-      return ((newIcon != this.actorIcon.get_child())||
+      return ((newIcon != this.gradient.getIcon())||
               (newLabel != this.gradient.text));
    },
 
@@ -785,8 +777,8 @@ MyApplet.prototype = {
    on_applet_clicked: function(event) {
       if((this.menu) && (event.get_button() == 1)) {
          this.menu.forcedToggle();
-         if (Main.overview.shouldToggleByCornerOrButton())
-             Main.overview.toggle();
+         //if (Main.overview.shouldToggleByCornerOrButton())
+         //    Main.overview.toggle();
          return true;
       }
       return false;

@@ -549,8 +549,6 @@ Applet.prototype = {
     /*    if (this._applet_enabled) {
             if (event.get_button() == 1) {
                 if (!this._draggable.inhibit) {
-                    return false;
-                } else {
                     if (this._applet_context_menu.isOpen) {
                         this._applet_context_menu.toggle();
                     }
@@ -570,8 +568,6 @@ Applet.prototype = {
         if (this._applet_enabled) {
             if (event.get_button() == 1) {
                 if (!this._draggable.inhibit) {
-                    return false;
-                } else {
                     if (this._applet_context_menu.isOpen) {
                         this._applet_context_menu.toggle();
                     }

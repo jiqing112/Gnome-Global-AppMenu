@@ -45,7 +45,7 @@ const RemoteMenuSeparatorItemMapper = new Lang.Class({
 
     _init: function(trackerItem) {
         this._trackerItem = trackerItem;
-        this.menuItem = new PopupMenu.PopupSeparatorMenuItem();
+        this.menuItem = new ConfigurableMenus.ConfigurableSeparatorMenuItem();
         this._trackerItem.connect('notify::label', Lang.bind(this, this._updateLabel));
         this._updateLabel();
 
@@ -55,13 +55,13 @@ const RemoteMenuSeparatorItemMapper = new Lang.Class({
     },
 
     _updateLabel: function() {
-        this.menuItem.label.text = stripMnemonics(this._trackerItem.label);
+        //this.menuItem.label.text = stripMnemonics(this._trackerItem.label);
     },
 });
 
 const RequestSubMenu = new Lang.Class({
     Name: 'RequestSubMenu',
-    Extends: PopupMenu.PopupSubMenuMenuItem,
+    Extends: ConfigurableMenus.ConfigurablePopupSubMenuMenuItem,
 
     _init: function() {
         this.parent('');
@@ -110,7 +110,7 @@ const RemoteMenuSubmenuItemMapper = new Lang.Class({
     },
 
     _updateLabel: function() {
-        this.menuItem.label.text = stripMnemonics(this._trackerItem.label);
+        this.menuItem.setText(stripMnemonics(this._trackerItem.label));
     },
 });
 
@@ -119,14 +119,13 @@ const RemoteMenuItemMapper = new Lang.Class({
 
     _init: function(trackerItem) {
         this._trackerItem = trackerItem;
+        this._currentOrnament = ConfigurableMenus.OrnamentType.NONE;
 
-        this.menuItem = new PopupMenu.PopupBaseMenuItem();
-        this._label = new St.Label();
-        this.menuItem.actor.add_child(this._label);
-        this.menuItem.actor.label_actor = this._label;
+        this.menuItem = new ConfigurableMenus.ConfigurableApplicationMenuItem("");
 
         this.menuItem.connect('activate', Lang.bind(this, function() {
             this._trackerItem.activated();
+            this.menuItem.toggleOrnament();
         }));
 
         this._trackerItem.bind_property('visible', this.menuItem.actor, 'visible', GObject.BindingFlags.SYNC_CREATE);
@@ -146,7 +145,7 @@ const RemoteMenuItemMapper = new Lang.Class({
     },
 
     _updateLabel: function() {
-        this._label.text = stripMnemonics(this._trackerItem.label);
+        this.menuItem.setText(stripMnemonics(this._trackerItem.label));
     },
 
     _updateSensitivity: function() {
@@ -155,14 +154,18 @@ const RemoteMenuItemMapper = new Lang.Class({
 
     _updateDecoration: function() {
         let ornamentForRole = {};
-        ornamentForRole[ShellMenu.MenuTrackerItemRole.RADIO] = PopupMenu.Ornament.DOT;
-        ornamentForRole[ShellMenu.MenuTrackerItemRole.CHECK] = PopupMenu.Ornament.CHECK;
+        ornamentForRole[ShellMenu.MenuTrackerItemRole.RADIO] = ConfigurableMenus.OrnamentType.DOT;
+        ornamentForRole[ShellMenu.MenuTrackerItemRole.CHECK] = ConfigurableMenus.OrnamentType.CHECK;
 
-        let ornament = PopupMenu.Ornament.NONE;
+        let ornament = ConfigurableMenus.OrnamentType.NONE;
         if (this._trackerItem.toggled)
             ornament = ornamentForRole[this._trackerItem.role];
 
-        this.menuItem.setOrnament(ornament);
+        if(ornament != ConfigurableMenus.OrnamentType.NONE)
+            this.menuItem.setOrnament(ornament, true);
+        else
+            this.menuItem.setOrnament(ornament, false);
+        this._currentOrnament = ornament;
     },
 
     _updateRole: function() {
@@ -178,12 +181,15 @@ const RemoteMenuItemMapper = new Lang.Class({
     },
 });
 
-const RemoteMenu = new Lang.Class({
-    Name: 'RemoteMenu',
-    Extends: PopupMenu.PopupMenu,
+function RemoteMenu() {
+   this._init.apply(this, arguments);
+}
 
-    _init: function(sourceActor, model, actionGroup) {
-        this.parent(sourceActor, 0.0, St.Side.TOP);
+RemoteMenu.prototype = {
+    __proto__: ConfigurableMenus.ConfigurableMenu.prototype,
+
+    _init: function(launcher, model, actionGroup) {
+        ConfigurableMenus.ConfigurableMenu.prototype._init.call (this, launcher, 0.0, St.Side.TOP, true);
 
         this._model = model;
         this._actionGroup = actionGroup;
@@ -196,7 +202,7 @@ const RemoteMenu = new Lang.Class({
 
     destroy: function() {
         this._tracker.destroy();
-        this.parent();
+        ConfigurableMenus.ConfigurableMenu.prototype.destroy.call(this);
     },
-});
+};
 

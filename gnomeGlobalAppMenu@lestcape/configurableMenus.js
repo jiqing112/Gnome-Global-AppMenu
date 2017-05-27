@@ -2131,12 +2131,20 @@ GradientLabelMenuItem.prototype = {
       this._size = size;
       this.margin = 2;
       this.textDegradation = false;
-      this.actor.set_style_class_name('gradient-label-menu-item');
+      this.actor.set_style_class_name('popup-menu-item');
+      this.actor.add_style_class_name('applet-box');
+      this.actor.add_style_class_name('panel-button');
+      this.actor.add_style_class_name('gradient-menu-item');
 
-      this._drawingArea = new St.DrawingArea({ style_class: 'chat-meta-message' });//'end-session-dialog-app-list-item-description' });
+      this._drawingArea = new St.DrawingArea({ style_class: 'chat-meta-message' });
+      this._drawingArea.add_style_class_name('gradient-label-menu-item');
+
       this._drawingArea.connect('repaint', Lang.bind(this, this._onRepaint));
       this._drawingArea.connect('style-changed', Lang.bind(this, this._onStyleChanged));
-      this.actor.add_actor(this._drawingArea);
+
+      this.actorIcon = new St.Bin({ style_class: 'gradient-icon-box' });
+      this.actor.add(this.actorIcon, { y_align: St.Align.MIDDLE, y_fill: false });
+      this.actor.add(this._drawingArea, { y_align: St.Align.MIDDLE, y_fill: false });
       this.actor._delagate = this;
    },
 
@@ -2161,6 +2169,25 @@ GradientLabelMenuItem.prototype = {
    _onStyleChanged: function() {
       this.themeNode = this._drawingArea.get_theme_node();
       this._updateSize();
+   },
+
+   setIcon: function(icon) {
+      this.actorIcon.set_child(icon);
+   },
+
+   getIcon: function() {
+      return this.actorIcon.get_child();
+   },
+
+   showIcon: function(show) {
+       this.actorIcon.visible = show;
+   },
+
+   desaturateIcon: function(desaturate) {
+      if(desaturate)
+         this.actorIcon.add_effect_with_name("desaturate", new Clutter.DesaturateEffect());
+      else
+         this.actorIcon.remove_effect_by_name("desaturate");
    },
 
    _updateSize: function() {
@@ -2209,7 +2236,7 @@ GradientLabelMenuItem.prototype = {
          cr.fill();
 
          cr.setFontSize(fontSize);
-         cr.moveTo(this.margin + 1, (height/2) + (metrics.get_descent()/Pango.SCALE));
+         cr.moveTo(this.margin + 1, (height/2) + (metrics.get_descent()/Pango.SCALE) + 1);
 
          if(this.textDegradation) {
             let realPattern = new Cairo.LinearGradient(0, 0, width, height);
@@ -2245,7 +2272,7 @@ ConfigurablePopupMenuItem.prototype = {
 
    _init: function(text, params) {
       ConfigurablePopupBaseMenuItem.prototype._init.call(this, params);
-      this.label = new St.Label({ text: text, style_class: 'not-ornament' });
+      this.label = new St.Label({ text: text });
       this.actor.label_actor = this.label;
       this.actor.add(this.label, { y_align: St.Align.MIDDLE, y_fill:false, expand: true });
    },
@@ -2273,8 +2300,6 @@ ConfigurableBasicPopupMenuItem.prototype = {
    _init: function(text, params) {
       ConfigurablePopupMenuItem.prototype._init.call(this, text, params);
       this._icon = new St.Icon({ style_class: 'popup-menu-icon' });
-      this._icon.add_style_class_name('not-ornament');
-
       this._icon.hide();
       this.actor.insert_before(this._icon, this.label);
       this._displayIcon = false;
@@ -2291,15 +2316,11 @@ ConfigurableBasicPopupMenuItem.prototype = {
    setIconVisible: function(show) {
       this._displayIcon = show;
       this._icon.visible = (this._displayIcon)&&(this.haveIcon());
-      if(this._icon.visible)
-          this.label.remove_style_class_name('not-ornament');
    },
 
    setIconName: function(name) {
       this._icon.visible = ((this._displayIcon) && (name && name != ""));
       this._icon.icon_name = name;
-      if(this._icon.visible)
-          this.label.remove_style_class_name('not-ornament');
    },
 
    setIconType: function(type) {
@@ -2313,8 +2334,6 @@ ConfigurableBasicPopupMenuItem.prototype = {
    setGIcon: function(gicon) {
       this._icon.visible = ((this._displayIcon) && (gicon != null));
       this._icon.gicon = gicon;
-      if(this._icon.visible)
-          this.label.remove_style_class_name('not-ornament');
    },
 
    desaturateItemIcon: function(desaturate) {
@@ -2352,10 +2371,12 @@ ConfigurableApplicationMenuItem.prototype = {
       ConfigurableBasicPopupMenuItem.prototype._init.call(this, text);
       this.actor._delegate = this;
 
-      this._accel = new St.Label();
+      this._accel = new St.Label({ style_class: 'popup-menu-accel-label' });
       this._ornament = new St.Bin({ style_class: 'popup-menu-ornament' });
-      this.actor.add(this._accel,    { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false });
-      this.actor.add(this._ornament, { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false });
+      this.actor.add(this._accel,    { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false, y_fill:false });
+      this.actor.add(this._ornament, { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false, y_fill:false });
+      this._accel.visible = false;
+      this._ornament.visible = false;
    },
 
    preservedSelection: function(preserve) {
@@ -2363,6 +2384,7 @@ ConfigurableApplicationMenuItem.prototype = {
    },
 
    setAccel: function(accel) {
+      this._accel.visible = (accel != '');
       this._accel.set_text(accel);
    },
 
@@ -2372,10 +2394,12 @@ ConfigurableApplicationMenuItem.prototype = {
          if((this._ornament.child)&&(!(this._ornament.child._delegate instanceof CheckButton))) {
              this._ornament.child.destroy();
              this._ornament.child = null;
+             this._ornament.visible = false;
          }
          if(!this._ornament.child) {
              let checkOrn = new CheckButton(state);
              this._ornament.child = checkOrn.actor;
+             this._ornament.visible = true;
          } else {
              this._ornament.child._delegate.setToggleState(state);
          }
@@ -2384,10 +2408,12 @@ ConfigurableApplicationMenuItem.prototype = {
          if((this._ornament.child)&&(!(this._ornament.child._delegate instanceof RadioBox))) {
              this._ornament.child.destroy();
              this._ornament.child = null;
+             this._ornament.visible = false;
          }
          if(!this._ornament.child) {
              let radioOrn = new RadioBox(state);
              this._ornament.child = radioOrn.actor;
+             this._ornament.visible = true;
          } else {
              this._ornament.child._delegate.setToggleState(state);
          }
@@ -2522,8 +2548,6 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          this._displayIcon = show;
          if(this._icon)
             this._icon.visible = (this._displayIcon)&&(this.haveIcon());
-         if(this._icon.visible)
-            this.label.remove_style_class_name('not-ornament');
       }
    },
 
@@ -2543,8 +2567,6 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       if(this._icon) {
          this._icon.visible = ((this._displayIcon) && (name && name != ""));
          this._icon.icon_name = name;
-         if(this._icon.visible)
-            this.label.remove_style_class_name('not-ornament');
       }
    },
 
@@ -2552,8 +2574,6 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       if(this._icon) {
          this._icon.visible = ((this._displayIcon) && (gicon != null));
          this._icon.gicon = gicon;
-         if(this._icon.visible)
-            this.label.remove_style_class_name('not-ornament');
       }
    },
 
@@ -3765,6 +3785,7 @@ ConfigurableMenu.prototype = {
          this._boxPointer.actor.reactive = true;
          this._boxPointer.actor.set_style_class_name('popup-menu-boxpointer');
          this._boxPointer.actor.add_style_class_name('popup-menu');
+         this._boxPointer.actor.add_style_class_name('configurable-menu');
          this._boxPointer.actor.hide();
          this._boxPointer.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
          this._boxPointer.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
@@ -3774,6 +3795,7 @@ ConfigurableMenu.prototype = {
          this._boxWrapper.connect('get-preferred-height', Lang.bind(this, this._boxGetPreferredHeight));
          this._boxWrapper.connect('allocate', Lang.bind(this, this._boxAllocate));
          this._boxPointer.bin.set_child(this._boxWrapper);
+         this.box.set_style_class_name('');
          this._scroll.add_actor(this.box);
 
          this._vectorBlocker = new VectorBoxBlocker();
@@ -4180,6 +4202,10 @@ ConfigurableMenu.prototype = {
 
    _onKeyPressEvent: function(actor, event) {
       if(this.isOpen) {
+         if(!this._activeMenuItem) {
+            this._activeMenuItem = this._getFirstMenuItem(this);
+            this._activeMenuItem.setActive(true);
+         }
          let close = false;
          if(event.get_key_symbol() == Clutter.Escape) {
             close = true;
@@ -4772,17 +4798,15 @@ ConfigurableMenu.prototype = {
          if(this._floating) {
             Main.uiGroup.add_actor(this.actor);
             global.focus_manager.add_group(this.actor);
-            this._scroll.set_style_class_name('');
-            this.actor.set_style_class_name('popup-menu-boxpointer');
-            this.actor.add_style_class_name('popup-menu');
-            this.box.set_style_class_name('popup-menu-box');
+            this.actor.set_style_class_name('configurable-menu');
+            this.actor.add_style_class_name('popup-menu-boxpointer');
+            this._scroll.set_style_class_name('popup-menu');
          } else {
             global.focus_manager.remove_group(this.actor);
-            this.actor.set_style_class_name('');
+            this.actor.set_style_class_name('configurable-menu');
             this._scroll.set_style_class_name('popup-sub-menu');
-            this.box.set_style_class_name('');
             this._boxPointer.clearPosition(); 
-            //this._insertMenuOnLauncher();
+            this._insertMenuOnLauncher();
          }
       }
       this._updateTopMenu();
@@ -4978,6 +5002,7 @@ ConfigurablePopupMenuSection.prototype = {
    _init: function() {
       ConfigurablePopupMenuBase.prototype._init.call(this);
       this.actor = this.box;
+      this.actor.add_style_class_name('configurable-menu');
       this.actor._delegate = this;
       this.isOpen = true;
       this._showItemIcon = true;
@@ -7118,15 +7143,11 @@ ConfigurableMenuApplet.prototype = {
       ConfigurableMenu.prototype.setFloatingState.call(this, floating);
       if(this.launcher)
          this.launcher.actor.set_track_hover(this._floating);
-      if(this._floating) {
-         this.box.set_style_class_name('popup-menu-content');
-         this.box.set_vertical(true);
-      } else {
+      this.box.set_vertical(this._floating);
+      if(!this._floating) {
          if(this.launcher && !this.actor.get_parent())
             this.launcher.actor.add(this.actor);
          this.actor.set_style_class_name('applet-container-box');
-         this.box.set_style_class_name('applet-menu-content');
-         this.box.set_vertical(false);
          this._scroll.set_style_class_name('');
       }
       let items = this.getMenuItems();
@@ -7289,7 +7310,7 @@ ConfigurableMenuApplet.prototype = {
 
    addMenuItem: function(menuItem, params, position) {
       if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
-         menuItem.actor.add_style_class_name('candidate-index');//panel-button
+         menuItem.actor.add_style_class_name('popup-panel-menu-item');
          menuItem.label.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
          menuItem.label.clutter_text.line_wrap = false;
          let beforeItem = null;
@@ -7340,13 +7361,13 @@ ConfigurableMenuApplet.prototype = {
    },
 
    _onKeyPressEvent: function(actor, event) {
+      let close = false;
       if(this._floating) {
          let result = ConfigurableMenu.prototype._onKeyPressEvent.call(this, actor, event);
          if(result)
-            this.closeSubmenu();
+             this.closeSubmenu();
          return result;
       } else if(this.isOpen) {
-         let close = false;
          let direction = this._getGtkDirectionType(event.get_key_symbol());
          if(direction) {
             if(!this._activeSubMenuItem) {
@@ -7369,13 +7390,13 @@ ConfigurableMenuApplet.prototype = {
                return true;
             }
          }
-         if((close)||(event.get_key_symbol() == Clutter.Escape)) {
-            if((this.launcher)&&(this.launcher.setActive))
-               this.launcher.setActive(true);
-            this.close(true);
-            this.closeSubmenu();
-            return true;
-         }
+      }
+      if((close)||(event.get_key_symbol() == Clutter.Escape)) {
+         if((this.launcher)&&(this.launcher.setActive))
+            this.launcher.setActive(true);
+         this.close(true);
+         this.closeSubmenu();
+         return true;
       }
       return false;
    },
@@ -7441,17 +7462,20 @@ ConfigurableMenuApplet.prototype = {
          if(menuItem.menu)
             menuItem.menu.setArrowSide(St.Side.LEFT);
          menuItem._triangle.show();
-         menuItem.label.set_style_class_name('');
          menuItem.actor.set_style_class_name('popup-menu-item');
          menuItem.actor.add_style_class_name('popup-submenu-menu-item');
-         menuItem.actor.add_style_class_name('candidate-index');
+         menuItem.label.set_style_class_name('');
       } else {
          if(menuItem.menu)
             menuItem.menu.setArrowSide(this._arrowSide);
          menuItem._triangle.hide();
          menuItem._icon.hide();
-         menuItem.label.set_style_class_name('applet-label');
+         menuItem.actor.set_style_class_name('popup-menu-item');
+         menuItem.actor.add_style_class_name('popup-submenu-menu-item');
          menuItem.actor.add_style_class_name('applet-box');
+         menuItem.actor.add_style_class_name('panel-button');
+         menuItem.label.set_style_class_name('applet-label');
+
       }
    },
 
@@ -8191,7 +8215,6 @@ MenuFactory.prototype = {
             } else if(shellItem._icon) {
                shellItem._icon.icon_name = iconName;
                shellItem._icon.show();
-               shellItem.label.remove_style_class_name('not-ornament');
             }
          } else {
             let gicon = factoryItem.getGdkIcon();
@@ -8201,7 +8224,6 @@ MenuFactory.prototype = {
                } else if(shellItem._icon) {
                   shellItem._icon.gicon = gicon;
                   shellItem._icon.show();
-                  shellItem.label.remove_style_class_name('not-ornament');
                }
             }
          }

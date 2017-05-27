@@ -1,9 +1,47 @@
-.popup-menu-box {
-    padding-top: 16px;
-    padding-bottom: 16px;
+/*The container box for the popup-menu-item*/
+.configurable-menu .popup-menu {
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
-.not-ornament {
-    padding-left: 32px;
-    icon-size: 1.09em;
+/*The popup-menu-item of this alternative popup-menu implementation*/
+.configurable-menu .popup-menu-item {
+    padding-left: 30px;
+    padding-right: 25px;
 }
+
+/*The popup-menu-item inside a panel*/
+.popup-menu-item.applet-box {
+    padding: 0 0.5em 0 0;
+}
+
+/*The popup-menu-item acceletator label*/
+.popup-menu-accel-label {
+    text-align: right;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/*The popup-menu-item gradient*/
+.gradient-menu-item {
+   spacing: 2px;
+}
+
+/*The popup-menu-item label inside a panel
+.popup-menu-item .applet-label {
+    font-size: 10pt;
+}
+*/
+
+/*The popup-menu-item gradient label
+.gradient-label-menu-item {
+    color: red;
+}
+*/
+
+/*The popup-menu-item gradient icon box
+.gradient-icon-box {
+    width: 15px;
+    height: 15px;
+}
+*/
