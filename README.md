@@ -23,7 +23,7 @@ Author of language translation:
 - Croatian(Hr):     gogo (trebelnik2@gmail.com)
 - English(En):      Lester Carballo Pérez(lestcape@gmail.com)
 - Spanish(Es):      Lester Carballo Pérez(lestcape@gmail.com)
-
+- French(Fr):       Maestroschan
 --------------
 ![](https://raw.githubusercontent.com/lestcape/Gnome-Global-AppMenu/master/gnomeGlobalAppMenu%40lestcape/Capture.png)
 
