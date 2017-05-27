@@ -2,6 +2,7 @@
 const Lang = imports.lang;
 const St = imports.gi.St;
 const Main = imports.ui.main;
+const Mainloop = imports.mainloop;
 
 //const GIRepository = imports.gi.GIRepository;
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
@@ -16,12 +17,16 @@ function init() {
 }
 
 function enable() {
-    let activities = Main.panel.statusArea['activities'];
-    if(activities != null) {
-        activities.actor.get_parent().add_actor(applet.actor);
+
+    Mainloop.idle_add(Lang.bind(this, function () {
+        let _children = Main.panel._leftBox.get_children();
+
+        Main.panel._leftBox.insert_child_at_index(applet.actor, _children.length - 1);
         applet.on_applet_added_to_panel(false);
         applet.setOrientation(St.Side.TOP);
-    }
+
+        return false;
+    }));
 }
 
 function disable() {
@@ -29,9 +34,5 @@ function disable() {
     if(parent) {
         parent.remove_actor(applet.actor);
         applet.on_applet_removed_from_panel();
-        let activities = Main.panel.statusArea['activities'];
-        if(activities != null) {
-            parent.add_actor(activities.actor);
-        }
     }
 }
