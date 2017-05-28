@@ -29,6 +29,7 @@ const Mainloop = imports.mainloop;
 const DND = imports.ui.dnd;
 const Tweener = imports.ui.tweener;
 const Main = imports.ui.main;
+const PopupMenu = imports.ui.popupMenu;
 
 const ExtensionUtils = imports.misc.extensionUtils.getCurrentExtension();
 const Applet = ExtensionUtils.imports.applet;
@@ -4294,11 +4295,22 @@ ConfigurableMenu.prototype = {
       }
    },
 
+   _closeShellMenu: function() {
+      let actors = Main.uiGroup.get_children();
+      for(let pos in actors) {
+         let actor = actors[pos];
+         if((actor._delegate) && (actor._delegate instanceof PopupMenu.PopupMenu) && actor._delegate.isOpen) {
+            actor._delegate.close();
+         }
+      }
+   },
+
    _openClean: function(animate) {
       if((this.isOpen)||(!this._reactive))
          return;
       this.isOpen = true;
       if(this._floating) {
+         this._closeShellMenu();
          this._closeBrotherMenu();
          if(animate)
             this.animating = animate;
