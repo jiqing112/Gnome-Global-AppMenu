@@ -19,6 +19,7 @@ const St = imports.gi.St;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
+const Shell = imports.gi.Shell;
 const Lang = imports.lang;
 const Gettext = imports.gettext;
 
@@ -257,6 +258,7 @@ MyApplet.prototype = {
          this.targetApp = null;
          this._appMenuNotifyId = 0;
          this._actionGroupNotifyId = 0;
+         this._busyNotifyId = 0;
 
          this.gradient = new ConfigurableMenus.GradientLabelMenuItem("", 10);
          this.actor.add(this.gradient.actor);
@@ -318,9 +320,7 @@ MyApplet.prototype = {
             }
          }
          if (event.get_button() == 3) {
-            if(this.appmenu) {
-                this.appmenu.toggle();
-            } else if (this._applet_context_menu.getMenuItems().length > 0) {
+            if (this._applet_context_menu.getMenuItems().length > 0) {
                this._applet_context_menu.toggle();
             }
          }
@@ -584,24 +584,44 @@ MyApplet.prototype = {
    setAppMenu: function(menu) {
       if (this.appmenu)
          this.appmenu.destroy();
-
-      this.appmenu = menu;
-      if (this.appmenu) {
+      this.appmenu = null;
+      if (this.menu && menu) {
+         let tempName = "FIXME";
+         if(this.targetApp != null)
+            tempName = this.targetApp.get_name();
+         this.appmenu = new ConfigurableMenus.ConfigurablePopupSubMenuMenuItem(tempName, false);
+         this.appmenu.setFloatingSubMenu(true);
+         this.appmenu.setMenu(menu);
+         this._menuManager.addMenu(menu);
          this.appmenu.actor.add_style_class_name('panel-menu');
          //this.appmenu.actor.connect('key-press-event', Lang.bind(this, this._onMenuKeyPress));
+         menu.actor.hide();
 
-         Main.uiGroup.add_actor(this.appmenu.actor);
-         this.appmenu.actor.hide();
+         let menus = this.menu.getMenuItems();
+         this.menu.addMenuItem(this.appmenu, null, 0);
+
       }
       this.emit('menu-set');
    },
 
    _onAppMenuNotify: function() {
-      let visible = (this.targetApp != null &&
-                     this._gtkSettings.gtk_shell_shows_app_menu &&
-                     !Main.overview.visibleTarget);
-      this.actor.reactive = (visible /*&& !isBusy*/);
+        let visible = (this.targetApp != null &&
+                       this._gtkSettings.gtk_shell_shows_app_menu &&
+                       !Main.overview.visibleTarget);
+        if (visible)
+            this.actor.show();
+        else
+           this.actor.hide();
 
+        let isBusy = (this.targetApp != null &&
+                      (this.targetApp.get_state() == Shell.AppState.STARTING ||
+                       this.targetApp.get_busy()));
+        /*if (isBusy)
+            this.startAnimation();
+        else
+            this.stopAnimation();*/
+
+       this.actor.reactive = (visible && !isBusy);
 
       let menu = null;
       if (this.targetApp && this.targetApp.action_group && this.targetApp.menu) {
@@ -617,8 +637,6 @@ MyApplet.prototype = {
       }
 
       this.setAppMenu(menu);
-      if (menu)
-         this._menuManager.addMenu(menu);
    },
 
    _onAppmenuChanged: function(indicator, window) {
@@ -642,29 +660,32 @@ MyApplet.prototype = {
             }
          }
       }
-      //this._tryToTrackAppMenu(app);
       this._tryToShow(newLabel, newIcon, newMenu);
+      this._tryToTrackAppMenu(app);
    },
 
    _tryToTrackAppMenu: function(app) {
       if(this.targetApp != app) {
-         if (this._appMenuNotifyId) {
+         if (this._appMenuNotifyId != 0) {
             this.targetApp.disconnect(this._appMenuNotifyId);
             this._appMenuNotifyId = 0;
          }
-         if (this._actionGroupNotifyId) {
+         if (this._actionGroupNotifyId != 0) {
             this.targetApp.disconnect(this._actionGroupNotifyId);
             this._actionGroupNotifyId = 0;
+         }
+         if (this._busyNotifyId != 0) {
+            this.targetApp.disconnect(this._busyNotifyId);
+            this._busyNotifyId = 0;
          }
          this.targetApp = app;
          if (this.targetApp) {
             this._appMenuNotifyId = this.targetApp.connect('notify::menu', Lang.bind(this, this._onAppMenuNotify));
             this._actionGroupNotifyId = this.targetApp.connect('notify::action-group', Lang.bind(this, this._onAppMenuNotify));
-            if (!this.appmenu) {
-                this._onAppMenuNotify();
-            }
+            this._busyNotifyId = this.targetApp.connect('notify::busy', Lang.bind(this, this._onAppMenuNotify));
          }
       }
+      this._onAppMenuNotify();
    },
 
    _tryToShow: function(newLabel, newIcon, newMenu) {

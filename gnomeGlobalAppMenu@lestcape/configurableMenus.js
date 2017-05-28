@@ -2217,7 +2217,10 @@ GradientLabelMenuItem.prototype = {
          let context = this._drawingArea.get_pango_context();
          let metrics = context.get_metrics(font, context.get_language());
          let fontSize = font.get_size()/Pango.SCALE;
-         let startColor = this.themeNode.get_color('color');
+         let [succColor, startColor] = this.themeNode.lookup_color('color', false);
+         if(!succColor) {
+             startColor = Clutter.Color.from_string("#505050")[1];
+         }
 
          let weight = Cairo.FontWeight.NORMAL;
          if(font.get_weight() >= 700)
@@ -2387,6 +2390,12 @@ ConfigurableApplicationMenuItem.prototype = {
    setAccel: function(accel) {
       this._accel.visible = (accel != '');
       this._accel.set_text(accel);
+   },
+
+   toggleOrnament: function() {
+      if((this._ornament.child)&&(this._ornament.child._delegate.toggle)) {
+         this._ornament.child._delegate.toggle();
+      }
    },
 
    setOrnament: function(ornamentType, state) {
@@ -5206,8 +5215,18 @@ ConfigurableSeparatorMenuItem.prototype = {
       let [width, height] = area.get_surface_size();
       let margin = themeNode.get_length('-margin-horizontal');
       let gradientHeight = themeNode.get_length('-gradient-height');
-      let startColor = themeNode.get_color('-gradient-start');
-      let endColor = themeNode.get_color('-gradient-end');
+
+      let [succStartColor, startColor] = themeNode.lookup_color('-gradient-start', false);
+      if(!succStartColor) {
+         startColor = Clutter.Color.from_string("#505050")[1];
+      }
+      let [succEndColor, endColor] = themeNode.lookup_color('-gradient-end', false);
+      if(!succEndColor) {
+         endColor = Clutter.Color.from_string("#505050")[1];
+      }
+
+      //let startColor = themeNode.get_color('-gradient-start');
+      //let endColor = themeNode.get_color('-gradient-end');
 
       let gradientWidth = (width - margin * 2);
       let gradientOffset = (height - gradientHeight) / 2;

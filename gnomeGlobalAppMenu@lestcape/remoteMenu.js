@@ -32,7 +32,7 @@ function _insertItem(menu, trackerItem, position) {
         mapper = new RemoteMenuItemMapper(trackerItem);
 
     let item = mapper.menuItem;
-    menu.addMenuItem(item, position);
+    menu.addMenuItem(item, null, position);
 }
 
 function _removeItem(menu, position) {
