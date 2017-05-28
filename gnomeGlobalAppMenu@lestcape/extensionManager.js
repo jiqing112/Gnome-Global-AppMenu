@@ -275,8 +275,8 @@ MyApplet.prototype = {
          this.hubProvider = new HudProvider.HudSearchProvider();
 
          this._gtkSettings = Gtk.Settings.get_default();
-         this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
-                                                           Lang.bind(this, this._onAppMenuNotify));
+         //this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
+         //                                                  Lang.bind(this, this._onAppMenuNotify));
          this._createSettings();
          this._cleanAppmenu();
          this.indicatorDbus = null;
