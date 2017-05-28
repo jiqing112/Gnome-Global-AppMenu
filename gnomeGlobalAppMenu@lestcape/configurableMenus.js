@@ -4327,10 +4327,6 @@ ConfigurableMenu.prototype = {
       }
 
       this.setMaxHeight();
-
-      let needsScrollbar = this._needsScrollbar();
-      this._scroll.vscrollbar_policy =
-            needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
       this.emit('open-state-changed', true);
    },
 
@@ -4590,17 +4586,6 @@ ConfigurableMenu.prototype = {
          if(this.isOpen)
             topMenu._openedSubMenu = this;
       }
-   },
-
-   _needsScrollbar: function() {
-      let topMenu = this.getTopMenu();
-      if(!topMenu)
-         return false;
-      let [topMinHeight, topNaturalHeight] = topMenu.actor.get_preferred_height(-1);
-      let topThemeNode = topMenu.actor.get_theme_node();
-
-      let topMaxHeight = topThemeNode.get_max_height();
-      return topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
    },
 
    _updateTopMenu: function() {
@@ -4875,34 +4860,28 @@ ConfigurableMenu.prototype = {
    // menu is higher then the screen; it's useful if part of the menu is
    // scrollable so the minimum height is smaller than the natural height
    setMaxHeight: function() {
-      let scale = this.getScale();
-      if(Main.panelManager) {
-         if(this.launcher && this.launcher.actor) {
-            let [x, y] = this.launcher.actor.get_transformed_position();
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+      let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
 
-            let i = 0;
-            let monitor;
-            for(; i < global.screen.get_n_monitors(); i++) {
-               monitor = global.screen.get_monitor_geometry(i);
-               if(x >= monitor.x && x < monitor.x + monitor.width &&
-                  x >= monitor.y && y < monitor.y + monitor.height) {
-                  break;
-               }
-            }
+      // The workarea and margin dimensions are in physical pixels, but CSS
+      // measures are in logical pixels, so make sure to consider the scale
+      // factor when computing max-height
+      let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
+      this.actor.style = ('max-height: %spx;').format(maxHeight);
 
-            let maxHeight = monitor.height - this.actor.get_theme_node().get_length('-boxpointer-gap');
-
-            let panels = Main.panelManager.getPanelsInMonitor(i);
-            for(let j in panels) {
-               maxHeight -= panels[j].actor.height;
-            }
-            this.actor.style = ('max-height: ' + maxHeight / scale + 'px;');
+      let topMenu = this;
+      if(!this._floating)
+         topMenu = this.getTopMenu();
+      if(topMenu) {
+         let [topMinHeight, topNaturalHeight] = topMenu.actor.get_preferred_height(-1);
+         let topThemeNode = topMenu.actor.get_theme_node();
+         let topMaxHeight = topThemeNode.get_max_height();
+         let needsScrollbar = topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
+         if (needsScrollbar) {
+            this._scroll.vscrollbar_policy =
+                 needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
          }
-      } else {
-         let monitor = Main.layoutManager.primaryMonitor;
-         let maxHeight = Math.round(monitor.height - Main.panel.actor.height - this.actor.get_theme_node().get_length('-boxpointer-gap'));
-         if(Main.panel2!=null) maxHeight -= Main.panel2.actor.height;
-            this.actor.style = ('max-height: ' + maxHeight / scale + 'px;');
       }
    },
 

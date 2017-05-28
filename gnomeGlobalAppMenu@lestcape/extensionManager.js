@@ -565,26 +565,6 @@ MyApplet.prototype = {
       this.menuFactory.desaturateItemIcon(this.desaturateItemIcon);
    },
 
-   _onAppMenuOpenStateChanged: function(menu, open) {
-      /*if (open)
-         this.actor.add_style_pseudo_class('active');
-      else
-         this.actor.remove_style_pseudo_class('active');
-
-      // Setting the max-height won't do any good if the minimum height of the
-      // menu is higher then the screen; it's useful if part of the menu is
-      // scrollable so the minimum height is smaller than the natural height
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-      let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-      let verticalMargins = this.menu.actor.margin_top + this.menu.actor.margin_bottom;
-
-      // The workarea and margin dimensions are in physical pixels, but CSS
-      // measures are in logical pixels, so make sure to consider the scale
-      // factor when computing max-height
-      let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
-      this.menu.actor.style = ('max-height: %spx;').format(maxHeight);*/
-   },
-
    _onMenuKeyPress: function(actor, event) {
       /*if (global.focus_manager.navigate_from_event(event))
          return Clutter.EVENT_STOP;
@@ -608,8 +588,7 @@ MyApplet.prototype = {
       this.appmenu = menu;
       if (this.appmenu) {
          this.appmenu.actor.add_style_class_name('panel-menu');
-         this.appmenu.connect('open-state-changed', Lang.bind(this, this._onAppMenuOpenStateChanged));
-         this.appmenu.actor.connect('key-press-event', Lang.bind(this, this._onMenuKeyPress));
+         //this.appmenu.actor.connect('key-press-event', Lang.bind(this, this._onMenuKeyPress));
 
          Main.uiGroup.add_actor(this.appmenu.actor);
          this.appmenu.actor.hide();
