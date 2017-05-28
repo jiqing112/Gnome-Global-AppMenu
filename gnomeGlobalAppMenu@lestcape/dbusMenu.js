@@ -360,6 +360,8 @@ DbusMenuItem.prototype = {
          if(value) {
             let data = value.get_data_as_bytes()
             let stream = Gio.MemoryInputStream.new_from_bytes(data);
+            //Reduce the icon size (ie: the queality of the icons) will be ensure a more faster load?
+            //return GdkPixbuf.Pixbuf.new_from_stream_at_scale (stream, 8, 8, true, null);
             return GdkPixbuf.Pixbuf.new_from_stream(stream, null);
          }
       } catch(e) {

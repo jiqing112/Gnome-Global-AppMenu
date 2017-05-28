@@ -2332,8 +2332,8 @@ ConfigurableBasicPopupMenuItem.prototype = {
    },
 
    setGIcon: function(gicon) {
-      this._icon.visible = ((this._displayIcon) && (gicon != null));
       this._icon.gicon = gicon;
+      this._icon.visible = ((this._displayIcon) && (gicon != null));
    },
 
    desaturateItemIcon: function(desaturate) {
@@ -4326,7 +4326,7 @@ ConfigurableMenu.prototype = {
          this.actor.show();
       }
 
-      this.setMaxHeight();
+      Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
       this.emit('open-state-changed', true);
    },
 
