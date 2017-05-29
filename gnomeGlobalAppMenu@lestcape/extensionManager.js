@@ -276,14 +276,20 @@ MyApplet.prototype = {
          this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
          this.hubProvider = new HudProvider.HudSearchProvider();
 
-         this._gtkSettings = Gtk.Settings.get_default();
-         //this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
-         //                                                  Lang.bind(this, this._onAppMenuNotify));
          this._createSettings();
          this._cleanAppmenu();
          this.indicatorDbus = null;
          this._sessionUpdated();
          Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated));
+
+         this._gtkSettings = Gtk.Settings.get_default();
+         this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
+                                                           Lang.bind(this, this._onShowAppMenuChanged));
+         let appSys = Shell.AppSystem.get_default();
+         this._overviewHidingId = Main.overview.connect('hiding', Lang.bind(this, this._onAppMenuNotify));
+         this._overviewShowingId = Main.overview.connect('showing', Lang.bind(this, this._onAppMenuNotify));
+         this._appStateChangedSignalId = appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
+         this._switchWorkspaceNotifyId = global.window_manager.connect('switch-workspace', Lang.bind(this, this._onAppMenuNotify));
 
       } catch(e) {
          Main.notify("Init error %s".format(e.message));
@@ -378,7 +384,7 @@ MyApplet.prototype = {
       let isReady = this._system.activeUnityGtkModule(true);
       if(isReady) {
          this._system.activeJAyantanaModule(this.enableJayantana);
-         this._system.shellShowAppmenu(true);
+         //this._system.shellShowAppmenu(true); Is controllet
          this._system.shellShowMenubar(true);
          this._system.activeQtPlatform(true);
          this._system.activeUnityMenuProxy(true);
@@ -453,7 +459,7 @@ MyApplet.prototype = {
    },
 
    _finalizeEnvironment: function() {
-      this._system.shellShowAppmenu(false);
+      //this._system.shellShowAppmenu(false);
       this._system.shellShowMenubar(false);
       this._system.activeQtPlatform(false);
       this._system.activeUnityMenuProxy(false);
@@ -565,27 +571,11 @@ MyApplet.prototype = {
       this.menuFactory.desaturateItemIcon(this.desaturateItemIcon);
    },
 
-   _onMenuKeyPress: function(actor, event) {
-      /*if (global.focus_manager.navigate_from_event(event))
-         return Clutter.EVENT_STOP;
-
-      let symbol = event.get_key_symbol();
-      if (symbol == Clutter.KEY_Left || symbol == Clutter.KEY_Right) {
-         let group = global.focus_manager.get_group(this.actor);
-         if (group) {
-            let direction = (symbol == Clutter.KEY_Left) ? Gtk.DirectionType.LEFT : Gtk.DirectionType.RIGHT;
-            group.navigate_focus(this.actor, direction, false);
-            return Clutter.EVENT_STOP;
-         }
-      }
-      return Clutter.EVENT_PROPAGATE;*/
-    },
-
    setAppMenu: function(menu) {
       if (this.appmenu)
          this.appmenu.destroy();
       this.appmenu = null;
-      if (this.menu && menu) {
+      if (this.menu && menu && this._gtkSettings.gtk_shell_shows_app_menu) {
          let tempName = "FIXME";
          if(this.targetApp != null)
             tempName = this.targetApp.get_name();
@@ -594,34 +584,40 @@ MyApplet.prototype = {
          this.appmenu.setMenu(menu);
          this._menuManager.addMenu(menu);
          this.appmenu.actor.add_style_class_name('panel-menu');
-         //this.appmenu.actor.connect('key-press-event', Lang.bind(this, this._onMenuKeyPress));
          menu.actor.hide();
 
          let menus = this.menu.getMenuItems();
          this.menu.addMenuItem(this.appmenu, null, 0);
-
       }
       this.emit('menu-set');
    },
 
+   _onShowAppMenuChanged: function() {
+      if(!this._gtkSettings.gtk_shell_shows_app_menu) {
+          this.setAppMenu(null);
+      } else {
+          this._onAppMenuNotify();
+      }
+   },
+
    _onAppMenuNotify: function() {
-        let visible = (this.targetApp != null &&
-                       this._gtkSettings.gtk_shell_shows_app_menu &&
-                       !Main.overview.visibleTarget);
-        if (visible)
-            this.actor.show();
-        else
-           this.actor.hide();
+       let visible = (this.targetApp != null &&
+                      !Main.overview.visibleTarget &&
+                      this.targetApp.is_on_workspace(global.screen.get_active_workspace()));
+       if (visible) {
+           this.actor.show();
+       } else {
+          this.actor.hide();
+       }
+       let isBusy = (this.targetApp != null &&
+                     (this.targetApp.get_state() == Shell.AppState.STARTING ||
+                      this.targetApp.get_busy()));
+       /*if (isBusy)
+           this.startAnimation();
+       else
+           this.stopAnimation();*/
 
-        let isBusy = (this.targetApp != null &&
-                      (this.targetApp.get_state() == Shell.AppState.STARTING ||
-                       this.targetApp.get_busy()));
-        /*if (isBusy)
-            this.startAnimation();
-        else
-            this.stopAnimation();*/
-
-       this.actor.reactive = (visible && !isBusy);
+      this.actor.reactive = (visible && !isBusy);
 
       let menu = null;
       if (this.targetApp && this.targetApp.action_group && this.targetApp.menu) {
@@ -773,6 +769,22 @@ MyApplet.prototype = {
       this._finalizeEnvironment();
       this.keybindingManager.destroy();
       this.hubProvider.disable();
+      if(this._overviewHidingId != 0)
+         Main.overview.disconnect(this._overviewHidingId);
+      if(this._overviewShowingId != 0)
+         Main.overview.disconnect(this._overviewShowingId);
+      if(this._appStateChangedSignalId != 0)
+         appSys.disconnect(this._appStateChangedSignalId);
+      if(this._switchWorkspaceNotifyId != 0)
+         global.window_manager.disconnect(this._switchWorkspaceNotifyId);
+      if(this.targetApp) {
+         if (this._appMenuNotifyId != 0)
+            this.targetApp.disconnect(this._appMenuNotifyId);
+         if (this._actionGroupNotifyId != 0)
+            this.targetApp.disconnect(this._actionGroupNotifyId);
+         if (this._busyNotifyId != 0)
+            this.targetApp.disconnect(this._busyNotifyId);
+      }
    },
 
    on_applet_clicked: function(event) {
