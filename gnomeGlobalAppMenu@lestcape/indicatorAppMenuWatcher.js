@@ -309,7 +309,6 @@ IndicatorAppMenuWatcher.prototype = {
       this._everAcquiredName = false;
       this._ownName = null;
 
-      this._xidLast = 0;
       this._windowsChangedId = 0;
       this._notifyWorkspacesId = 0;
       this._focusWindowId = 0;
@@ -447,9 +446,6 @@ IndicatorAppMenuWatcher.prototype = {
          for(let xid in this._registeredWindows) {
             this._updateIcon(xid);
          }
-         if(this._xidLast) {
-            this.emit('appmenu-changed', this._registeredWindows[this._xidLast].window);
-         }
       }
    },
 
@@ -539,7 +535,7 @@ IndicatorAppMenuWatcher.prototype = {
          if(appMenu) {
             appMenu.destroy();
          }
-         if(this.isWatching() && (this._xidLast == xid) && (xid == this._guessWindowXId(global.display.focus_window))) {
+         if(this.isWatching()) {
             this.emit('appmenu-changed', this._registeredWindows[xid].window);
          }
       }
@@ -602,7 +598,7 @@ IndicatorAppMenuWatcher.prototype = {
       }
       for(let xid in this._registeredWindows) {
          if(current.indexOf(xid) == -1) {
-            this._destroyMenu(xid);
+            this._unregisterWindows(xid);
             this._emitWindowUnregistered(xid);
             //FIXME Clementine can register the menu without have a windows yet (Maybe others?)
             // So please, remember the Dbus Menu configuration(don't delete record).
@@ -616,6 +612,20 @@ IndicatorAppMenuWatcher.prototype = {
          }
          this._verifyBuggyClient(0);
       }));
+   },
+
+   _unregisterWindows: function(xid) {
+      if((xid) && (xid in this._registeredWindows)) {
+         this._destroyMenu(xid);
+         let appMenu = this._registeredWindows[xid].appMenu;
+         if(appMenu) {
+            appMenu.destroy();
+         }
+         delete this._registeredWindows[xid];
+         if(this.isWatching()) {
+            this.emit('appmenu-changed', null);
+         }
+      }
    },
 
    _verifyBuggyClient: function(time) {
@@ -750,15 +760,10 @@ IndicatorAppMenuWatcher.prototype = {
             this._updateIcon(xid);
             if(registerWin) {
                this.emit('appmenu-changed', registerWin.window);
-               this._xidLast = xid;
             }
          } else {
             this.emit('appmenu-changed', null);
-            this._xidLast = null;
          }
-      } else {
-         //this.emit('appmenu-changed', null);
-         this._xidLast = null;
       }
    },
 

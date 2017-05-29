@@ -765,6 +765,7 @@ MyApplet.prototype = {
    on_panel_height_changed: function() {
       let iconSize = this._getIconSize();
       this.indicatorDbus.setIconSize(iconSize);
+      this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
    },
 
    on_applet_removed_from_panel: function() {
