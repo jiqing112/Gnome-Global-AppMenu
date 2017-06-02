@@ -70,7 +70,7 @@ const HudSearchProvider = new Lang.Class({
             }
             this.indicator = indicator;
             if(this.indicator && (this._indicatorId == 0)) {
-                this.indicator.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
+                this._indicatorId = this.indicator.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
             }
             this.disable();
             this.enable();

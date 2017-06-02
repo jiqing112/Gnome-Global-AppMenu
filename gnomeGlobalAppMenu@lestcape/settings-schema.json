@@ -75,6 +75,21 @@
         "indent": true,
         "dependency": "show-app-name"
     },
+    "separator-hudmenu-top" : {
+        "type": "separator"
+    },
+    "head-hudmenu" : {
+        "type" : "header",
+        "description" : "Hud menu"
+    },
+    "separator-hudmenu-bottom" : {
+        "type": "separator"
+    },
+    "hud-overlay-key" : {
+        "type" : "keybinding",
+        "description" : "Keyboard shortcut to open and close the hud menu",
+        "default" : "<Super>h"
+    },
     "separator-mainmenu-top" : {
         "type": "separator"
     },

@@ -2371,8 +2371,8 @@ function ConfigurableApplicationMenuItem() {
 ConfigurableApplicationMenuItem.prototype = {
    __proto__: ConfigurableBasicPopupMenuItem.prototype,
 
-   _init: function(text) {
-      ConfigurableBasicPopupMenuItem.prototype._init.call(this, text);
+   _init: function(text, params) {
+      ConfigurableBasicPopupMenuItem.prototype._init.call(this, text, params);
       this.actor._delegate = this;
 
       this._accel = new St.Label({ style_class: 'popup-menu-accel-label' });
@@ -2388,6 +2388,7 @@ ConfigurableApplicationMenuItem.prototype = {
    },
 
    setAccel: function(accel) {
+      if(!accel) accel = '';
       this._accel.visible = (accel != '');
       this._accel.set_text(accel);
    },

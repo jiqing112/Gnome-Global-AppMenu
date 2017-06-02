@@ -27,6 +27,10 @@
    spacing: 0.125em;
 }
 
+.hud-menu .menu-search-entry {
+   width: 30.0em;
+}
+
 /*The popup-menu-item label inside a panel
 .popup-menu-item .applet-label {
     font-size: 10pt;

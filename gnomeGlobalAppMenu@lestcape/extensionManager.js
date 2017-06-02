@@ -34,7 +34,7 @@ const IndicatorAppMenuWatcher = MyExtension.imports.indicatorAppMenuWatcher;
 const Settings = MyExtension.imports.settings.settings;
 const HudProvider = MyExtension.imports.hudProvider;
 const RemoteMenu = MyExtension.imports.remoteMenu;
-//const PopupMenu = MyExtension.imports.popupMenu;
+const HudSearch = MyExtension.imports.hudSearch;
 
 
 function _(str) {
@@ -275,6 +275,8 @@ MyApplet.prototype = {
          this._menuManager.addMenu(this._applet_context_menu);
          this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
          this.hubProvider = new HudProvider.HudSearchProvider();
+         this.hudMenuSearch = new HudSearch.GlobalMenuSearch(this.gradient);
+         this._menuManager.addMenu(this.hudMenuSearch);
 
          this._createSettings();
          this._cleanAppmenu();
@@ -285,10 +287,10 @@ MyApplet.prototype = {
          this._gtkSettings = Gtk.Settings.get_default();
          this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
                                                            Lang.bind(this, this._onShowAppMenuChanged));
-         let appSys = Shell.AppSystem.get_default();
+         this.appSys = Shell.AppSystem.get_default();
          this._overviewHidingId = Main.overview.connect('hiding', Lang.bind(this, this._onAppMenuNotify));
          this._overviewShowingId = Main.overview.connect('showing', Lang.bind(this, this._onAppMenuNotify));
-         this._appStateChangedSignalId = appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
+         this._appStateChangedSignalId = this.appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
          this._switchWorkspaceNotifyId = global.window_manager.connect('switch-workspace', Lang.bind(this, this._onAppMenuNotify));
 
       } catch(e) {
@@ -309,6 +311,7 @@ MyApplet.prototype = {
              this.indicatorDbus.watch();
              this.indicatorDbus.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
              this.hubProvider.setIndicator(this.indicatorDbus);
+             this.hudMenuSearch.setIndicator(this.indicatorDbus);
          } else {
              Main.notify(_("You need restart your computer, to active the unity-gtk-module"));
          }
@@ -350,6 +353,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-boxpointer", "showBoxPointer", this._onShowBoxPointerChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "align-menu-launcher", "alignMenuLauncher", this._onAlignMenuLauncherChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "global-overlay-key", "overlayKey", this._updateKeybinding, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "hud-overlay-key", "hudOverlayKey", this._updateHudKeybinding, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "display-in-panel", "displayInPanel", this._onDisplayInPanelChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-item-icon", "showItemIcon", this._onShowItemIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "desaturate-item-icon", "desaturateItemIcon", this._onDesaturateItemIconChanged, null);
@@ -368,6 +372,7 @@ MyApplet.prototype = {
       this._onTextGradientChange();
       this._onMaxAppNameSizeChanged();
       this._updateKeybinding();
+      this._updateHudKeybinding();
 
       this._onOpenActiveSubmenuChanged();
       this._onCloseActiveSubmenuChanged();
@@ -378,13 +383,14 @@ MyApplet.prototype = {
       this._onOpenOnHoverChanged();
       this._onEffectTypeChanged();
       this._onEffectTimeChanged();
+      //this._destroyAppMenu();
    },
 
    _initEnvironment: function() {
       let isReady = this._system.activeUnityGtkModule(true);
       if(isReady) {
          this._system.activeJAyantanaModule(this.enableJayantana);
-         //this._system.shellShowAppmenu(true); Is controllet
+         //this._system.shellShowAppmenu(true); Is controlled
          this._system.shellShowMenubar(true);
          this._system.activeQtPlatform(true);
          this._system.activeUnityMenuProxy(true);
@@ -470,6 +476,10 @@ MyApplet.prototype = {
       // propertly way.
    },
 
+   _destroyAppMenu: function() {
+      Main.panel.statusArea.appMenu.destroy();
+   },
+
    _onEnableProviderChanged: function() {
        if(this.enableProvider) {
           this.hubProvider.enable();
@@ -496,10 +506,18 @@ MyApplet.prototype = {
       this._system.activeJAyantanaModule(this.enableJayantana);
    },
 
-   _updateKeybinding: function() {
+   _updateKeybinding: function() { 	
       this.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
          if(this.menu && !Main.overview.visible) {
             this.menu.toogleSubmenu(true);
+         }
+      }));
+   },
+
+   _updateHudKeybinding: function() {
+      this.keybindingManager.addHotKey("global-hud-key", this.hudOverlayKey, Lang.bind(this, function() {
+         if(!Main.overview.visible) {
+            this.hudMenuSearch.open(true);
          }
       }));
    },
@@ -582,7 +600,6 @@ MyApplet.prototype = {
          this.appmenu = new ConfigurableMenus.ConfigurablePopupSubMenuMenuItem(tempName, false);
          this.appmenu.setFloatingSubMenu(true);
          this.appmenu.setMenu(menu);
-         this._menuManager.addMenu(menu);
          this.appmenu.actor.add_style_class_name('panel-menu');
          menu.actor.hide();
 
@@ -774,7 +791,7 @@ MyApplet.prototype = {
       if(this._overviewShowingId != 0)
          Main.overview.disconnect(this._overviewShowingId);
       if(this._appStateChangedSignalId != 0)
-         appSys.disconnect(this._appStateChangedSignalId);
+         this.appSys.disconnect(this._appStateChangedSignalId);
       if(this._switchWorkspaceNotifyId != 0)
          global.window_manager.disconnect(this._switchWorkspaceNotifyId);
       if(this.targetApp) {
