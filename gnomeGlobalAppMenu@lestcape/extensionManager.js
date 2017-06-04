@@ -309,9 +309,10 @@ MyApplet.prototype = {
 
          if(this._isReady) {
              this.indicatorDbus.watch();
+             this.hubProvider.setIndicator(this.indicatorDbus, this.currentWindow);
+             this.hudMenuSearch.setIndicator(this.indicatorDbus, this.currentWindow);
              this.indicatorDbus.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
-             this.hubProvider.setIndicator(this.indicatorDbus);
-             this.hudMenuSearch.setIndicator(this.indicatorDbus);
+             this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
          } else {
              Main.notify(_("You need restart your computer, to active the unity-gtk-module"));
          }

@@ -54,9 +54,9 @@ GlobalMenuSearch.prototype = {
     _onKeyPressEvent: function(actor, event) {
         let symbol = event.get_key_symbol();
         if(this.isOpen) {
-            let items = this.itemsBox.getAllMenuItems();
-            if(!this._activeMenuItem) {
-                this._activeMenuItem = items[0];
+            let menuItems = this.itemsBox.getAllMenuItems();
+            if(!this._activeMenuItem && (menuItems.length > 0)) {
+                this._activeMenuItem = menuItems[0];
                 this._activeMenuItem.setActive(true);
             }
             if(symbol == Clutter.Escape) {
@@ -66,22 +66,22 @@ GlobalMenuSearch.prototype = {
                 this._activeMenuItem.activate();
                 return true;
             }
-            let index = items.indexOf(this._activeMenuItem);
+            let index = menuItems.indexOf(this._activeMenuItem);
             if(symbol == Clutter.KEY_Down) {
                 this._activeMenuItem.setActive(false);
-                if(index < items.length - 1)
-                    this._activeMenuItem = items[index+1];
+                if(index < menuItems.length - 1)
+                    this._activeMenuItem = menuItems[index+1];
                 else
-                    this._activeMenuItem = items[0];
+                    this._activeMenuItem = menuItems[0];
                 this._activeMenuItem.setActive(true);
                 this.itemsBox.scrollBox.scrollToActor(this._activeMenuItem.actor);
                 return true;
             } else if(symbol == Clutter.KEY_Up) {
                 this._activeMenuItem.setActive(false);
                 if(index > 0)
-                    this._activeMenuItem = items[index-1];
+                    this._activeMenuItem = menuItems[index-1];
                 else
-                    this._activeMenuItem = items[items.length - 1];
+                    this._activeMenuItem = menuItems[menuItems.length - 1];
                 this._activeMenuItem.setActive(true);
                 this.itemsBox.scrollBox.scrollToActor(this._activeMenuItem.actor);
                 return true;
@@ -92,12 +92,11 @@ GlobalMenuSearch.prototype = {
 
     _onMenuOpenStateChanged: function(menu, open) {
         if(open) {
-            this.isOpen
             this.entryBox.grabKeyFocus();
             Mainloop.idle_add(Lang.bind(this, function() {
-                let items = this.itemsBox.getAllMenuItems();
-                if(items.length > 0) {
-                    this._activeMenuItem = items[0];
+                let menuItems = this.itemsBox.getAllMenuItems();
+                if(menuItems.length > 0) {
+                    this._activeMenuItem = menuItems[0];
                     this._activeMenuItem.setActive(true);
                 }
             }));
@@ -159,7 +158,7 @@ GlobalMenuSearch.prototype = {
         return label;
     },
 
-    setIndicator: function(indicator) {
+    setIndicator: function(indicator, window) {
         if(this.indicator != indicator) {
             if(this.indicator && (this._indicatorId > 0)) {
                 this.indicator.disconnect(this._indicatorId);
@@ -170,6 +169,7 @@ GlobalMenuSearch.prototype = {
                 this._indicatorId = this.indicator.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
             }
         }
+        this._onAppmenuChanged(indicator, window);
     },
 
     _onAppmenuChanged: function(indicator, window)  {
