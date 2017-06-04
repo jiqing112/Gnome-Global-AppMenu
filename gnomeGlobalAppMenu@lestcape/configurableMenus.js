@@ -3757,6 +3757,7 @@ ConfigurableMenu.prototype = {
          this._showItemIcon = true;
          this._desaturateItemIcon = false;
          this.active = false;
+         this.isChanging = false;
 
          this.launcher = null;
          this._openedSubMenu = null;
@@ -4318,6 +4319,7 @@ ConfigurableMenu.prototype = {
    _openClean: function(animate) {
       if((this.isOpen)||(!this._reactive))
          return;
+      this.isChanging = true;
       this.isOpen = true;
       if(this._floating) {
          this._closeShellMenu();
@@ -4334,8 +4336,8 @@ ConfigurableMenu.prototype = {
          else
             this._boxPointer.setPosition(this._boxPointer._sourceActor, this._arrowAlignment);
          if(this._automaticOpenControl) {
-            this._paintId = this.actor.connect("paint", Lang.bind(this, this._on_paint));
             Main.popup_rendering = true;
+            this._paintId = this.actor.connect("paint", Lang.bind(this, this._on_paint));
          } else {
             Main.popup_rendering = false;
          }
@@ -4350,12 +4352,13 @@ ConfigurableMenu.prototype = {
 
       Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
       this.emit('open-state-changed', true);
+      this.isChanging = false;
    },
 
    _closeClean: function(animate) {
       if((!this.isOpen)||(!this._reactive))
          return;
-
+      this.isChanging = true;
       if(this._openedSubMenu) {
          this._openedSubMenu.close();
          this._openedSubMenu = null;
@@ -4382,6 +4385,7 @@ ConfigurableMenu.prototype = {
       this.isOpen = false;
 
       this.emit('open-state-changed', false);
+      this.isChanging = false;
    },
 
    _applyEffectOnOpen: function() {

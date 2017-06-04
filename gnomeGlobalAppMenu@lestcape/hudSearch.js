@@ -92,11 +92,14 @@ GlobalMenuSearch.prototype = {
 
     _onMenuOpenStateChanged: function(menu, open) {
         if(open) {
+            this.isOpen
             this.entryBox.grabKeyFocus();
             Mainloop.idle_add(Lang.bind(this, function() {
                 let items = this.itemsBox.getAllMenuItems();
-                this._activeMenuItem = items[0];
-                this._activeMenuItem.setActive(true);
+                if(items.length > 0) {
+                    this._activeMenuItem = items[0];
+                    this._activeMenuItem.setActive(true);
+                }
             }));
         } else {
             this.entryBox.setText("");
@@ -104,40 +107,45 @@ GlobalMenuSearch.prototype = {
                 this._activeMenuItem.setActive(false);
                 this._activeMenuItem = null;
             }
+            this.itemsBox.removeAllMenuItems();
         }
     },
 
     _onTextChanged: function(actor, event) {
-        this.itemsBox.removeAllMenuItems();
-        if(this.indicator && this.appData && this.appData["dbusMenu"]) {
-            let text = this.entryBox.getText();
-            let terms = text.trim().split(/\s+/);
-            let ids = this._search(terms);
-            let items = this.appData["dbusMenu"].getItems();
-            for(let pos in ids) {
-                let id = ids[pos];
-                if(id in items) {
-                    let item = items[id];
-                    let label = this.buildLabelForItem(item);
-                    if(label.length > 0) {
-                        let componnet = new ConfigurableMenus.ConfigurableApplicationMenuItem(label, { focusOnHover: false });
-                        componnet.setGIcon(item.getIcon(16));
-                        componnet.setAccel(item.getAccel());
-                        if(item.getToggleType() == "checkmark") {
-                           componnet.setOrnament(ConfigurableMenus.OrnamentType.CHECK, item.getToggleState());
-                        } else if(item.getToggleType() == "radio") {
-                           componnet.setOrnament(ConfigurableMenus.OrnamentType.DOT, item.getToggleState());
-                        } else {
-                           componnet.setOrnament(ConfigurableMenus.OrnamentType.NONE);
+        if(!this.isChanging) {
+            this.itemsBox.removeAllMenuItems();
+            if(this.indicator && this.appData && this.appData["dbusMenu"]) {
+                let text = this.entryBox.getText();
+                let terms = text.trim().split(/\s+/);
+                let ids = this._search(terms);
+                let items = this.appData["dbusMenu"].getItems();
+                for(let pos in ids) {
+                    let id = ids[pos];
+                    if(id in items) {
+                        let item = items[id];
+                        let label = this.buildLabelForItem(item);
+                        if(label.length > 0) {
+                            let componnet = new ConfigurableMenus.ConfigurableApplicationMenuItem(label, { focusOnHover: false });
+                            componnet.setGIcon(item.getIcon(16));
+                            componnet.setAccel(item.getAccel());
+                            if(item.getToggleType() == "checkmark") {
+                                componnet.setOrnament(ConfigurableMenus.OrnamentType.CHECK, item.getToggleState());
+                            } else if(item.getToggleType() == "radio") {
+                                componnet.setOrnament(ConfigurableMenus.OrnamentType.DOT, item.getToggleState());
+                            } else {
+                                componnet.setOrnament(ConfigurableMenus.OrnamentType.NONE);
+                            }
+                            componnet.connect('activate', Lang.bind(this, this._onActivateResult, item, terms));
+                            this.itemsBox.addMenuItem(componnet);
                         }
-                        componnet.connect('activate', Lang.bind(this, this._onActivateResult, item, terms));
-                        this.itemsBox.addMenuItem(componnet);
                     }
                 }
+                let menuItems = this.itemsBox.getAllMenuItems();
+                if(menuItems.length > 0) {
+                    this._activeMenuItem = menuItems[0];
+                    this._activeMenuItem.setActive(true); 
+                }
             }
-            let menuItems = this.itemsBox.getAllMenuItems();
-            this._activeMenuItem = menuItems[0];
-            this._activeMenuItem.setActive(true); 
         }
     },
 
