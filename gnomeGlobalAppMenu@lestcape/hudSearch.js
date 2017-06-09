@@ -36,6 +36,7 @@ GlobalMenuSearch.prototype = {
         this.appData = null;
         this._indicatorId = 0;
         this.isEnabled = true;
+        this._maxItems = 0;
 
         let searchBox = new ConfigurableMenus.ConfigurablePopupMenuSection();
         this.entryBox = new ConfigurableMenus.ConfigurableEntryItem("", "Search");
@@ -93,6 +94,7 @@ GlobalMenuSearch.prototype = {
     _onMenuOpenStateChanged: function(menu, open) {
         if(open) {
             this.entryBox.grabKeyFocus();
+            this.searchPattern();
             Mainloop.idle_add(Lang.bind(this, function() {
                 let menuItems = this.itemsBox.getAllMenuItems();
                 if(menuItems.length > 0) {
@@ -111,40 +113,53 @@ GlobalMenuSearch.prototype = {
     },
 
     _onTextChanged: function(actor, event) {
-        if(!this.isChanging) {
-            this.itemsBox.removeAllMenuItems();
-            if(this.indicator && this.appData && this.appData["dbusMenu"]) {
-                let text = this.entryBox.getText();
-                let terms = text.trim().split(/\s+/);
-                let ids = this._search(terms);
-                let items = this.appData["dbusMenu"].getItems();
-                for(let pos in ids) {
-                    let id = ids[pos];
-                    if(id in items) {
-                        let item = items[id];
-                        let label = this.buildLabelForItem(item);
-                        if(label.length > 0) {
-                            let componnet = new ConfigurableMenus.ConfigurableApplicationMenuItem(label, { focusOnHover: false });
-                            componnet.setGIcon(item.getIcon(16));
-                            componnet.setAccel(item.getAccel());
-                            if(item.getToggleType() == "checkmark") {
-                                componnet.setOrnament(ConfigurableMenus.OrnamentType.CHECK, item.getToggleState());
-                            } else if(item.getToggleType() == "radio") {
-                                componnet.setOrnament(ConfigurableMenus.OrnamentType.DOT, item.getToggleState());
-                            } else {
-                                componnet.setOrnament(ConfigurableMenus.OrnamentType.NONE);
-                            }
-                            componnet.connect('activate', Lang.bind(this, this._onActivateResult, item, terms));
-                            this.itemsBox.addMenuItem(componnet);
+        if(!this.isChanging && this.entryBox.searchActive) {
+            this.searchPattern();
+        }
+    },
+
+    searchPattern: function() {
+        this.itemsBox.removeAllMenuItems();
+        if(this.indicator && this.appData && this.appData["dbusMenu"]) {
+            let text = this.entryBox.getText();
+            let terms = text.trim().split(/\s+/);
+            let ids = this._search(terms);
+            let items = this.appData["dbusMenu"].getItems();
+            let number = (this._maxItems > 0) ? Math.min(this._maxItems, ids.length) : ids.length;
+            let menuItems = new Array();
+            for(let pos = 0; pos < number; pos++) {
+                let id = ids[pos];
+                if(id in items) {
+                    let item = items[id];
+                    let label = this.buildLabelForItem(item);
+                    if(label.length > 0) {
+                        let componnet = new ConfigurableMenus.ConfigurableApplicationMenuItem(label, { focusOnHover: false });
+                        componnet.setGIcon(item.getIcon(16));
+                        componnet.setAccel(item.getAccel());
+                        if(item.getToggleType() == "checkmark") {
+                            componnet.setOrnament(ConfigurableMenus.OrnamentType.CHECK, item.getToggleState());
+                        } else if(item.getToggleType() == "radio") {
+                            componnet.setOrnament(ConfigurableMenus.OrnamentType.DOT, item.getToggleState());
+                        } else {
+                            componnet.setOrnament(ConfigurableMenus.OrnamentType.NONE);
                         }
+                        componnet.connect('activate', Lang.bind(this, this._onActivateResult, item, terms));
+                        menuItems.push(componnet);
                     }
                 }
-                let menuItems = this.itemsBox.getAllMenuItems();
-                if(menuItems.length > 0) {
-                    this._activeMenuItem = menuItems[0];
-                    this._activeMenuItem.setActive(true); 
-                }
             }
+            for(let pos = 0; pos < Math.min(menuItems.length, 10); pos++) {
+                this.itemsBox.addMenuItem(menuItems[pos]);
+            }
+            Mainloop.idle_add(Lang.bind(this, function() {
+                if(menuItems.length > 0) {
+                    for(let pos = 11; pos < menuItems.length; pos++) {
+                        this.itemsBox.addMenuItem(menuItems[pos]);
+                    }
+                    this._activeMenuItem = menuItems[0];
+                    this._activeMenuItem.setActive(true);
+                }
+            }));
         }
     },
 
@@ -156,6 +171,10 @@ GlobalMenuSearch.prototype = {
                 label = item.getLabel() + " ➩ " + label;
         }
         return label;
+    },
+
+    setMaxNumberOfItems: function(maxItems) {
+        this._maxItems = maxItems;
     },
 
     setIndicator: function(indicator, window) {
@@ -197,27 +216,34 @@ GlobalMenuSearch.prototype = {
 
     _searchFor: function(item, terms) {
         let label = item.getLabel().toLowerCase();
+        let matches = 0;
         for(let pos in terms) {
-            if(label.indexOf(terms[pos].toLowerCase()) != -1) {
-                return 1;
+            let index = label.indexOf(terms[pos].toLowerCase());
+            if(index == 0) {
+                matches += 5;
+            } else if(index != -1) {
+                matches++;
             }
         }
-        return 0;
+        return matches;
     },
 
     _search: function(terms) {
-        let results = [];
+        let priority = {};
         if(this.indicator && this.appData && this.appData["dbusMenu"]) {
             let items = this.appData["dbusMenu"].getItems();
             for(let id in items) {
                 let item = items[id];
                 let sResult = this._searchFor(item, terms);
                 if((item.getFactoryType() == ConfigurableMenus.FactoryClassTypes.MenuItemClass) && (sResult > 0)) {
-                    results.push(id);
+                    priority[id] = sResult;
                 }
             }
         }
-        return results;
+        let result = Object.keys(priority).sort(function(a, b) {
+            return priority[b] - priority[a]; //Descending sort
+        });
+        return result;
     },
 
     // Setting the max-height won't do any good if the minimum height of the

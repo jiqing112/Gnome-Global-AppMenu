@@ -9,12 +9,6 @@
     "separator-support-bottom" : {
         "type": "separator"
     },
-    "enable-search-provider" : {
-        "type" : "checkbox",
-        "default" : false,
-        "description": "Enable a search provider for the window menu actions",
-        "tooltip": "Select if you want to enable a search provider for searching the window menu actions."
-    },
     "enable-environment" : {
         "type" : "checkbox",
         "default" : false,
@@ -80,15 +74,31 @@
     },
     "head-hudmenu" : {
         "type" : "header",
-        "description" : "Hud menu"
+        "description" : "Hud controller"
     },
     "separator-hudmenu-bottom" : {
         "type": "separator"
+    },
+    "enable-search-provider" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Enable the HUD Gnome search provider",
+        "tooltip": "Select if you want to enable the HUD Gnome search provider for searching the window menu actions."
     },
     "hud-overlay-key" : {
         "type" : "keybinding",
         "description" : "Keyboard shortcut to open and close the hud menu",
         "default" : "<Super>h"
+    },
+    "num-items": {
+        "type": "spinbutton",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "units": "items",
+        "description": "Maximum number of items:",
+        "tooltip": "The maximum number of items that will be displayed in the HUD menu (more is slower)."
     },
     "separator-mainmenu-top" : {
         "type": "separator"

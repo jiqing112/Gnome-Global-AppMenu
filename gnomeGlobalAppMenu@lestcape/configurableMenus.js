@@ -2072,8 +2072,9 @@ ConfigurableEntryItem.prototype = {
    },
 
    _onSearchTextChanged: function(actor, event) {
-      this.searchActive = this.searchEntry.get_text() != '';
-      if(this.searchActive) {
+      let text = this.searchEntry.get_text();
+      let searchActive = (text != '') && (text != this.searchEntry.hint_text);
+      if(searchActive) {
           this.searchEntry.set_secondary_icon(this._searchActiveIcon);
           if(!this._searchIconClickedId) {
              this._searchIconClickedId = this.searchEntry.connect('secondary-icon-clicked', Lang.bind(this, function() {
@@ -2090,7 +2091,9 @@ ConfigurableEntryItem.prototype = {
           }
           this.emit('text-changed', actor, event);
           this._previousSearchPattern = "";
+          this.resetText();
       }
+      this.searchActive = searchActive;
    },
 
    getPattern: function() {
@@ -2336,7 +2339,13 @@ ConfigurableBasicPopupMenuItem.prototype = {
    },
 
    setGIcon: function(gicon) {
-      this._icon.gicon = gicon;
+      /*this._icon.gicon = gicon;
+      this._icon.visible = ((this._displayIcon) && (gicon != null));*/
+      if(this._icon) {
+          this._icon.destroy();
+      }
+      this._icon = new St.Icon({ style_class: 'popup-menu-icon', gicon: gicon });
+      this.actor.insert_before(this._icon, this.label);
       this._icon.visible = ((this._displayIcon) && (gicon != null));
    },
 
@@ -7221,7 +7230,7 @@ ConfigurableMenuApplet.prototype = {
       this.launcher._applet_tooltip.preventShow = false;
    },
 
-   toogleSubmenu: function(animate) {
+   toggleSubmenu: function(animate) {
       if(this._isSubMenuOpen)
          this.closeSubmenu(animate);
       else

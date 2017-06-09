@@ -355,6 +355,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "align-menu-launcher", "alignMenuLauncher", this._onAlignMenuLauncherChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "global-overlay-key", "overlayKey", this._updateKeybinding, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "hud-overlay-key", "hudOverlayKey", this._updateHudKeybinding, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "num-items", "numbreOfItems", this._updateNumbreOfItems, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "display-in-panel", "displayInPanel", this._onDisplayInPanelChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-item-icon", "showItemIcon", this._onShowItemIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "desaturate-item-icon", "desaturateItemIcon", this._onDesaturateItemIconChanged, null);
@@ -374,6 +375,7 @@ MyApplet.prototype = {
       this._onMaxAppNameSizeChanged();
       this._updateKeybinding();
       this._updateHudKeybinding();
+      this._updateNumbreOfItems();
 
       this._onOpenActiveSubmenuChanged();
       this._onCloseActiveSubmenuChanged();
@@ -510,7 +512,7 @@ MyApplet.prototype = {
    _updateKeybinding: function() { 	
       this.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
          if(this.menu && !Main.overview.visible) {
-            this.menu.toogleSubmenu(true);
+            this.menu.toggleSubmenu(true);
          }
       }));
    },
@@ -518,9 +520,13 @@ MyApplet.prototype = {
    _updateHudKeybinding: function() {
       this.keybindingManager.addHotKey("global-hud-key", this.hudOverlayKey, Lang.bind(this, function() {
          if(!Main.overview.visible) {
-            this.hudMenuSearch.open(true);
+            this.hudMenuSearch.toggle(true);
          }
       }));
+   },
+
+   _updateNumbreOfItems: function() {
+      this.hudMenuSearch.setMaxNumberOfItems(this.numbreOfItems);
    },
 
    _onEffectTypeChanged: function() {
