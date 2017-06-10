@@ -8,19 +8,19 @@ msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-05-14 06:58-0500\n"
-"PO-Revision-Date: 2017-04-16 14:12-0500\n"
+"PO-Revision-Date: 2017-06-10 08:14+0200\n"
 "Last-Translator: Lester Carballo Pérez <lestcape@gmail.com>\n"
-"Language-Team: Lester Carballo Pérez <lestcape@gmail.com>\n"
+"Language-Team: Lesik <Lesik@users.noreply.github.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: en\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: applet.js:261
 msgid "Gnome Global Application Menu"
-msgstr "Gnome globales Programmmenü"
+msgstr "Globales Programmmenü für Gnome"
 
 #: applet.js:292
 msgid "You need restart your computer, to active the unity-gtk-module"
@@ -36,7 +36,7 @@ msgstr "Die Umgebungsvariable wurde erfolgreich gesetzt. Bitte melden Sie sich a
 
 #: utils/environment.js:45
 msgid "Global Menu Environment Usage"
-msgstr "Global Menu Environment Usage"
+msgstr "Nutzung der Gnome Menüumgebung"
 
 #: utils/environment.js:46
 msgid "Install environment variables"
@@ -173,11 +173,8 @@ msgid "Automatically open the submenu"
 msgstr "Untermenü automatisch öffnen"
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
-msgid ""
-"Select if you want to automatically open the submenu when the mouse is inside of the "
-"launcher."
-msgstr ""
-"Haken setzen, wenn das Untermenü automatisch geöffnet werden soll, wenn der Mauszeiger sich innerhalb des Launchers befindet."
+msgid "Select if you want to automatically open the submenu when the mouse is inside of the launcher."
+msgstr "Haken setzen, wenn das Untermenü automatisch geöffnet werden soll, wenn der Mauszeiger sich innerhalb des Launchers befindet."
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-
 #. submenu->description
@@ -185,11 +182,8 @@ msgid "Automatically close the submenu"
 msgstr "Untermenü automatisch schließen"
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
-msgid ""
-"Select if you want to automatically close the submenu when the mouse is out of the "
-"launcher."
-msgstr ""
-"Haken setzen, wenn das Untermenü automatisch geschlossen werden soll, wenn der Mauszeiger es verlässt."
+msgid "Select if you want to automatically close the submenu when the mouse is out of the launcher."
+msgstr "Haken setzen, wenn das Untermenü automatisch geschlossen werden soll, wenn der Mauszeiger es verlässt."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
 msgid "Show the application name in the panel"
@@ -241,11 +235,11 @@ msgstr "Haken setzen, wenn die Umgebungsvariable statisch gesetzt werden soll."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
 msgid "Enable the support for JAyantana (Experimental)"
-msgstr "JAyantana-Unterstützung aktivieren (experimentell)"
+msgstr "JAyatana-Unterstützung aktivieren (experimentell)"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
 msgid "Select if you want to enable the support for JAyantana."
-msgstr "Haken setzen, wenn die JAyantana-Unterstützung aktiviert werden soll."
+msgstr "Haken setzen, wenn die JAyatana-Unterstützung aktiviert werden soll."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
 msgid "Show the application icon in the panel"
