@@ -18,12 +18,13 @@ Special thanks to:
 - rilian-la-te         (https://github.com/rilian-la-te)           Understand and fix a lot of things.
 - collinss             (https://github.com/collinss)               Has helped fix the behavior of firefox and thunderbird.
 
-Author of language translation:
+Translators:
 --------------
-- Croatian(Hr):     gogo (trebelnik2@gmail.com)
-- English(En):      Lester Carballo Pérez(lestcape@gmail.com)
-- Spanish(Es):      Lester Carballo Pérez(lestcape@gmail.com)
-- French(Fr):       Maestroschan
+- Croatian (hr):	gogo (trebelnik2@gmail.com)
+- English (en):		Lester Carballo Pérez(lestcape@gmail.com)
+- French (fr):		Maestroschan
+- German (de):		Lesik (Lesik@users.noreply.github.com)
+- Spanish (es):		Lester Carballo Pérez(lestcape@gmail.com)
 --------------
 ![](https://raw.githubusercontent.com/lestcape/Gnome-Global-AppMenu/master/gnomeGlobalAppMenu%40lestcape/Capture.png)
 
