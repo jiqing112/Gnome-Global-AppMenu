@@ -64,10 +64,16 @@ Application.prototype = {
                let file = Gio.file_new_for_path(path);
                if(file.get_parent().query_exists(null) && !file.query_exists(null)) {
                   let rawData =  '';
-                  rawData += 'if [[ "$DESKTOP_SESSION" = "cinnamon" ] || ["$DESKTOP_SESSION" = gnome"] && [ -z "$UBUNTU_MENUPROXY" ]]; then\n';
-                  rawData += '   UBUNTU_MENUPROXY=0\n';
+                  rawData += 'if [ "$DESKTOP_SESSION" = "gnome" ] && [ -n "$UBUNTU_MENUPROXY" ]; then\n';
+                  rawData += '   UBUNTU_MENUPROXY=1\n';
                   rawData += '   export "UBUNTU_MENUPROXY=$UBUNTU_MENUPROXY"\n';
+                  rawData += 'else\n';
+                  rawData += '   if grep -q UBUNTU_MENUPROXY /etc/environment; then\n';
+                  rawData += '      unset UBUNTU_MENUPROXY\n';
+                  rawData += '   fi\n';
                   rawData += 'fi\n';
+
+
                   file.replace_contents(rawData, null, false, 0, null);
                   env["UBUNTU_MENUPROXY"] = 0;
                   this._saveEnvironment(env);
