@@ -24,7 +24,7 @@ msgid "Gnome Global Application Menu"
 msgstr ""
 
 #: applet.js:292
-msgid "You need restart your computer, to active the unity-gtk-module"
+msgid "You need to restart your computer to active the unity-gtk-module"
 msgstr ""
 
 #: applet.js:423
@@ -69,7 +69,7 @@ msgid "Set the maximum size of the application name."
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
-msgid "characters"
+msgid "Characters"
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
@@ -94,11 +94,11 @@ msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-
 #. launcher->description
-msgid "Align all menus with his launcher"
+msgid "Align all menus with their launcher"
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
-msgid "Select if you want to align all menus with his launcher."
+msgid "Select if you want to align all menus with their launcher."
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->effect->description
@@ -138,7 +138,7 @@ msgid "Duration of effect:"
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
-msgid "The time on seconds to perform the effect (more time is slower)."
+msgid "The time in seconds to perform the effect (more time is slower)."
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
@@ -223,11 +223,11 @@ msgid "Applications"
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
-msgid "Show the boxpointers"
+msgid "Show the box pointers"
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
-msgid "Select if you want to show the boxpointer of all floating menus."
+msgid "Select if you want to show the box pointers of all floating menus."
 msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
@@ -277,5 +277,3 @@ msgstr ""
 #. globalAppMenu@lestcape->settings-schema.json->...
 msgid "Keyboard shortcut to open and close the menu"
 msgstr ""
-
-
