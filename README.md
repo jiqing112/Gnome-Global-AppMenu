@@ -21,10 +21,16 @@ Special thanks to:
 Translators:
 --------------
 - Croatian (hr):	gogo (trebelnik2@gmail.com)
+- Dutch (nl_NL):  Tim Visée ()
 - English (en):		Lester Carballo Pérez(lestcape@gmail.com)
 - French (fr):		Maestroschan
+- Galician (gl):  Fran Diéguez (fran.dieguez@mabishu.com)
 - German (de):		Lesik (Lesik@users.noreply.github.com)
+- Hungarian (hu): Balázs Úr (urbalazs@gmail.com)
+- Italian (it):   Matteo Iervasi (matteoiervasi@gmail.com)
+- Russian (ru):   DragonicUA
 - Spanish (es):		Lester Carballo Pérez(lestcape@gmail.com)
+- Ukrainian (uk): Alice Liddell (e-liss@tuta.io)
 --------------
 ![](https://raw.githubusercontent.com/lestcape/Gnome-Global-AppMenu/master/gnomeGlobalAppMenu%40lestcape/Capture.png)
 
@@ -154,7 +160,7 @@ This extension can only read the standard Dbus menu structure (Gtk/Kde), so we c
 
 We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
 
-Uninstall instructions:
+Uninstallation instructions:
 --------------
 1. Disable the extension.
 2. Reset the gsettings values:
@@ -162,7 +168,7 @@ Uninstall instructions:
   * ```gsettings reset org.gnome.settings-daemon.plugins.xsettings overrides```
   * ```gsettings reset org.gnome.settings-daemon.plugins.xsettings enabled-gtk-modules```
 
-3. If you don't use a global menu in other desktop, remove also the packages that you install.
+3. If you don't use a global menu in other desktop, remove the previously installed packages as well.
 Restart your computer.
 
 ==============

@@ -25,7 +25,7 @@ msgid "Gnome Global Application Menu"
 msgstr "Глобальне Меню Додатків Gnome"
 
 #: applet.js:292
-msgid "You need restart your computer, to active the unity-gtk-module"
+msgid "You need to restart your computer to active the unity-gtk-module"
 msgstr "Для активації unity-gtk-module потрібно перезавантажити комп’ютер"
 
 #: applet.js:423
@@ -75,7 +75,7 @@ msgid "Set the maximum size of the application name."
 msgstr "Встановити максимальну довжину назви додатку."
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
-msgid "characters"
+msgid "Characters"
 msgstr "Символи"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
@@ -101,11 +101,11 @@ msgstr "Оберіть для відображення піктограм у п�
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-
 #. launcher->description
-msgid "Align all menus with his launcher"
+msgid "Align all menus with their launcher"
 msgstr "Вирівняти всі меню з їх лончерами"
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
-msgid "Select if you want to align all menus with his launcher."
+msgid "Select if you want to align all menus with their launcher."
 msgstr "Оберіть, щоб вирівняти всі меню з їхніми лончерами."
 
 #. globalAppMenu@lestcape->settings-schema.json->effect->description
@@ -145,7 +145,7 @@ msgid "Duration of effect:"
 msgstr "Тривалість ефекту:"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
-msgid "The time on seconds to perform the effect(More time is slower)."
+msgid "The time in seconds to perform the effect(More time is slower)."
 msgstr "Час виконання ефекту у секундах (Що більше, то повільніше)."
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
@@ -232,11 +232,11 @@ msgid "Applications"
 msgstr "Додатки"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
-msgid "Show the boxpointers"
+msgid "Show the box pointers"
 msgstr "Відображати стрілкові покажчики"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
-msgid "Select if you want to show the boxpointer of all floating menus."
+msgid "Select if you want to show the box pointers of all floating menus."
 msgstr "Оберіть для відображення стрілкових покажчиків у всіх виринаючих меню."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
