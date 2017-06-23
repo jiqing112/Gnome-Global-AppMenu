@@ -18,6 +18,7 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
+const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
 const Signals = imports.signals;
@@ -60,14 +61,17 @@ SystemProperties.prototype = {
    _init: function() {
       this._environmentCallback = null;
       this.xSetting = new Gio.Settings({ schema: 'org.gnome.settings-daemon.plugins.xsettings' });
+      this._gtkSettings = Gtk.Settings.get_default();
    },
 
    shellShowAppmenu: function(show) {
       this._overrideBoolXSetting('Gtk/ShellShowsAppMenu', show);
+      this._gtkSettings.gtk_shell_shows_app_menu = show;
    },
 
    shellShowMenubar: function(show) {
       this._overrideBoolXSetting('Gtk/ShellShowsMenubar', show);
+      this._gtkSettings.gtk_shell_shows_menubar = show;
    },
 
    activeJAyantanaModule: function(active) {
@@ -100,6 +104,11 @@ SystemProperties.prototype = {
       let envGtk = this._getEnvGtkModules();
       let xSettingGtk = this._getXSettingGtkModules();
       if(active) {
+         if(!this._gtkSettings.gtk_modules) {
+             this._gtkSettings.gtk_modules = "unity-gtk-module";
+         } else if(this._gtkSettings.gtk_modules.indexOf("unity-gtk-module") == -1) {
+            Gtk.Settings.gtk_modules += ":unity-gtk-module";
+         }
          if(envGtk) {
             if(envGtk.indexOf("unity-gtk-module") == -1) {
                envGtk.push("unity-gtk-module");
@@ -123,8 +132,20 @@ SystemProperties.prototype = {
             this._setXSettingGtkModules(xSettingGtk);
          }
       } else {
+         if(this._gtkSettings.gtk_modules) {
+            let index = this._gtkSettings.gtk_modules.indexOf("unity-gtk-module");
+            let len = this._gtkSettings.gtk_modules.length;
+            if(index != -1) {
+               let newModules = null;
+               if(len > 16) {
+                  newModules = this._gtkSettings.gtk_modules.substring(0, index - 2) +
+                               this._gtkSettings.gtk_modules.substring(index + 16, this._gtkSettings.gtk_modules.length);
+               }
+               Gtk.Settings.gtk_modules = newModules;
+            } 
+         }
          if(envGtk) {
-            let pos = envGtk.indexOf("unity-gtk-module")
+            let pos = envGtk.indexOf("unity-gtk-module");
             if(pos != -1) {
                envGtk.splice(pos, -1);
                this._setEnvGtkModules(envGtk);
@@ -293,46 +314,110 @@ SystemProperties.prototype = {
 };
 
 /*
- * The IndicatorAppMenuWatcher class implements the IndicatorAppMenu dbus object
+ * The X11RegisterMenuWatcher class implements
+ * the cannonical registrar dbus Interface.
+ * Here will need to encapsulate things to
+ * handled the windows xid mechanims.
  */
-function IndicatorAppMenuWatcher() {
+function X11RegisterMenuWatcher() {
    this._init.apply(this, arguments);
 }
 
-IndicatorAppMenuWatcher.prototype = {
-
-   _init: function(mode, iconSize) {
-      this._mode = mode;
-      this._iconSize = iconSize;
-
+X11RegisterMenuWatcher.prototype = {
+   _init: function() {
       this._registeredWindows = { };
       this._everAcquiredName = false;
       this._ownName = null;
-
+      this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
-      this._notifyWorkspacesId = 0;
-      this._focusWindowId = 0;
-      this._buggyClientId = 0;
-
-      this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DBusRegistrar, this);
       this._tracker = Shell.WindowTracker.get_default();
+      this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DBusRegistrar, this);
+   },
+
+   // Private functions
+   _acquiredName: function() {
+      this._everAcquiredName = true;
+      global.log("X11Menu Whatcher: Acquired name %s".format(WATCHER_INTERFACE));
+   },
+
+   _lostName: function() {
+      this._everAcquiredName = false;
+      if(this._everAcquiredName)
+         global.log("X11Menu Whatcher: Lost name %s".format(WATCHER_INTERFACE));
+      else
+         global.logWarning("X11Menu Whatcher: Failed to acquire %s".format(WATCHER_INTERFACE));
+      this._ownName = null;
+   },
+
+   watch: function() {
+      if(!this._ownName) {
+         this._dbusImpl.export(Gio.DBus.session, WATCHER_OBJECT);
+         this._ownName = Gio.DBus.session.own_name(
+            WATCHER_INTERFACE,
+            Gio.BusNameOwnerFlags.NONE,
+            Lang.bind(this, this._acquiredName),
+            Lang.bind(this, this._lostName)
+         );
+         this._updateWindowList();
+         if(this._windowsCreatedId == 0) {
+            this._windowsCreatedId = global.display.connect('window-created', Lang.bind(this, this._updateWindowList));
+         }
+         if(this._windowsChangedId == 0) {
+            this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
+         }
+      }
+   },
+
+   isWatching: function() {
+      return (this._ownName != null);
+   },
+
+   getMenuForWindow: function(window) {
+      let xid = this._guessWindowXId(window);
+      if(xid && (xid in this._registeredWindows)) {
+         return this._registeredWindows[xid].appMenu;
+      }
+      return null;
+   },
+
+   updateMenuForWindow: function(window) {
+      let xid = this._guessWindowXId(window);
+      if(xid && (xid in this._registeredWindows)) {
+         let appmenu = this._registeredWindows[xid].appMenu;
+         if(appmenu) {
+            if(appmenu.isbuggyClient())
+               appmenu.fakeSendAboutToShow(appmenu.getRootId());
+            else
+               appmenu.sendEvent(appmenu.getRootId(), "opened", null, 0);
+            return true;
+         }
+      }
+      return false;
    },
 
    // DBus Functions
    RegisterWindowAsync: function(params, invocation) {
       let wind = null;
       let [xid, menubarObjectPath] = params;
+      let sender = invocation.get_sender();
+      this._registerWindowXId(xid, menubarObjectPath, sender);
+      this._dbusImpl.emit_signal('WindowRegistered', GLib.Variant.new('(uso)', [xid, sender, menubarObjectPath]));
+      global.log("X11Menu Whatcher: RegisterWindow %d %s %s".format(xid, sender, menubarObjectPath));
       // Return a value Firefox and Thunderbird are waiting for it.
       invocation.return_value(new GLib.Variant('()', []));  
-      this._registerWindowXId(xid, wind, menubarObjectPath, invocation.get_sender());
-      this._emitWindowRegistered(xid, invocation.get_sender(), menubarObjectPath);
    },
 
    UnregisterWindowAsync: function(params, invocation) {
       let [xid] = params;
       this._destroyMenu(xid);
-      if((xid) && (xid in this._registeredWindows))
-          this._emitWindowUnregistered(xid);
+      this._emitWindowUnregistered(xid);
+   },
+
+   _emitWindowUnregistered: function(xid) {
+      if((xid) && (xid in this._registeredWindows) && this.isWatching()) {
+          this._dbusImpl.emit_signal('WindowUnregistered', GLib.Variant.new('(u)', [xid]));
+          global.log("X11Menu Whatcher: UnregisterWindow %d".format(xid));
+      }
    },
 
    GetMenuForWindowAsync: function(params, invocation) {
@@ -354,174 +439,50 @@ IndicatorAppMenuWatcher.prototype = {
       invocation.return_value(retval);
    },
 
-   // DBus Signals
-   _emitWindowRegistered: function(xid, service, menubarObjectPath) {
-      this._dbusImpl.emit_signal('WindowRegistered', GLib.Variant.new('(uso)', [xid, service, menubarObjectPath]));
-      global.log("%s RegisterWindow %d %s %s".format(LOG_NAME, xid, service, menubarObjectPath));
-   },
-
-   _emitWindowUnregistered: function(xid) {
-      this._dbusImpl.emit_signal('WindowUnregistered', GLib.Variant.new('(u)', [xid]));
-      global.log("%s UnregisterWindow %d".format(LOG_NAME, xid));
-   },
-
-   // Public functions
-   watch: function() {
-      if(!this._ownName) {
-         this._dbusImpl.export(Gio.DBus.session, WATCHER_OBJECT);
-         this._ownName = Gio.DBus.session.own_name(WATCHER_INTERFACE,
-                               Gio.BusNameOwnerFlags.NONE,
-                               Lang.bind(this, this._acquiredName),
-                               Lang.bind(this, this._lostName));
-
-         this._registerAllWindows();
-         this._onWindowChanged();
-
-         if(this._windowsChangedId == 0) {
-            this._windowsChangedId = this._tracker.connect('tracked-windows-changed',
-                                     Lang.bind(this, this._updateWindowsList));
-         }
-         if(this._notifyWorkspacesId == 0) {
-            this._notifyWorkspacesId = global.screen.connect('notify::n-workspaces',
-                                       Lang.bind(this, this._registerAllWindows));
-         }
-         if(this._focusWindowId == 0) {
-            this._focusWindowId = global.screen.get_display().connect('notify::focus-window',
-                                  Lang.bind(this, this._onWindowChanged));
+   _updateWindowList: function() {
+      let current = global.get_window_actors();
+      let metaWindows = new Array();
+      for (let pos in current) {
+          let xid = this._guessWindowXId(current[pos].meta_window);
+          if(xid) {
+             metaWindows.push(xid);
+          }
+      }
+      for (let xid in this._registeredWindows) {
+         if(metaWindows.indexOf(xid) == -1) {
+            this._unregisterWindows(xid);
          }
       }
    },
 
-   isWatching: function() {
-      return (this._ownName != null);
-   },
-
-   getRootMenuForWindow: function(wind) {
-      let appmenu = this.getMenuForWindow(wind);
-      if(appmenu)
-         return appmenu.getRoot();
-      return null;
-   },
-
-   getMenuForWindow: function(wind) {
-      let xid = this._guessWindowXId(wind);
-      if((xid) && (xid in this._registeredWindows)) {
-         let appmenu = this._registeredWindows[xid].appMenu;
-         if(appmenu)
-            return appmenu;
-      }
-      return null;
-   },
-
-   updateMenuForWindow: function(wind) {
-      let xid = this._guessWindowXId(wind);
-      if((xid) && (xid in this._registeredWindows)) {
-         let appmenu = this._registeredWindows[xid].appMenu;
-         if(appmenu) {
-            if(appmenu.isbuggyClient())
-               appmenu.fakeSendAboutToShow(appmenu.getRootId());
-            else
-               appmenu.sendEvent(appmenu.getRootId(), "opened", null, 0);
-         }
-      }
-   },
-
-   getAppForWindow: function(wind) {
-      let xid = this._guessWindowXId(wind);
-      if((xid) && (xid in this._registeredWindows))
-         return this._registeredWindows[xid].application;
-      return null;
-   },
-
-   getIconForWindow: function(wind) {
-      let xid = this._guessWindowXId(wind);
-      if((xid) && (xid in this._registeredWindows))
-         return this._registeredWindows[xid].icon;
-      return null;
-   },
-
-   setIconSize: function(iconSize) {
-      if(this._iconSize != iconSize) {
-         this._iconSize = iconSize;
-         for(let xid in this._registeredWindows) {
-            this._updateIcon(xid);
-         }
-      }
-   },
-
-   // Private functions
-   _acquiredName: function() {
-      this._everAcquiredName = true;
-      global.log("%s Acquired name %s".format(LOG_NAME, WATCHER_INTERFACE));
-   },
-
-   _lostName: function() {
-      this._everAcquiredName = false;
-      if(this._everAcquiredName)
-         global.log("%s Lost name %s".format(LOG_NAME, WATCHER_INTERFACE));
-      else
-         global.logWarning("%s Failed to acquire %s".format(LOG_NAME, WATCHER_INTERFACE));
-      this._ownName = null;
-   },
-
-   // Async because we may need to check the presence of a menubar object as well as the creation is async.
-   _getMenuClient: function(xid, callback) {
+   _unregisterWindows: function(xid) {
       if(xid in this._registeredWindows) {
-         var sender = this._registeredWindows[xid].sender;
-         var menubarPath = this._registeredWindows[xid].menubarObjectPath;
-         var windowPath = this._registeredWindows[xid].windowObjectPath;
-         var appPath = this._registeredWindows[xid].appObjectPath;
-         var is_gtk = this._registeredWindows[xid].isGtk;
-         var wind = this._registeredWindows[xid].window;
-         if((sender)&&(menubarPath)&&(!wind || (wind.get_window_type() != Meta.WindowType.DESKTOP))) {
-            if(!is_gtk) {
-               this._validateMenu(sender, menubarPath, Lang.bind(this, function(r, name, menubarPath) {
-                  if(r) {
-                     if(!this._registeredWindows[xid].appMenu) {
-                        global.log("%s Creating menu on %s, %s".format(LOG_NAME, sender, menubarPath));
-                        callback(xid, new DBusMenu.DBusClient(name, menubarPath));
-                     } else {
-                        callback(xid, null);
-                     }
-                  } else {
-                     callback(xid, null);
-                  }
-               }));
-            } else {
-               if(!this._registeredWindows[xid].appMenu) {
-                  global.log("%s Creating menu on %s, %s".format(LOG_NAME, sender, menubarPath));
-                  callback(xid, new DBusMenu.DBusClientGtk(sender, menubarPath, windowPath, appPath));
-               } else {
-                  callback(xid, null);
-               }
-            }
-         } else {
-            callback(xid, null);
+         //this._emitWindowUnregistered(xid);
+         //this._destroyMenu(xid);
+         //delete this._registeredWindows[xid];
+         if(this.isWatching()) {
+            this.emit('client-menu-changed', null);
          }
-      } else {
-         callback(xid, null);
       }
    },
 
    _onMenuClientReady: function(xid, client) {
-      if(this._registeredWindows && (client != null)) {
+      if((xid in this._registeredWindows) && (client != null)) {
          this._registeredWindows[xid].appMenu = client;
          let root = client.getRoot();
          root.connectAndRemoveOnDestroy({
             'childs-empty'   : Lang.bind(this, this._onMenuEmpty, xid),
             'destroy'        : Lang.bind(this, this._onMenuDestroy, xid)
          });
-         if(this._guessWindowXId(global.display.focus_window) == xid) {
-            this._onWindowChanged();
-         } else if(!this._registeredWindows[xid].window) {
-            this._registerAllWindows();
+         if(this.isWatching()) {
+            this.emit('client-menu-changed', this._registeredWindows[xid].appMenu);
          }
       }
    },
 
    _onMenuEmpty: function(root, xid) {
-      // We don't have alternatives now, so destroy the appmenu.
-      this._onMenuDestroy(root, xid);
+      // We don't have alternatives now, so destroy the appmenu?
+      // this._onMenuDestroy(root, xid);
    },
 
    _onMenuDestroy: function(root, xid) {
@@ -536,9 +497,49 @@ IndicatorAppMenuWatcher.prototype = {
             appMenu.destroy();
          }
          if(this.isWatching()) {
-            this.emit('appmenu-changed', this._registeredWindows[xid].window);
+            this.emit('client-menu-changed', null);
          }
       }
+   },
+
+   // Async because we may need to check the presence of a menubar object as well as the creation is async.
+   _getMenuClient: function(xid, callback) {
+      if(xid in this._registeredWindows) {
+         var sender = this._registeredWindows[xid].sender;
+         var menubarPath = this._registeredWindows[xid].menubarObjectPath;
+         if(sender && menubarPath) {
+            this._validateMenu(sender, menubarPath, Lang.bind(this, function(result, name, menubarPath) {
+               if(result) {
+                  if(!this._registeredWindows[xid].appMenu) {
+                     global.log("X11Menu Whatcher: Creating menu on %s, %s".format(sender, menubarPath));
+                     callback(xid, new DBusMenu.DBusClient(name, menubarPath));
+                  } else {
+                     callback(xid, null);
+                  }
+               } else {
+                  callback(xid, null);
+               }
+            }));
+         } else {
+            callback(xid, null);
+         }
+      } else {
+         callback(xid, null);
+      }
+   },
+
+   _tryToGetMenuClient: function(xid) {
+      if((xid in this._registeredWindows) && (!this._registeredWindows[xid].appMenu)) {
+         if((this._registeredWindows[xid].menubarObjectPath) &&
+            (this._registeredWindows[xid].sender)) {
+            // FIXME JAyantana is slow, we need to wait for it a little.
+            //GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
+               this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
+            //}));
+         } else {
+            this._registeredWindows[xid].fail = true;
+         }
+      }  
    },
 
    _validateMenu: function(bus, path, callback) {
@@ -549,7 +550,7 @@ IndicatorAppMenuWatcher.prototype = {
             try {
                var val = conn.call_finish(result);
             } catch (e) {
-               global.logWarning(LOG_NAME + "Invalid menu. " + e);
+               global.logWarning("X11Menu Whatcher: Invalid menu. %s".format(e));
                return callback(false);
             }
             var version = val.deep_unpack()[0].deep_unpack();
@@ -557,213 +558,22 @@ IndicatorAppMenuWatcher.prototype = {
             if(version >= 2) {
                return callback(true, bus, path);
             } else {
-               global.logWarning("%s Incompatible dbusmenu version %s".format(LOG_NAME, version));
+               global.logWarning("X11Menu Whatcher: Incompatible dbusmenu version %s".format(version));
                return callback(false);
             }
          }, null
       );
    },
 
-   _registerAllWindows: function () {
-      for(let index = 0; index < global.screen.n_workspaces; index++) {
-         let metaWorkspace = global.screen.get_workspace_by_index(index);
-         let winList = metaWorkspace.list_windows();
-         // For each window, let's make sure we add it!
-         for(let pos in winList) {
-            let wind = winList[pos];
-            if(Main.isInteresting(wind)) {
-               let xid = this._guessWindowXId(wind);
-               if((xid) && !((xid in this._registeredWindows)&&(this._registeredWindows[xid].fail))) {
-                  this._registerWindowXId(xid, wind);
-               }
-            }
-         }
-      }
-   },
-
-   _updateWindowsList: function () {
-      let current = new Array();
-      for(let index = 0; index < global.screen.n_workspaces; index++) {
-         let metaWorkspace = global.screen.get_workspace_by_index(index);
-         let winList = metaWorkspace.list_windows();
-         // For each window, let's make sure we add it!
-         for(let pos in winList) {
-            let wind = winList[pos];
-            if(Main.isInteresting(wind)) {
-               let xid = this._guessWindowXId(wind);
-               if(xid)
-                  current.push(xid.toString());
-            }
-         }
-      }
-      for(let xid in this._registeredWindows) {
-         if(current.indexOf(xid) == -1) {
-            this._unregisterWindows(xid);
-            this._emitWindowUnregistered(xid);
-            //FIXME Clementine can register the menu without have a windows yet (Maybe others?)
-            // So please, remember the Dbus Menu configuration(don't delete record).
-            //delete this._registeredWindows[xid];
-         }
-      }
-      GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
-         if(this._buggyClientId != 0) {
-            GLib.source_remove(this._buggyClientId);
-            this._buggyClientId = 0;
-         }
-         this._verifyBuggyClient(0);
-      }));
-   },
-
-   _unregisterWindows: function(xid) {
-      if((xid) && (xid in this._registeredWindows)) {
-         this._destroyMenu(xid);
-         let appMenu = this._registeredWindows[xid].appMenu;
-         if(appMenu) {
-            appMenu.destroy();
-         }
-         delete this._registeredWindows[xid];
-         if(this.isWatching()) {
-            this.emit('appmenu-changed', null);
-         }
-      }
-   },
-
-   _verifyBuggyClient: function(time) {
-      if(time < 60000) {
-         this._buggyClientId = GLib.timeout_add(GLib.PRIORITY_DEFAULT_IDLE, 500, Lang.bind(this, function() {
-            this._onWindowChanged();
-            this._verifyBuggyClient(time + 500);
-         }));
-      }
-   },
-
-   _updateIcon: function(xid) {
-      if(xid in this._registeredWindows) {
-         if(this._registeredWindows[xid].icon) {
-            this._registeredWindows[xid].icon.destroy();
-            this._registeredWindows[xid].icon = null;
-         }
-         let app = this._registeredWindows[xid].application;
-         if(app) {
-            let icon = app.create_icon_texture(this._iconSize);
-            this._registeredWindows[xid].icon = icon;
-         }
-      }
-   },
-
-   _registerWindowXId: function(xid, wind, menubarPath, senderDbus) {
-      let appTracker = null, appmenuPath = null, windowPath = null, appPath = null;
-      let isGtkApp = false;
-
-      if(wind) {
-         appTracker = this._tracker.get_window_app(wind);
-         if((!menubarPath)||(!senderDbus)) {
-            if((appTracker)&&(GTK_BLACKLIST.indexOf(appTracker.get_id()) == -1)) {
-               menubarPath = wind.get_gtk_menubar_object_path();
-               appmenuPath = wind.get_gtk_app_menu_object_path();
-               windowPath  = wind.get_gtk_window_object_path();
-               appPath     = wind.get_gtk_application_object_path();
-               senderDbus  = wind.get_gtk_unique_bus_name();
-               isGtkApp    = (senderDbus != null);
-            }
-         }
-      }
-
-      let dbusPropertiesChanged = false;
-      if(xid in this._registeredWindows) {
-         // Firefox use the regitrar iface and also the gtk way, but it unsupported.
-         // We ask then for the new data and prevent the override of registrar.
-         if(menubarPath && menubarPath != this._registeredWindows[xid].menubarObjectPath) {
-            this._registeredWindows[xid].menubarObjectPath = menubarPath;
-            dbusPropertiesChanged = true;
-         }
-         if(appmenuPath && appmenuPath != this._registeredWindows[xid].appmenuObjectPath) {
-            this._registeredWindows[xid].appmenuObjectPath = appmenuPath;
-            dbusPropertiesChanged = true;
-         }
-         if(windowPath && windowPath != this._registeredWindows[xid].windowObjectPath) {
-            this._registeredWindows[xid].windowObjectPath = windowPath;
-            dbusPropertiesChanged = true;
-         }
-         if(appPath && appPath != this._registeredWindows[xid].appObjectPath) {
-            this._registeredWindows[xid].appObjectPath = appPath;
-            dbusPropertiesChanged = true;
-         }
-         if(senderDbus && senderDbus != this._registeredWindows[xid].sender) {
-            this._registeredWindows[xid].sender = senderDbus;
-            dbusPropertiesChanged = true;
-         }
-         if(appTracker && appTracker != this._registeredWindows[xid].application) {
-            this._registeredWindows[xid].application = appTracker;
-            //dbusPropertiesChanged = true;
-         }
-         if(wind && wind != this._registeredWindows[xid].window) {
-            this._registeredWindows[xid].window = wind;
-            //dbusPropertiesChanged = true;
-         }
-         if(dbusPropertiesChanged && this._registeredWindows[xid].appMenu) {
-            //Main.notify("es " + xid + " " + senderDbus + " " + menubarPath);
-            this._destroyMenu(xid);
-            this._registeredWindows[xid].fail = false;
-         }
-      } else {
+   _registerWindowXId: function(xid, menubarPath, senderDbus) {
+      if(!(xid in this._registeredWindows)) {
          this._registeredWindows[xid] = {
-            window: wind,
-            application: appTracker,
             menubarObjectPath: menubarPath,
-            appmenuObjectPath: appmenuPath,
-            windowObjectPath: windowPath,
-            appObjectPath: appPath,
             sender: senderDbus,
-            isGtk: isGtkApp,
-            icon: null,
             appMenu: null,
             fail: false
          };
-      }
-      this._tryToGetMenuClient(xid);
-   },
-
-   _tryToGetMenuClient: function(xid) {
-      if((xid in this._registeredWindows) && (!this._registeredWindows[xid].appMenu)) {
-         if((this._registeredWindows[xid].menubarObjectPath) &&
-            (this._registeredWindows[xid].sender)) {
-            // FIXME JAyantana is slow, we need to wait for it a little.
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
-               this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
-            }));
-         } else {
-            this._registeredWindows[xid].fail = true;
-         }
-      }  
-   },
-
-   _onWindowChanged: function() {
-      let xid = this._guessWindowXId(global.display.focus_window);
-      if(xid && this._registeredWindows) {
-         if(global.display.focus_window.get_window_type() != Meta.WindowType.DESKTOP) {
-            if(global.display.focus_window.set_hide_titlebar_when_maximized)
-               global.display.focus_window.set_hide_titlebar_when_maximized(true);
-            let registerWin = null;
-            if(xid in this._registeredWindows) {
-               registerWin = this._registeredWindows[xid];
-               if((!registerWin.fail) && 
-                  ((!registerWin.appMenu)||(!registerWin.window))) {
-                  this._registerAllWindows();
-                  registerWin = this._registeredWindows[xid];
-               }
-            } else {
-               this._registerAllWindows();
-               if(xid in this._registeredWindows)
-                  registerWin = this._registeredWindows[xid];
-            }
-            this._updateIcon(xid);
-            if(registerWin) {
-               this.emit('appmenu-changed', registerWin.window);
-            }
-         } else {
-            this.emit('appmenu-changed', null);
-         }
+         this._tryToGetMenuClient(xid);
       }
    },
 
@@ -780,21 +590,19 @@ IndicatorAppMenuWatcher.prototype = {
    _guessWindowXId: function (wind) {
       if(!wind)
          return null;
-
-      let id = null;
+      if(wind.get_xwindow)
+         return wind.get_xwindow().toString();
       // If window title has non-utf8 characters, get_description() complains
       // "Failed to convert UTF-8 string to JS string: Invalid byte sequence in conversion input",
       // event though get_title() works.
-      if(wind.get_xwindow)
-         return wind.get_xwindow();
+      let id = null;
       try {
          id = wind.get_description().match(/0x[0-9a-f]+/);
          if(id) {
-            return parseInt(id[0], 16);
+            return parseInt(id[0], 16).toString();
          }
       } catch(err) {
       }
-
       // Use xwininfo, take first child.
       let act = wind.get_compositor_private();
       if(act && act['x-window']) {
@@ -808,18 +616,18 @@ IndicatorAppMenuWatcher.prototype = {
             let regexp = new RegExp('(0x[0-9a-f]+) +"%s"'.format(wind.title));
             id = str.match(regexp);
             if(id) {
-               return parseInt(id[1], 16);
+               return parseInt(id[1], 16).toString();
             }
 
             // Otherwise, just grab the child and hope for the best
             id = str.split(/child(?:ren)?:/)[1].match(/0x[0-9a-f]+/);
             if(id) {
-               return parseInt(id[0], 16);
+               return parseInt(id[0], 16).toString();
             }
          }
       }
       // Debugging for when people find bugs..
-      global.logError("%s Could not find XID for window with title %s".format(LOG_NAME, wind.title));
+      global.logError("X11Menu Whatcher: Could not find XID for window with title %s".format(wind.title));
       return null;
    },
 
@@ -827,17 +635,9 @@ IndicatorAppMenuWatcher.prototype = {
       if(this._registeredWindows) {
          // This doesn't do any sync operation and doesn't allow us to hook up the event of being finished
          // which results in our unholy debounce hack (see extension.js)
-         Gio.DBus.session.unown_name(this._ownName);
-         this._dbusImpl.unexport();
-         this._everAcquiredName = false;
-         this._ownName = null;
-         if(this._focusWindowId > 0) {
-            global.screen.get_display().disconnect(this._focusWindowId);
-            this._focusWindowId = 0;
-         }
-         if(this._notifyWorkspacesId > 0) {
-            global.screen.disconnect(this._notifyWorkspacesId);
-            this._notifyWorkspacesId = 0;
+         if(this._windowsCreatedId > 0) {
+            global.display.disconnect(this._windowsCreatedId);
+            this._windowsCreatedId = 0;
          }
          if(this._windowsChangedId > 0) {
             this._tracker.disconnect(this._windowsChangedId);
@@ -845,12 +645,408 @@ IndicatorAppMenuWatcher.prototype = {
          }
          for(let xid in this._registeredWindows) {
             let register = this._registeredWindows[xid];
-            if(register.icon)
-               register.icon.destroy();
             this._destroyMenu(xid);
             this._emitWindowUnregistered(xid);
          }
          this._registeredWindows = null;
+         if(this._ownName) {
+            Gio.DBus.session.unown_name(this._ownName);
+            this._dbusImpl.unexport();
+            this._everAcquiredName = false;
+            this._ownName = null;
+         }
+      }
+   }
+};
+Signals.addSignalMethods(X11RegisterMenuWatcher.prototype);
+
+function GtkMenuWatcher() {
+   this._init.apply(this, arguments);
+}
+
+GtkMenuWatcher.prototype = {
+   _init: function() {
+      this._registeredWindows = [];
+      this._isWatching = false;
+      this._windowsCreatedId = 0;
+      this._windowsChangedId = 0;
+      this._tracker = Shell.WindowTracker.get_default();
+   },
+
+   // Public functions
+   watch: function() {
+      if(!this.isWatching()) {
+         this._updateWindowList();
+         if(this._windowsCreatedId == 0) {
+            this._windowsCreatedId = global.display.connect('window-created', Lang.bind(this, this._updateWindowList));
+         }
+         if(this._windowsChangedId == 0) {
+            this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
+         }
+         this._isWatching = true;
+      }
+   },
+
+   getMenuForWindow: function(window) {
+      let index = this._findWindow(window);
+      if(index != -1) {
+         return this._registeredWindows[index].appMenu;
+      }
+      return null;
+   },
+
+   updateMenuForWindow: function(window) {
+      let index = this._findWindow(window);
+      if(index != -1) {
+         let appmenu = this._registeredWindows[index].appMenu;
+         if(appmenu) {
+            if(appmenu.isbuggyClient())
+               appmenu.fakeSendAboutToShow(appmenu.getRootId());
+            else
+               appmenu.sendEvent(appmenu.getRootId(), "opened", null, 0);
+         }
+      }
+   },
+
+   isWatching: function() {
+      return this._isWatching;
+   },
+
+   _findWindow: function(window) {
+      for (let i = 0; i < this._registeredWindows.length; i++) {
+         if (window == this._registeredWindows[i].window)
+            return i;
+      }
+      return -1;
+   },
+
+   _validateMenu: function(bus, path, callback) {
+      Gio.DBus.session.call(
+         bus, path, "org.freedesktop.DBus.Properties", "Get",
+         GLib.Variant.new("(ss)", ["com.canonical.dbusmenu", "Version"]),
+         GLib.VariantType.new("(v)"), Gio.DBusCallFlags.NONE, -1, null, function(conn, result) {
+            try {
+               var val = conn.call_finish(result);
+            } catch (e) {
+               global.logWarning("GtkMenu Watcher: Invalid menu. %s".format(e));
+               return callback(false);
+            }
+            var version = val.deep_unpack()[0].deep_unpack();
+            // FIXME: what do we implement?
+            if(version >= 2) {
+               return callback(true, bus, path);
+            } else {
+               global.logWarning("GtkMenu Watcher: Incompatible dbusmenu version %s".format(version));
+               return callback(false);
+            }
+         }, null
+      );
+   },
+
+   // Async because we may need to check the presence of a menubar object as well as the creation is async.
+   _getMenuClient: function(window, callback) {
+      let index = this._findWindow(window);
+      if(index != -1) {
+         var sender = this._registeredWindows[index].sender;
+         var menubarPath = this._registeredWindows[index].menubarObjectPath;
+         var windowPath = this._registeredWindows[index].windowObjectPath;
+         var appPath = this._registeredWindows[index].appObjectPath;
+         var isGtk = this._registeredWindows[index].isGtk;
+         if(sender && menubarPath && window && (window.get_window_type() != Meta.WindowType.DESKTOP)) {
+            if(!isGtk) {
+               let appMenu = this._x11Client.getMenuForWindow(window);
+               callback(window, appMenu);
+            } else {
+               if(!this._registeredWindows[index].appMenu) {
+                  global.log("GtkMenu Watcher: Creating menu on %s, %s".format(sender, menubarPath));
+                  callback(window, new DBusMenu.DBusClientGtk(sender, menubarPath, windowPath, appPath));
+               } else {
+                  callback(window, null);
+               }
+            }
+         } else {
+            callback(window, null);
+         }
+      } else {
+         callback(window, null);
+      }
+   },
+
+   _onMenuClientReady: function(window, client) {
+      let index = this._findWindow(window);
+      if(this.isWatching() && (client != null) && (index != -1)) {
+         this._registeredWindows[index].appMenu = client;
+         let root = client.getRoot();
+         root.connectAndRemoveOnDestroy({
+            'childs-empty'   : Lang.bind(this, this._onMenuEmpty, window),
+            'destroy'        : Lang.bind(this, this._onMenuDestroy, window)
+         });
+         this.emit('client-menu-changed', this._registeredWindows[index].appMenu);
+      }
+   },
+
+   _onMenuEmpty: function(root, window) {
+      // We don't have alternatives now, so destroy the appmenu.
+      // this._onMenuDestroy(root, index);
+   },
+
+   _onMenuDestroy: function(root, window) {
+      this._destroyMenu(window);
+   },
+
+   _destroyMenu: function(window) {
+      let index = this._findWindow(window);
+      if(index != -1) {
+         let appMenu = this._registeredWindows[index].appMenu;
+         this._registeredWindows[index].appMenu = null;
+         if(appMenu) {
+            appMenu.destroy();
+         }
+         if(this.isWatching()) {
+            this.emit('client-menu-changed', null);
+         }
+      }
+   },
+
+   _updateWindowList: function() {
+      let current = global.get_window_actors();
+      let metaWindows = new Array();
+      for (let index in current) {
+         try {
+            let pr = Object.getOwnPropertyNames(current[index]);
+            global.log("yeyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" + pr + "-------");
+            for(let key in pr) {
+              global.log("" + key + "---->" + pr[key] + ":---:");
+            }
+         } catch(e) {
+            global.log("Errorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr: " + e);
+         }
+          this._registerWindow(current[index].meta_window);
+          metaWindows.push(current[index].meta_window);
+      }
+      for (let index in this._registeredWindows) {
+         if(metaWindows.indexOf(this._registeredWindows[index].window) == -1) {
+            this._unregisterWindows(this._registeredWindows[index].window);
+         }
+      }
+   },
+
+   _unregisterWindows: function(window) {
+      let index = this._findWindow(window);
+      if(index != -1) {
+         this._destroyMenu(window);
+         let appMenu = this._registeredWindows[index].appMenu;
+         if(appMenu) {
+            appMenu.destroy();
+         }
+         this._registeredWindows.splice(index, 1);
+         if(this.isWatching()) {
+            this.emit('client-menu-changed', null);
+         }
+      }
+   },
+
+   _registerWindow: function(window) {
+      let senderDbus=null, isGtkApp = false;
+      let appmenuPath = null, menubarPath=null, windowPath = null, appPath = null;
+      let appTracker = this._tracker.get_window_app(window);
+      let index = this._findWindow(window);
+      if((index == -1) && (appTracker)&&(GTK_BLACKLIST.indexOf(appTracker.get_id()) == -1)) {
+         menubarPath = window.get_gtk_menubar_object_path();
+         appmenuPath = window.get_gtk_app_menu_object_path();
+         windowPath  = window.get_gtk_window_object_path();
+         appPath     = window.get_gtk_application_object_path();
+         senderDbus  = window.get_gtk_unique_bus_name();
+         isGtkApp    = (senderDbus != null);
+         global.log("properties 1:" + menubarPath + " --- 2:" + appmenuPath + " --- 3:" + windowPath + " --- 4:" + appPath + " --- 5:" + senderDbus + " --- 6:" + appTracker.get_name());
+         try {
+            let pr = Object.getOwnPropertyNames(window);
+            global.log("passsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss" + pr + "-------");
+            for(let key in pr) {
+              global.log("" + key + "---->" + pr[key] + ":---:");
+            }
+         } catch(e) {
+            global.log("Errorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr: " + e);
+         }
+         let windowData = {
+            window: window,
+            menubarObjectPath: menubarPath,
+            appmenuObjectPath: appmenuPath,
+            windowObjectPath: windowPath,
+            appObjectPath: appPath,
+            sender: senderDbus,
+            isGtk: isGtkApp,
+            icon: null,
+            appMenu: null,
+            fail: false
+         };
+         this._registeredWindows.push(windowData);
+         index = this._registeredWindows.length -1;
+         this._tryToGetMenuClient(window);
+      }
+   },
+
+   _tryToGetMenuClient: function(window) {
+      let index = this._findWindow(window);
+      if((index != -1) && (!this._registeredWindows[index].appMenu)) {
+         if((this._registeredWindows[index].menubarObjectPath) &&
+            (this._registeredWindows[index].sender)) {
+            // FIXME JAyantana is slow, we need to wait for it a little.
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
+               this._getMenuClient(window, Lang.bind(this, this._onMenuClientReady));
+            }));
+         } else {
+            this._registeredWindows[index].fail = true;
+         }
+      }  
+   },
+
+   destroy: function() {
+      if(this.isWatching()) {
+         // This doesn't do any sync operation and doesn't allow us to hook up the event of being finished
+         // which results in our unholy debounce hack (see extension.js)
+         this._isWatching = false;
+         if(this._windowsCreatedId > 0) {
+            global.display.disconnect(this._windowsCreatedId);
+            this._windowsCreatedId = 0;
+         }
+         if(this._windowsChangedId > 0) {
+            this._tracker.disconnect(this._windowsChangedId);
+            this._windowsChangedId = 0;
+         }
+         for(let index in this._registeredWindows) {
+            this._destroyMenu(this._registeredWindows[index].window);
+         }
+         this._registeredWindows = null;
+      }
+   }
+};
+Signals.addSignalMethods(GtkMenuWatcher.prototype);
+
+/*
+ * The IndicatorAppMenuWatcher class implements the IndicatorAppMenu dbus object
+ */
+function IndicatorAppMenuWatcher() {
+   this._init.apply(this, arguments);
+}
+
+IndicatorAppMenuWatcher.prototype = {
+
+   _init: function(mode, iconSize) {
+      this._mode = mode;
+      this._iconSize = iconSize;
+
+      this.focusWindow = null;
+      this._windowsChangedId = 0;
+      this._focusWindowId = 0;
+      this._buggyClientId = 0;
+      this._tracker = Shell.WindowTracker.get_default();
+
+      this.providers = [
+         new X11RegisterMenuWatcher(),
+         new GtkMenuWatcher()
+      ];
+      for(let i = 0; i < this.providers.length; i++) {
+         this.providers[i].connect('client-menu-changed', Lang.bind(this, this._onMenuChange));
+      }
+   },
+
+   _onMenuChange: function(client, menu) {
+      if(!this.focusWindow || (menu == client.getMenuForWindow(this.focusWindow))) {
+          this.emit('appmenu-changed', this.focusWindow, menu);
+      }
+   },
+
+   // Public functions
+   watch: function() {
+      if(!this.isWatching()) {
+         for(let i = 0; i < this.providers.length; i++) {
+            this.providers[i].watch();
+         }
+         this._onWindowChanged();
+         if(this._focusWindowId == 0) {
+            this._focusWindowId = global.screen.get_display().connect('notify::focus-window',
+                                  Lang.bind(this, this._onWindowChanged));
+         }
+      }
+   },
+
+   getRootMenuForWindow: function(window) {
+      let appmenu = this.getMenuForWindow(window);
+      if(appmenu)
+         return appmenu.getRoot();
+      return null;
+   },
+
+   getMenuForWindow: function(window) {
+      for(let i = 0; i < this.providers.length; i++) {
+         let appmenu = this.providers[i].getMenuForWindow(window);
+         if(appmenu)
+            return appmenu;
+      }
+      return null;
+   },
+
+   updateMenuForWindow: function(window) {
+      for(let i = 0; i < this.providers.length; i++) {
+         this.providers[i].updateMenuForWindow(window);
+      }
+   },
+
+   getAppForWindow: function(window) {
+      return this._tracker.get_window_app(window);
+   },
+
+   getIconForWindow: function(window) {
+      let app = this.getAppForWindow(window);
+      if(app) {
+         return app.create_icon_texture(this._iconSize);
+      }
+      return null;
+   },
+
+   setIconSize: function(iconSize) {
+      this._iconSize = iconSize;
+   },
+
+   _onWindowChanged: function() {
+      let window = global.display.focus_window;
+      if(this.isWatching()) {
+         if(window && (window.get_window_type() != Meta.WindowType.DESKTOP)) {
+            this.focusWindow = window;
+            let menu = this.getMenuForWindow(this.focusWindow);
+            this.emit('appmenu-changed', this.focusWindow, menu);
+         } else if(!global.stage.key_focus) {
+            this.emit('appmenu-changed', null, null);
+         }
+      }
+   },
+
+   isWatching: function() {
+      if(this.providers && this.providers.length > 0) {
+         for(let i = 0; i < this.providers.length; i++) {
+            if(!this.providers[i].isWatching())
+               return false;
+         }
+         return true;
+      }
+      return false;
+   },
+
+   destroy: function() {
+      if(this.providers) {
+         // This doesn't do any sync operation and doesn't allow us to hook up the event of being finished
+         // which results in our unholy debounce hack (see extension.js)
+         for(let i = 0; i < this.providers.length; i++) {
+            this.providers[i].destroy();
+         }
+         this.providers = null;
+         if(this._focusWindowId > 0) {
+            global.screen.get_display().disconnect(this._focusWindowId);
+            this._focusWindowId = 0;
+         }
+         this._registeredWindows = null;
+         this.emit('appmenu-changed', null, null);
       }
    }
 };

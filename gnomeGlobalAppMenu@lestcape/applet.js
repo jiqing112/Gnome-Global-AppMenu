@@ -84,7 +84,7 @@ KeybindingManager.prototype = {
     _sessionUpdated: function() {
         let sensitive = !Main.sessionMode.isLocked && !Main.sessionMode.isGreeter;
         if(sensitive) {
-            for (name in this.bindings) {
+            for (let name in this.bindings) {
                 this.addHotKeyArray(name, this.bindings[name].bindings, this.bindings[name].callback);
             }
             this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));

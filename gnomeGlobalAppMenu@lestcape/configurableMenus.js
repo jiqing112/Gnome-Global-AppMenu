@@ -7145,6 +7145,7 @@ ConfigurableMenuApplet.prototype = {
       this._menuManager = menuManager;
       this._isSubMenuOpen = false;
       this._openOnHover = false;
+      this._startCounter = 0;
 
       this.launcher.actor.set_track_hover(this._floating);
       let parent = this.actor.get_parent();
@@ -7184,6 +7185,10 @@ ConfigurableMenuApplet.prototype = {
                menuItem.menu.fixToCorner(menuItem.menu.fixCorner);
          }
       }
+   },
+
+   setStartCounter: function(start) {
+       this._startCounter = start;
    },
 
    _updatePanelVisibility: function() {
@@ -7341,6 +7346,7 @@ ConfigurableMenuApplet.prototype = {
          if(position == undefined) {
             this.box.add(menuItem.actor, params);
          } else {
+            position += this._startCounter;
             let items = this.getMenuItems();
             if(position < items.length) {
                beforeItem = items[position].actor;
