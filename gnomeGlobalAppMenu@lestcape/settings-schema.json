@@ -21,6 +21,12 @@
         "description": "Enable the support for JAyatana (Experimental)",
         "tooltip": "Select if you want to enable the support for JAyatana."
     },
+    "replace-appmenu" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Use the extension as a replace of Gnome AppMenu",
+        "tooltip": "Select if you want to use the extension as a replace of Gnome AppMenu."
+    },
     "separator-application-top" : {
         "type": "separator"
     },
