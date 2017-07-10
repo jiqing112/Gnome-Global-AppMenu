@@ -342,6 +342,9 @@ function init() {
                 global.display._custom_keybindings[name].push(action);
                 if (action != Meta.KeyBindingAction.NONE) {
                     Main.wm.allowKeybinding(Meta.external_binding_name_for_action(action), modes);
+                    global.display.connect('modifiers-accelerator-activated', function (display) {
+                        Main.notify("acel active");
+                    });
                     global.display.connect('accelerator-activated', function (display, actionPreformed, deviceid, timestamp) {
                         if (actionPreformed == action) {
                             let kb = null; //FIXME: What it's this a keyboard map, the active keyboard state?

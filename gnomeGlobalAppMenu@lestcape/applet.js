@@ -134,15 +134,17 @@ KeybindingManager.prototype = {
     },
 
     _filter: function(display, screen, event, kb, actionPreformed, callback) {
-        this.keyGrab = event.get_key_symbol();
-        if(MOD_MASK.indexOf(event.get_key_symbol()) == -1) {
-            callback(display, global.screen, event, kb, actionPreformed);
-        } else if (event.type() == Clutter.EventType.KEY_RELEASE) {
-            callback(display, global.screen, event, kb, actionPreformed);
-        } else {
-            global.stage.set_key_focus(Main.uiGroup);
-            if (event.type() == Clutter.EventType.KEY_PRESS) {
-                this.actionGrab = actionPreformed;
+        if(event) {
+            this.keyGrab = event.get_key_symbol();
+            if(MOD_MASK.indexOf(event.get_key_symbol()) == -1) {
+                callback(display, global.screen, event, kb, actionPreformed);
+            } else if (event.type() == Clutter.EventType.KEY_RELEASE) {
+                callback(display, global.screen, event, kb, actionPreformed);
+            } else {
+                global.stage.set_key_focus(Main.uiGroup);
+                if (event.type() == Clutter.EventType.KEY_PRESS) {
+                    this.actionGrab = actionPreformed;
+                }
             }
         }
     },

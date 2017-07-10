@@ -814,12 +814,8 @@ GtkMenuWatcher.prototype = {
       for (let index in current) {
          try {
             let pr = Object.getOwnPropertyNames(current[index]);
-            global.log("yeyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" + pr + "-------");
-            for(let key in pr) {
-              global.log("" + key + "---->" + pr[key] + ":---:");
-            }
          } catch(e) {
-            global.log("Errorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr: " + e);
+            global.log("Error: " + e);
          }
           this._registerWindow(current[index].meta_window);
           metaWindows.push(current[index].meta_window);
@@ -858,15 +854,10 @@ GtkMenuWatcher.prototype = {
          appPath     = window.get_gtk_application_object_path();
          senderDbus  = window.get_gtk_unique_bus_name();
          isGtkApp    = (senderDbus != null);
-         global.log("properties 1:" + menubarPath + " --- 2:" + appmenuPath + " --- 3:" + windowPath + " --- 4:" + appPath + " --- 5:" + senderDbus + " --- 6:" + appTracker.get_name());
          try {
             let pr = Object.getOwnPropertyNames(window);
-            global.log("passsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss" + pr + "-------");
-            for(let key in pr) {
-              global.log("" + key + "---->" + pr[key] + ":---:");
-            }
          } catch(e) {
-            global.log("Errorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr: " + e);
+            global.log("Error: " + e);
          }
          let windowData = {
             window: window,

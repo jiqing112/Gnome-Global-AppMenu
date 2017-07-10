@@ -14,7 +14,7 @@ const Params = imports.misc.params;
 // Gnome Shell have not St.Table, was removed.
 // This an attempt to implement the St.Table using Clutter.TableLayout.
 const Table = new Lang.Class({
-    Name: 'Table-Global',
+    Name: 'TableGlobal',
     Extends: St.Widget,
 
     _init: function(params) {
@@ -61,24 +61,24 @@ function init() {
 }
 
 function patchStTable() {
-    if(!St.Table) {
+    if((St.Table == null) || (St.Table === undefined)) {
         St.Table = Table;
     }
 }
 
 function patchStScrollView() {
-    St.ScrollView._real_init = St.ScrollView.prototype._init;
-    St.ScrollView.prototype._init = function(params) {
-        this._important = false;
-        if(params && (params !== undefined)) {
-            if("important" in params) {
-                this._important = params["important"];
-                delete params["important"];
+    if(!St.ScrollView.prototype.set_auto_scrolling) {
+        St.ScrollView._real_init = St.ScrollView.prototype._init;
+        St.ScrollView.prototype._init = function(params) {
+            this._important = false;
+            if(params && (params !== undefined)) {
+                if("important" in params) {
+                    this._important = params["important"];
+                    delete params["important"];
+                }
             }
-        }
-        St.ScrollView._real_init.call(this, params);
-    };
-    if (!St.ScrollView.prototype.set_auto_scrolling) {
+            St.ScrollView._real_init.call(this, params);
+        };
         St.ScrollView.prototype._doScrolling = function() {
             if(this._timeOutScroll) {
                 Mainloop.source_remove(this._timeOutScroll);
@@ -176,29 +176,31 @@ function patchStScrollView() {
 }
 
 function patchStTextureCache() {
-    St.TextureCache.real_load_gicon = St.TextureCache.prototype.load_gicon;
-    St.TextureCache.prototype.load_gicon = function(theme_node, icon, size, scale) {
-        if(!scale)
-           scale = 1;
-        return St.TextureCache.real_load_gicon.call(this, theme_node, icon, size, scale);
-    };
+    if(!St.TextureCache.real_load_gicon) {
+        St.TextureCache.real_load_gicon = St.TextureCache.prototype.load_gicon;
+        St.TextureCache.prototype.load_gicon = function(theme_node, icon, size, scale) {
+            if(!scale)
+                scale = 1;
+            return St.TextureCache.real_load_gicon.call(this, theme_node, icon, size, scale);
+        };
 
-    // https://developer.gnome.org/st/stable/st-st-texture-cache.html#st-texture-cache-load-file-to-cairo-surface
-    St.TextureCache.real_load_file_to_cairo_surface = St.TextureCache.prototype.load_file_to_cairo_surface;
-    St.TextureCache.prototype.load_file_to_cairo_surface = function(file, scale) {
-        if (scale === undefined || !scale) {
-            scale = global.ui_scale;
-        }
-        if (typeof file === 'string') {
-            file = Gio.File.new_for_path(file);
-        }
-        try {
-            return St.TextureCache.real_load_file_to_cairo_surface.call(this, file, scale);
-        } catch (e) {
-             global.logError('load_file_to_cairo_surface: ', e); 
-        }
-        return null;
-    };
+        // https://developer.gnome.org/st/stable/st-st-texture-cache.html#st-texture-cache-load-file-to-cairo-surface
+        St.TextureCache.real_load_file_to_cairo_surface = St.TextureCache.prototype.load_file_to_cairo_surface;
+        St.TextureCache.prototype.load_file_to_cairo_surface = function(file, scale) {
+            if (scale === undefined || !scale) {
+                scale = global.ui_scale;
+            }
+            if (typeof file === 'string') {
+                file = Gio.File.new_for_path(file);
+            }
+            try {
+                return St.TextureCache.real_load_file_to_cairo_surface.call(this, file, scale);
+            } catch (e) {
+                global.logError('load_file_to_cairo_surface: ', e); 
+            }
+            return null;
+        };
+    }
 }
 //FIXME: We need to set symbolic icons when name are set
 function patchStIcon() {
@@ -208,7 +210,6 @@ function patchStIcon() {
        St.Icon._real_init = St.Icon.prototype._init;
        St.Icon.prototype._init = function(params) {
           this._important = false;
-          this._icon_type = null;
           if(params && (params !== undefined)) {
               if("icon_type" in params) {
                   this._icon_type = params["icon_type"];
@@ -254,63 +255,70 @@ function patchStIcon() {
 }
 function patchImportant() {
     // Base on: https://github.com/linuxmint/Cinnamon/commit/3b02e585ab8503f405d79cb1c12f5fe0cd4bc81f
-    St.Widget._real_init = St.Widget.prototype._init;
-    St.Widget.prototype._init = function(params) {
-        this._important = false;
-        if(params && (params !== undefined)) {
-            if("important" in params) {
-                this._important = params["important"];
-                delete params["important"];
+    if(!St.Widget._real_init) {
+        St.Widget._real_init = St.Widget.prototype._init;
+        St.Widget.prototype._init = function(params) {
+            this._important = false;
+            if(params && (params !== undefined)) {
+                if("important" in params) {
+                    this._important = params["important"];
+                    delete params["important"];
+                }
             }
-        }
-        St.Widget._real_init.call(this, params);
-    };
-    St.Bin._real_init = St.Bin.prototype._init;
-    St.Bin.prototype._init = function(params) {
-        this._important = false;
-        if(params && (params !== undefined)) {
-            if("important" in params) {
-                this._important = params["important"];
-                delete params["important"];
+            St.Widget._real_init.call(this, params);
+        };
+        St.Bin._real_init = St.Bin.prototype._init;
+        St.Bin.prototype._init = function(params) {
+            this._important = false;
+            if(params && (params !== undefined)) {
+                if("important" in params) {
+                    this._important = params["important"];
+                    delete params["important"];
+                }
             }
-        }
-        St.Bin._real_init.call(this, params);
-    };
+            St.Bin._real_init.call(this, params);
+        };
+    }
 }
 
 function patchBoxLayout() {
     // Base on: https://github.com/linuxmint/Cinnamon/commit/803cd0f9229ea0549bf08e33f2ec745c62b6b51a
-    St.BoxLayout._real_init = St.BoxLayout.prototype._init;
-    St.BoxLayout.prototype._init = function(params) {
-        this._important = false;
-        this._align_end = false;
-        if(params && (params !== undefined)) {
-            if("important" in params) {
-                this._important = params["important"];
-                delete params["important"];
-            }
-            if("align_end" in params) {
-                this._align_end = params["align_end"];
-                delete params["align_end"];
-            }
-        }
-        St.BoxLayout._real_init.call(this, params);
-    };
-    // Base on: https://github.com/GNOME/gnome-shell/commit/a8b081661cfcb1b65a6a9fe9bf2f96e27d6d2c20
-    if (!St.BoxLayout.prototype.insert_actor) {
-        St.BoxLayout.prototype.insert_actor = function(actor, index) {
-            this.insert_child_at_index(actor, index);
-        };
-    }
     if (!St.BoxLayout.prototype.insert_before) {
-        St.BoxLayout.prototype.insert_before = function(actor, before_actor) {
-            this.insert_child_below(actor, before_actor);
+        St.BoxLayout._real_init = St.BoxLayout.prototype._init;
+        St.BoxLayout.prototype._init = function(params) {
+            this._important = false;
+            this._align_end = false;
+            if(params && (params !== undefined)) {
+                if("important" in params) {
+                    this._important = params["important"];
+                    delete params["important"];
+                }
+                if("align_end" in params) {
+                    this._align_end = params["align_end"];
+                    delete params["align_end"];
+                }
+            }
+            St.BoxLayout._real_init.call(this, params);
+            if(this._align_end) {
+                this.set_x_align(Clutter.ActorAlign.END);
+            }
         };
-    }
-    // Base on: https://github.com/GNOME/gnome-shell/commit/c892610f277ca9f918b9bd099225419fcc347fd8
-    if (!St.BoxLayout.prototype.destroy_children) {
-        St.BoxLayout.prototype.destroy_children = function() {
-            this.destroy_all_children();
-        };
+        // Base on: https://github.com/GNOME/gnome-shell/commit/a8b081661cfcb1b65a6a9fe9bf2f96e27d6d2c20
+        if (!St.BoxLayout.prototype.insert_actor) {
+            St.BoxLayout.prototype.insert_actor = function(actor, index) {
+                this.insert_child_at_index(actor, index);
+            };
+        }
+        if (!St.BoxLayout.prototype.insert_before) {
+            St.BoxLayout.prototype.insert_before = function(actor, before_actor) {
+                this.insert_child_below(actor, before_actor);
+            };
+        }
+        // Base on: https://github.com/GNOME/gnome-shell/commit/c892610f277ca9f918b9bd099225419fcc347fd8
+        if (!St.BoxLayout.prototype.destroy_children) {
+            St.BoxLayout.prototype.destroy_children = function() {
+                this.destroy_all_children();
+            };
+        }
     }
 }
