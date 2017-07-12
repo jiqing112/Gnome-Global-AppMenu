@@ -2187,6 +2187,10 @@ GradientLabelMenuItem.prototype = {
        this.actorIcon.visible = show;
    },
 
+   showLabel: function(show) {
+       this._drawingArea.visible = show;
+   },
+
    desaturateIcon: function(desaturate) {
       if(desaturate)
          this.actorIcon.add_effect_with_name("desaturate", new Clutter.DesaturateEffect());
