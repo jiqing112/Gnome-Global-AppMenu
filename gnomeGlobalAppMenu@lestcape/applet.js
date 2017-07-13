@@ -667,7 +667,6 @@ Applet.prototype = {
     setOrientationInternal: function (orientation) {
         if (orientation == St.Side.LEFT || orientation == St.Side.RIGHT) {
             this.actor.add_style_class_name('vertical');
-            this.actor.set_important(true);
             this.actor.set_vertical(true);
             this.actor.set_x_expand(true);
         } else {

@@ -1931,7 +1931,8 @@ ConfigurablePopupSwitchMenuItem.prototype = {
       this._imageOn = imageOn;
       this._imageOff = imageOff;
 
-      let table = new St.Table({ homogeneous: false, reactive: true });
+      this.table = new St.Widget({ reactive: true });
+      this.table.layout_manager = new Clutter.TableLayout();
 
       this.label = new St.Label({ text: text });
       this.label.set_margin_left(6.0);
@@ -1948,11 +1949,27 @@ ConfigurablePopupSwitchMenuItem.prototype = {
       this._statusLabel = new St.Label({ text: '', style_class: 'popup-inactive-menu-item' });
       this._statusBin.child = this._switch.actor;
 
-      table.add(this.icon, {row: 0, col: 0, col_span: 1, x_expand: false, x_align: St.Align.START});
-      table.add(this.label, {row: 0, col: 1, col_span: 1, y_fill: false, y_expand: true, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
-      table.add(this._statusBin, {row: 0, col: 2, col_span: 1, x_expand: true, x_align: St.Align.END});
+      this._addActor(this.icon, {row: 0, col: 0, col_span: 1, x_expand: false, x_align: St.Align.START});
+      this._addActor(this.label, {row: 0, col: 1, col_span: 1, y_fill: false, y_expand: true, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+      this._addActor(this._statusBin, {row: 0, col: 2, col_span: 1, x_expand: true, x_align: St.Align.END});
 
-      this.addActor(table, { expand: true, span: 1, align: St.Align.START});
+      this.addActor(this.table, { expand: true, span: 1, align: St.Align.START});
+   },
+
+   _addActor: function(actor, params) {
+       params = Params.parse(params, {
+           x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE,
+           x_fill: true, y_fill: true,
+           x_expand: false, y_expand: false,
+           row: 0, col: 0,
+           row_span: 1, col_span: 1
+       });
+       let layout = this.table.layout_manager;
+       layout.pack(actor, params.col, params.row);
+       layout.set_span(actor, params.col_span, params.row_span);
+       layout.set_alignment(actor, params.x_align, params.y_align);
+       layout.set_fill(actor, params.x_fill, params.y_fill);
+       layout.set_expand(actor, params.x_expand, params.y_expand);
    },
 
    setToggleState: function(state) {
@@ -2185,10 +2202,6 @@ GradientLabelMenuItem.prototype = {
 
    showIcon: function(show) {
        this.actorIcon.visible = show;
-   },
-
-   showLabel: function(show) {
-       this._drawingArea.visible = show;
    },
 
    desaturateIcon: function(desaturate) {
@@ -2545,8 +2558,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          icon_name: iconName,
          icon_type: St.IconType.SYMBOLIC,
          y_expand: true,
-         y_align: Clutter.ActorAlign.CENTER,
-         important: true
+         y_align: Clutter.ActorAlign.CENTER
       });
       return arrow;
    },

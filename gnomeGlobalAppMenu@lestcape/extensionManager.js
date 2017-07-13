@@ -514,6 +514,7 @@ MyApplet.prototype = {
             let index = children.indexOf(Main.panel.statusArea.appMenu.container);
             if(index != -1) {
                Main.panel.statusArea.appMenu.destroy();
+               //Main.panel.statusArea['appMenu'] = null;
                // Fake appmenu, to avoid the gnome shell behavior.
                Main.panel.statusArea['appMenu'] = new St.Bin();
                Main.panel.statusArea['appMenu'].actor = Main.panel.statusArea['appMenu'];
@@ -527,17 +528,18 @@ MyApplet.prototype = {
             Main.panel._leftBox.insert_child_at_index(this.actor, children.length);
          }
       } else {
-         if (Main.panel.statusArea.appMenu && (Main.panel.statusArea.appMenu instanceof St.Bin)) {
+         if (Main.panel.statusArea.appMenu) {
             Main.panel.statusArea.appMenu.destroy();
-            let nChildren = Main.panel._leftBox.get_n_children();
-            Main.panel.statusArea['appMenu'] = new Panel.AppMenuButton(Main.panel);
-            Main.panel._addToPanelBox('appMenu', Main.panel.statusArea['appMenu'], nChildren, Main.panel._leftBox);
+            Main.panel.statusArea.appMenu = null;
          }
+         let panel = Main.sessionMode.panel;
+         //FIXME: Update Box will recover the activity.
+         Main.panel._updateBox(panel.left, Main.panel._leftBox);
          let children = Main.panel._leftBox.get_children();
          if(Main.panel.statusArea.appMenu) {
             let index = children.indexOf(Main.panel.statusArea.appMenu.container);
             if(index != -1) {
-               Main.panel._leftBox.insert_child_at_index(this.actor, index);
+                Main.panel._leftBox.insert_child_at_index(this.actor, index);
             } else {
                Main.panel._leftBox.insert_child_at_index(this.actor, children.length);
             }
@@ -618,7 +620,7 @@ MyApplet.prototype = {
    },
 
    _onShowAppNameChanged: function() {
-      this.gradient.showLabel(this.showAppName);
+      this.gradient.actor.visible = this.showAppName;
    },
 
    _onTextGradientChange: function() {

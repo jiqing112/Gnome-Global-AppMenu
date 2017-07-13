@@ -3,67 +3,18 @@
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Main = imports.ui.main;
 const Params = imports.misc.params;
 
-// Gnome Shell have not St.Table, was removed.
-// This an attempt to implement the St.Table using Clutter.TableLayout.
-const Table = new Lang.Class({
-    Name: 'TableGlobal',
-    Extends: St.Widget,
-
-    _init: function(params) {
-        this._homogeneous = false;
-        if(params && (params !== undefined)) {
-            if("homogeneous" in params) {
-                this._homogeneous = params["homogeneous"];
-                delete params["homogeneous"];
-            }
-            if("important" in params) {
-                this._important = params["important"];
-                delete params["important"];
-            }
-        }
-        this.parent(params);
-        this.actor = this;
-        this.actor.add = Lang.bind(this, function(actor, params) {
-            params = Params.parse(params, {
-                x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE,
-                x_fill: true, y_fill: true,
-                x_expand: false, y_expand: false,
-                row: 0, col: 0,
-                row_span: 1, col_span: 1
-            });
-            let layout = this.actor.layout_manager;
-            layout.pack(actor, params.col, params.row);
-            layout.set_span(actor, params.col_span, params.row_span);
-            layout.set_alignment(actor, params.x_align, params.y_align);
-            layout.set_fill(actor, params.x_fill, params.y_fill);
-            layout.set_expand(actor, params.x_expand, params.y_expand);
-        });
-        this.actor.layout_manager = new Clutter.TableLayout();
-    },
-});
-
 function init() {
     St.TextDirection = Clutter.TextDirection;
-    patchImportant();
     patchStIcon();
-    patchStTable();
     patchStTextureCache();
     patchStScrollView();
     patchBoxLayout();
-}
-
-function patchStTable() {
-    if((St.Table == null) || (St.Table === undefined)) {
-        St.Table = Table;
-    }
 }
 
 function patchStScrollView() {
@@ -183,7 +134,6 @@ function patchStTextureCache() {
                 scale = 1;
             return St.TextureCache.real_load_gicon.call(this, theme_node, icon, size, scale);
         };
-
         // https://developer.gnome.org/st/stable/st-st-texture-cache.html#st-texture-cache-load-file-to-cairo-surface
         St.TextureCache.real_load_file_to_cairo_surface = St.TextureCache.prototype.load_file_to_cairo_surface;
         St.TextureCache.prototype.load_file_to_cairo_surface = function(file, scale) {
@@ -216,8 +166,8 @@ function patchStIcon() {
                   delete params["icon_type"];
               }
               if("important" in params) {
-                this._important = params["important"];
-                delete params["important"];
+                  this._important = params["important"];
+                  delete params["important"];
               }
           }
           St.Icon._real_init.call(this, params);
@@ -253,33 +203,6 @@ function patchStIcon() {
        };
     }
 }
-function patchImportant() {
-    // Base on: https://github.com/linuxmint/Cinnamon/commit/3b02e585ab8503f405d79cb1c12f5fe0cd4bc81f
-    if(!St.Widget._real_init) {
-        St.Widget._real_init = St.Widget.prototype._init;
-        St.Widget.prototype._init = function(params) {
-            this._important = false;
-            if(params && (params !== undefined)) {
-                if("important" in params) {
-                    this._important = params["important"];
-                    delete params["important"];
-                }
-            }
-            St.Widget._real_init.call(this, params);
-        };
-        St.Bin._real_init = St.Bin.prototype._init;
-        St.Bin.prototype._init = function(params) {
-            this._important = false;
-            if(params && (params !== undefined)) {
-                if("important" in params) {
-                    this._important = params["important"];
-                    delete params["important"];
-                }
-            }
-            St.Bin._real_init.call(this, params);
-        };
-    }
-}
 
 function patchBoxLayout() {
     // Base on: https://github.com/linuxmint/Cinnamon/commit/803cd0f9229ea0549bf08e33f2ec745c62b6b51a
@@ -300,7 +223,11 @@ function patchBoxLayout() {
             }
             St.BoxLayout._real_init.call(this, params);
             if(this._align_end) {
-                this.set_x_align(Clutter.ActorAlign.END);
+                if(this.get_vertical()) {
+                    this.set_y_align(Clutter.ActorAlign.END);
+                } else {
+                    this.set_x_align(Clutter.ActorAlign.END);
+                }
             }
         };
         // Base on: https://github.com/GNOME/gnome-shell/commit/a8b081661cfcb1b65a6a9fe9bf2f96e27d6d2c20

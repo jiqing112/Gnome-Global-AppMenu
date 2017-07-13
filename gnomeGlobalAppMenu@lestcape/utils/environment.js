@@ -1,4 +1,4 @@
-#!/usr/bin/gjs
+#!/usr/bin/cjs
 
 const Mainloop = imports.mainloop;
 const GLib = imports.gi.GLib;
