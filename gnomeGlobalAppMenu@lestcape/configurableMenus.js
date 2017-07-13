@@ -2201,7 +2201,11 @@ GradientLabelMenuItem.prototype = {
    },
 
    showIcon: function(show) {
-       this.actorIcon.visible = show;
+      this.actorIcon.visible = show;
+   },
+
+   showLabel: function(show) {
+      this._drawingArea.visible = show;
    },
 
    desaturateIcon: function(desaturate) {
