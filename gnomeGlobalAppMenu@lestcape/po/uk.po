@@ -2,15 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <lestcape@gmail.com>, 2015.
-# Alice Liddell <e-liss@tuta.io>, 2017.
+# Alice Charlotte Liddell <e-liss@tuta.io>, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-05-14 06:58-0500\n"
-"PO-Revision-Date: 2017-04-20 00:57+0300\n"
-"Last-Translator: Alice Liddell <e-liss@tuta.io>\n"
+"PO-Revision-Date: 2017-07-13 20:57+0300\n"
+"Last-Translator: Alice Charlotte Liddell <e-liss@tuta.io>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,7 +22,7 @@ msgstr ""
 
 #: applet.js:261
 msgid "Gnome Global Application Menu"
-msgstr "Глобальне Меню Додатків Gnome"
+msgstr "Глобальне Меню Застосунків Gnome"
 
 #: applet.js:292
 msgid "You need to restart your computer to active the unity-gtk-module"
@@ -68,11 +68,11 @@ msgstr "Не вдалося знайти поточний файл"
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-
 #. size->description
 msgid "Maximum size of the application name:"
-msgstr "Максимальна довжина назви додатку:"
+msgstr "Максимальна довжина назви застосунку:"
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
 msgid "Set the maximum size of the application name."
-msgstr "Встановити максимальну довжину назви додатку."
+msgstr "Встановити максимальну довжину назви застосунку."
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
 msgid "Characters"
@@ -80,12 +80,12 @@ msgstr "Символи"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
 msgid "Show a linear gradient effect in the application name"
-msgstr "Відображати лінійний градієнт у назвах додатків"
+msgstr "Показувати лінійний градієнт у назвах застосунків"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
 msgid ""
 "Select if you want to show a linear gradient effect in the application name."
-msgstr "Оберіть для активації ефекту лінійного градієнту у назвах додатків."
+msgstr "Оберіть для активації ефекту лінійного градієнту у назвах застосунків."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
 msgid "Submenu"
@@ -93,7 +93,7 @@ msgstr "Підменю"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
 msgid "Show icons in the menu items"
-msgstr "Відображати піктограми у пунктах меню"
+msgstr "Показувати піктограми у пунктах меню"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
 msgid "Select if you want to show icons in the menu items."
@@ -169,11 +169,11 @@ msgstr "Відкривати меню при кожному наведенні �
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
 #. icon->description
 msgid "Desaturate the application icon"
-msgstr "Знебарвлювати піктограми додатків"
+msgstr "Знебарвлювати піктограми застосунків"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
 msgid "Select if you want to desaturate the application icon"
-msgstr "Оберіть для знебарвлення піктограм додатків"
+msgstr "Оберіть для знебарвлення піктограм застосунків"
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-
 #. submenu->description
@@ -201,11 +201,11 @@ msgstr ""
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
 msgid "Show the application name in the panel"
-msgstr "Відображати назви додатків на панелі завдань"
+msgstr "Показувати назви застосунків на панелі завдань"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
 msgid "Select if you want to show the application name in the panel."
-msgstr "Оберіть для відображення назв додатків на панелі завдань."
+msgstr "Оберіть для відображення назв застосунків на панелі завдань."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
 msgid "Main menu"
@@ -229,11 +229,11 @@ msgstr "Підтримка"
 
 #. globalAppMenu@lestcape->settings-schema.json->head-application->description
 msgid "Applications"
-msgstr "Додатки"
+msgstr "Застосунки"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
 msgid "Show the box pointers"
-msgstr "Відображати стрілкові покажчики"
+msgstr "Показувати стрілкові покажчики"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
 msgid "Select if you want to show the box pointers of all floating menus."
@@ -258,11 +258,11 @@ msgstr "Оберіть для увімкнення підтримки JAyatana."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
 msgid "Show the application icon in the panel"
-msgstr "Відображати піктограми додатків на панелі завдань"
+msgstr "Показувати піктограми застосунків на панелі завдань"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
 msgid "Select if you want to show the application icon in the panel."
-msgstr "Оберіть для відображення піктограм додатків на панелі завдань."
+msgstr "Оберіть для відображення піктограм застосунків на панелі завдань."
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
 msgid "Desaturate icons in the menu items"
@@ -270,7 +270,7 @@ msgstr "Знебарвлювати піктограми у пунктах мен
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
 msgid "Select if you want to desaturate icons in the menu items."
-msgstr "Оберіть для знебарвлення піктограм додатків у пунктах меню."
+msgstr "Оберіть для знебарвлення піктограм застосунків у пунктах меню."
 
 #. globalAppMenu@lestcape->metadata.json->description
 msgid "Adds global application menu support to Cinnamon"
