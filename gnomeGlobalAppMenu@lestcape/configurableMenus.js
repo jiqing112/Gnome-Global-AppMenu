@@ -2139,6 +2139,12 @@ ConfigurableEntryItem.prototype = {
 };
 Signals.addSignalMethods(ConfigurablePopupBaseMenuItem.prototype);
 
+const PANGO_STYLES = {
+   0: Cairo.FontSlant.NORMAL,
+   1: Cairo.FontSlant.OBLIQUE,
+   2: Cairo.FontSlant.ITALIC
+};
+
 function GradientLabelMenuItem() {
    this._init.apply(this, arguments);
 }
@@ -2151,13 +2157,16 @@ GradientLabelMenuItem.prototype = {
       this._text = text;
       this._size = size;
       this.margin = 2;
-      this.textDegradation = false;
+      this._textDegradation = true;
       this.actor.set_style_class_name('popup-menu-item');
       this.actor.add_style_class_name('applet-box');
       this.actor.add_style_class_name('panel-button');
       this.actor.add_style_class_name('gradient-menu-item');
 
-      this._drawingArea = new St.DrawingArea({ style_class: 'chat-meta-message' });
+      this._label = new St.Label({ style_class: 'chat-log-message' });
+      this._label.add_style_class_name('gradient-label-menu-item');
+
+      this._drawingArea = new St.DrawingArea({ style_class: 'chat-log-message' });
       this._drawingArea.add_style_class_name('gradient-label-menu-item');
 
       this._drawingArea.connect('repaint', Lang.bind(this, this._onRepaint));
@@ -2166,7 +2175,7 @@ GradientLabelMenuItem.prototype = {
       this.actorIcon = new St.Bin({ style_class: 'gradient-icon-box' });
       this.actor.add(this.actorIcon, { y_align: St.Align.MIDDLE, y_fill: false });
       this.actor.add(this._drawingArea, { y_align: St.Align.MIDDLE, y_fill: false });
-      this.actor._delagate = this;
+      this.actor._delegate = this;
    },
 
    _onButtonPressEvent: function(actor, event) {
@@ -2175,11 +2184,26 @@ GradientLabelMenuItem.prototype = {
 
    setText: function(text) {
       this._text = text;
+      let realSize = this._text.length;
+      if(this._size > 0)
+         realSize = Math.min(this._size, realSize);
+      this._label.set_text(this._text.substring(0, realSize));
       this._updateSize();
    },
 
    setTextDegradation: function(degradate) {
-      this.textDegradation = degradate;
+      if (this._textDegradation != degradate) {
+         this._textDegradation = degradate;
+         if (this._drawingArea.get_parent() == this.actor)
+            this.actor.remove_actor(this._drawingArea);
+         if (this._label.get_parent() == this.actor)
+            this.actor.remove_actor(this._label);
+         if(this._textDegradation) {
+            this.actor.add(this._drawingArea, { y_align: St.Align.MIDDLE, y_fill: false });
+         } else {
+            this.actor.add(this._label, { y_align: St.Align.MIDDLE, y_fill: false });
+         }
+      }
    },
 
    setSize: function(size) {
@@ -2188,8 +2212,10 @@ GradientLabelMenuItem.prototype = {
    },
 
    _onStyleChanged: function() {
-      this.themeNode = this._drawingArea.get_theme_node();
-      this._updateSize();
+      if (this._drawingArea.mapped) {
+         this.themeNode = this._drawingArea.get_theme_node();
+         this._updateSize();
+      }
    },
 
    setIcon: function(icon) {
@@ -2206,6 +2232,7 @@ GradientLabelMenuItem.prototype = {
 
    showLabel: function(show) {
       this._drawingArea.visible = show;
+      this._label.visible = show;
    },
 
    desaturateIcon: function(desaturate) {
@@ -2216,73 +2243,88 @@ GradientLabelMenuItem.prototype = {
    },
 
    _updateSize: function() {
+      let realSize = this._text.length;
+      if(this._size > 0)
+         realSize = Math.min(this._size, realSize);
       if(this.themeNode) {
          let font    = this.themeNode.get_font();
          let context = this._drawingArea.get_pango_context();
          let metrics = context.get_metrics(font, context.get_language());
          let digit_width = metrics.get_approximate_digit_width() / Pango.SCALE;
          let char_width = metrics.get_approximate_char_width() / Pango.SCALE;
-         let width   = Math.min(this._size, this._text.length) * (4*char_width + digit_width)/5;
+         let width   = realSize * parseInt((digit_width * 4 + 0.5 * char_width)/5);
 
-         let height  =  font.get_size() / Pango.SCALE;
+         let height  =  font.get_size() / (Pango.SCALE);
          this._drawingArea.set_width(width + 2*this.margin);
          this._drawingArea.set_height(height + 2*this.margin);
          this._drawingArea.queue_repaint();
       }
+      this._label.set_text(this._text.substring(0, realSize));
    },
 
    _onRepaint: function(area) {
-      try {
-         let cr = area.get_context();
-         let [width, height] = area.get_surface_size();
-         let resultText = this._text.substring(0, Math.min(this._size, this._text.length));
+      if (area.mapped) {
+         try {
+            let cr = area.get_context();
+            let [width, height] = area.get_surface_size();
+            let realSize = this._text.length;
+            if(this._size > 0)
+               realSize = Math.min(this._size, realSize);
+            let resultText = this._text.substring(0, realSize);
 
-         let font = this.themeNode.get_font();
-         let context = this._drawingArea.get_pango_context();
-         let metrics = context.get_metrics(font, context.get_language());
-         let fontSize = font.get_size()/Pango.SCALE;
-         let [succColor, startColor] = this.themeNode.lookup_color('color', false);
-         if(!succColor) {
-             startColor = Clutter.Color.from_string("#505050")[1];
+            let font = this.themeNode.get_font();
+            let context = this._drawingArea.get_pango_context();
+            let metrics = context.get_metrics(font, context.get_language());
+            let fontSize = font.get_size()/(Pango.SCALE);
+            let [succColor, startColor] = this.themeNode.lookup_color('color', false);
+            if(!succColor) {
+               startColor = Clutter.Color.from_string("#505050")[1];
+            }
+            let weight = Cairo.FontWeight.NORMAL;
+            if(font.get_weight() >= 700)
+               weight = Cairo.FontWeight.BOLD;
+            let familyDesc = font.get_family().split(", ");
+            cr.selectFontFace(familyDesc[0], PANGO_STYLES[font.get_style()], weight);
+            cr.setFontSize(fontSize);
+            cr.moveTo(this.margin, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE) - 1);
+
+            if(this._textDegradation) {
+               let shadowPattern = new Cairo.LinearGradient(0, 0, width, height);
+               shadowPattern.addColorStopRGBA(0, 0, 0, 0, 1);
+               shadowPattern.addColorStopRGBA(1, 0, 0, 0, 0);
+               cr.setSource(shadowPattern);
+            }
+
+            cr.showText(resultText);
+            cr.fill();
+
+            cr.setFontSize(fontSize);
+            cr.moveTo(this.margin + 1, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE));
+
+            if(this._textDegradation) {
+               let realPattern = new Cairo.LinearGradient(0, 0, width, height);
+               realPattern.addColorStopRGBA(0, startColor.red / 255, startColor.green / 255, startColor.blue / 255, startColor.alpha / 255);
+               realPattern.addColorStopRGBA(0.4, startColor.red / 255, startColor.green / 255, startColor.blue / 255, startColor.alpha / 255);
+               realPattern.addColorStopRGBA(1, startColor.red / 255, startColor.green / 255, startColor.blue / 255, 0);
+               cr.setSource(realPattern);
+            } else {
+               Clutter.cairo_set_source_color(cr, startColor);
+            }
+            cr.showText(resultText);
+            cr.fill();
+            cr.stroke();
+            cr.$dispose();
+         } catch(e) {
+            Main.notify("err"+ e.message);
          }
-
-         let weight = Cairo.FontWeight.NORMAL;
-         if(font.get_weight() >= 700)
-            weight = Cairo.FontWeight.BOLD;
-         cr.selectFontFace(font.get_family(), Cairo.FontSlant.NORMAL, weight);
-         cr.setFontSize(fontSize);
-         cr.moveTo(this.margin, (height/2) + (metrics.get_descent()/Pango.SCALE));
-
-         if(this.textDegradation) {
-            let shadowPattern = new Cairo.LinearGradient(0, 0, width, height);
-            shadowPattern.addColorStopRGBA(0, 0, 0, 0, 1);
-            shadowPattern.addColorStopRGBA(1, 0, 0, 0, 0);
-            cr.setSource(shadowPattern);
-         }
-
-         cr.showText(resultText);
-         cr.fill();
-
-         cr.setFontSize(fontSize);
-         cr.moveTo(this.margin + 1, (height/2) + (metrics.get_descent()/Pango.SCALE) + 1);
-
-         if(this.textDegradation) {
-            let realPattern = new Cairo.LinearGradient(0, 0, width, height);
-            realPattern.addColorStopRGBA(0, startColor.red / 255, startColor.green / 255, startColor.blue / 255, startColor.alpha / 255);
-            realPattern.addColorStopRGBA(0.4, startColor.red / 255, startColor.green / 255, startColor.blue / 255, startColor.alpha / 255);
-            realPattern.addColorStopRGBA(1, startColor.red / 255, startColor.green / 255, startColor.blue / 255, 0);
-            cr.setSource(realPattern);
-         } else {
-            Clutter.cairo_set_source_color(cr, startColor);
-         }
-         cr.showText(resultText);
-         cr.fill();
-         cr.stroke();
-         cr.$dispose();
-      } catch(e) {
-         Main.notify("err"+ e.message);
       }
-   }
+   },
+
+   destroy: function() {
+      this._drawingArea.destroy();
+      this._label.destroy();
+      ConfigurablePopupBaseMenuItem.prototype.destroy.call(this);
+   },
 };
 
 /**
@@ -7164,6 +7206,7 @@ ConfigurableMenuApplet.prototype = {
       ConfigurableMenu.prototype._init.call(this, launcher, 0.0, orientation, false);
       this._menuManager = menuManager;
       this._isSubMenuOpen = false;
+      this._inWrapMode = false;
       this._openOnHover = false;
       this._startCounter = 0;
 
@@ -7203,6 +7246,25 @@ ConfigurableMenuApplet.prototype = {
             this._setIconVisible(menuItem);
             if(menuItem.menu)
                menuItem.menu.fixToCorner(menuItem.menu.fixCorner);
+         }
+      }
+   },
+
+   setLabelWrapMode: function(wrap) {
+      if (this._inWrapMode != wrap) {
+         this._inWrapMode = wrap;
+         let items = this.getMenuItems();
+         for(let pos in items) {
+            let menuItem = items[pos];
+            if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
+               if(this._inWrapMode) {
+                  menuItem.label.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+                  menuItem.label.clutter_text.line_wrap = true;
+               } else {
+                  menuItem.label.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+                  menuItem.label.clutter_text.line_wrap = false;
+               }
+            }
          }
       }
    },
@@ -7360,8 +7422,13 @@ ConfigurableMenuApplet.prototype = {
    addMenuItem: function(menuItem, params, position) {
       if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
          menuItem.actor.add_style_class_name('popup-panel-menu-item');
-         menuItem.label.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
-         menuItem.label.clutter_text.line_wrap = false;
+         if(this._inWrapMode) {
+             menuItem.label.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+             menuItem.label.clutter_text.line_wrap = true;
+         } else {
+             menuItem.label.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+             menuItem.label.clutter_text.line_wrap = false;
+         }
          let beforeItem = null;
          if(position == undefined) {
             this.box.add(menuItem.actor, params);

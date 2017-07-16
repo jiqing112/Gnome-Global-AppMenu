@@ -65,6 +65,7 @@ MyMenuFactory.prototype = {
       this._desaturateItemIcon = false;
       this._openOnHover = false;
       this._arrowSide = St.Side.BOTTOM;
+      this._wrapMode = true;
       this._effectType = "none";
       this._effectTime = 0.4;
    },
@@ -76,6 +77,17 @@ MyMenuFactory.prototype = {
             let shellMenu = this._menuLinkend[pos];
             if(shellMenu)
                shellMenu.setArrowSide(this._arrowSide);
+         }
+      }
+   },
+
+   setMainMenuWrapMode: function(wrapMode) {
+      if(this._wrapMode != wrapMode) {
+         this._wrapMode = wrapMode;
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
+            if(shellMenu)
+               shellMenu.setLabelWrapMode(this._wrapMode);
          }
       }
    },
@@ -373,6 +385,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-name", "showAppName", this._onShowAppNameChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "text-gradient", "textGradient", this._onTextGradientChange, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "max-app-name-size", "maxAppNameSize", this._onMaxAppNameSizeChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "menu-labels-wrap", "menuLabelsWrap", this._onMenuLabelsWrapChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "automatic-active-mainmenu", "automaticActiveMainMenu", this._automaticActiveMainMenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "open-active-submenu", "openActiveSubmenu", this._onOpenActiveSubmenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "close-active-submenu", "closeActiveSubmenu", this._onCloseActiveSubmenuChanged, null);
@@ -402,6 +415,7 @@ MyApplet.prototype = {
       this._updateHudKeybinding();
       this._updateNumbreOfItems();
 
+      this._onMenuLabelsWrapChanged();
       this._onOpenActiveSubmenuChanged();
       this._onCloseActiveSubmenuChanged();
       this._onShowBoxPointerChanged();
@@ -620,6 +634,10 @@ MyApplet.prototype = {
 
    _onShowAppNameChanged: function() {
       this.gradient.showLabel(this.showAppName);
+   },
+
+   _onMenuLabelsWrapChanged: function() {
+      this.menuFactory.setMainMenuWrapMode(this.menuLabelsWrap);
    },
 
    _onTextGradientChange: function() {

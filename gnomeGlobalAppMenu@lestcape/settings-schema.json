@@ -60,13 +60,15 @@
     "text-gradient" : {
         "type" : "checkbox",
         "default" : true,
+        "indent": true,
+        "dependency": "show-app-name",
         "description": "Show a linear gradient effect in the application name",
         "tooltip": "Select if you want to show a linear gradient effect in the application name."
     },
     "max-app-name-size" : {
         "type": "spinbutton",
         "default": 10,
-        "min": 1,
+        "min": 0,
         "max": 60,
         "step": 1,
         "units": "characters",
@@ -126,6 +128,12 @@
         "default" : true,
         "description": "Display the main menu in the panel",
         "tooltip": "Select if you want to display the main menu in the panel."
+    },
+    "menu-labels-wrap" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Wrap the menu labels",
+        "tooltip": "Select if you want to wrapped the menu labels when there are not space."
     },
     "automatic-active-mainmenu" : {
         "type" : "checkbox",
