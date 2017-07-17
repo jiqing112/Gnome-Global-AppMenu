@@ -34,14 +34,14 @@ const JSONSettingsHandler = new GObject.Class({
     Name: 'ClassicGnome.JSONSettingsHandler',
     GTypeName: 'ClassicGnomeJSONSettingsHandler',
 
-    _init: function(filepath, notify_callback) { //notify_callback=null
+    _init: function(instance_id, filepath, notify_callback) { //notify_callback=null
         this.resume_timeout = null;
         this.notify_callback = notify_callback;
 
         if (filepath === undefined) {
             throw new Error('JSONSettingsHandler: filepath is undefined.');
         }
-
+        this.instance_id = instance_id;
         this.filepath = filepath;
         this.file_obj = Gio.File.new_for_path(this.filepath);
         this.file_monitor = this.file_obj.monitor_file(Gio.FileMonitorFlags.SEND_MOVED, null);
@@ -88,8 +88,9 @@ const JSONSettingsHandler = new GObject.Class({
         if (value != this.settings[key].value) {
             this.settings[key].value = value;
             this.save_settings();
-            if (this.notify_callback)
+            if (this.notify_callback) {
                 this.notify_callback(this, key, value);
+            }
         }
     },
 

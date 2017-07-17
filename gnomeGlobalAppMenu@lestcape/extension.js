@@ -9,7 +9,7 @@ const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
 const ExtensionManager = MyExtension.imports.extensionManager;
 const Environment = MyExtension.imports.environment;
 
-let applet;
+var applet;
 
 function init() {
     Environment.init();

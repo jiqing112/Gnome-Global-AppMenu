@@ -132,10 +132,13 @@ const XLetSidePage = new GObject.Class({
                         }
                     }
                 }
-                let id = 0;
-                if(this.selected_instance || (this.selected_instance !== undefined))
-                    id = this.selected_instance.id
-                this.proxy.highlightXlet(this.uuid, id, true);
+                Mainloop.timeout_add(1000, Lang.bind(this, function() {
+                    let id = 0;
+                    if(this.selected_instance || (this.selected_instance !== undefined))
+                        id = this.selected_instance.id
+                    this.proxy.highlightXlet(this.uuid, id, true);
+                }));
+
             }
         }
     },
@@ -202,7 +205,7 @@ const XLetSidePage = new GObject.Class({
         this.stack_switcher = new Gtk.StackSwitcher();
         toolbutton_box.set_center_widget(this.stack_switcher);
 
-        this.menu_button = new Gtk.MenuButton();
+        /*this.menu_button = new Gtk.MenuButton();
         let image = new Gtk.Image ({ icon_name: "open-menu-symbolic", icon_size: Gtk.IconSize.BUTTON });
         this.menu_button.add(image);
         this.menu_button.set_tooltip_text(_("More options"));
@@ -226,7 +229,7 @@ const XLetSidePage = new GObject.Class({
         //reset_option.connect("activate", this.reset);
         //reset_option.show();
 
-        this.menu_button.set_popup(menu);
+        this.menu_button.set_popup(menu);*/
 
         let scw = new Gtk.ScrolledWindow();
         scw.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC);
@@ -234,13 +237,14 @@ const XLetSidePage = new GObject.Class({
         this.instance_stack = new Gtk.Stack();
         scw.add(this.instance_stack);
 
-        //if ("icon" in this.xlet_meta) {
-        //    this.window.set_icon_name(this.xlet_meta["icon"])
-        //} else {
-        //    icon_path = GLib.build_filenamev([this.xlet_dir, "icon.png"]);
-        //    if (Gio.file_new_for_path(icon_path).query_exists(null))
-        //        this.window.set_icon_from_file(icon_path);
-        //}
+        if ("icon" in this.xlet_meta) {
+            this.topWindow.set_icon_name(this.xlet_meta["icon"]);
+        } else {
+            let icon_path = GLib.build_filenamev([this.xlet_dir, "icon.png"]);
+            if (Gio.file_new_for_path(icon_path).query_exists(null))
+                this.topWindow.set_icon_from_file(icon_path);
+        }
+
         this.topWindow.set_title(translate(this.uuid, this.xlet_meta["name"]));
         this.prev_button.connect("clicked", Lang.bind(this, this.previous_instance));
         this.next_button.connect("clicked", Lang.bind(this, this.next_instance));
@@ -264,12 +268,11 @@ const XLetSidePage = new GObject.Class({
 
         for (let pos in instances) {
             let instance = instances[pos];
-            let instance_id = instance.substring(0, -5);
+            let instance_id = instance.substring(0, instance.length - 5);
             let instancePath = GLib.build_filenamev([path, instance]);
             //global.log('INSTANCE PATH: ', instancePath)
-            let settings = new JsonSettingsWidgets.JSONSettingsHandler(instancePath, this.notify_dbus);
+            let settings = new JsonSettingsWidgets.JSONSettingsHandler(instance_id, instancePath, Lang.bind(this, this.notify_dbus));
             //global.log('SETTINGS: ', JSON.stringify(settings))
-            settings.instance_id = instance_id;
             let instance_box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL });
             this.instance_stack.add_named(instance_box, instance_id);
 

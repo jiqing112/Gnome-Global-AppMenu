@@ -79,7 +79,7 @@ const ClassicGnomePreferencesWidget = new GObject.Class({
                 this.module = this.modulesManager.getInstance("settings");
                 let argv = ["settings", "applet", MyExtension.uuid, MyExtension.uuid];
                 if(this.module && this.module.can_load_with_arguments(argv)) {
-                    this.wind = this.get_toplevel();
+                    this.wind = this.get_toplevel(); //this.wind.is_toplevel();
                     this.sidePage = this.module.get_side_page(argv, this.get_toplevel(), this.content_box);
                     if(this.sidePage) {
                         if(this.sidePage.exec_name == "main") {
@@ -148,7 +148,12 @@ function init() {
     global.userclassicdatadir = GLib.build_filenamev([GLib.get_user_data_dir(), Config.USER_INSTALL_FOLDER]);
     global.remoteSettings = new SettingsDbusClient.ClientSettings();
 
+    let iconTheme = Gtk.IconTheme.get_default();
+    iconTheme.append_search_path(global.rootdatadir);
+
     global.notify = function(summary, body, iconName) {
+        if(!iconName || (iconName === undefined))
+            iconName = "dialog-error-symbolic";
         this.notification = new Notify.Notification ({
             "summary": summary,
             "body": body,

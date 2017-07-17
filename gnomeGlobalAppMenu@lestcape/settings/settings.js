@@ -16,6 +16,7 @@ const Main = imports.ui.main;
 
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
 const Config = MyExtension.imports.settings.config;
+const SettingsDBusServer = MyExtension.imports.settings.settingsDbusServer;
 const EXTENSION_PATH = MyExtension.dir.get_path();
 
 /**
@@ -267,7 +268,9 @@ XletSettingsBase.prototype = {
 
         if (!this._ensureSettingsFiles()) return;
 
-        //Main.settingsManager.register(this.uuid, this.instanceId, this);
+        if(!this.bindObject.settingsManager)
+            this.bindObject.settingsManager = new SettingsManager(this.bindObject);
+        this.bindObject.settingsManager.register(this.uuid, this.instanceId, this);
 
         this.isReady = true;
     },
@@ -740,7 +743,9 @@ XletSettingsBase.prototype = {
      * to deleting the object.
      */
     finalize: function() {
-        //Main.settingsManager.unregister(this.uuid, this.instanceId);
+        if(this.bindObject.settingsManager) {
+            this.bindObject.settingsManager.unregister(this.uuid, this.instanceId);
+        }
         for (let key in this.bindings) {
             this.unbindAll(key);
         }
@@ -836,13 +841,16 @@ ExtensionSettings.prototype = {
     }
 };
 
-function SettingsManager() {
-    this._init();
+function SettingsManager(bindObject) {
+    this._init(bindObject);
 }
 
 SettingsManager.prototype = {
-    _init: function () {
+    _init: function (bindObject) {
         this.uuids = {};
+        this.bindObject = bindObject;
+        this.bindObject.settingsManager = this;
+        this._dbusSettings = new SettingsDBusServer.ServerSettings(this);
     },
 
     register: function (uuid, instance_id, obj) {

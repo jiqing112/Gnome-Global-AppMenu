@@ -12,54 +12,7 @@ const GObject = imports.gi.GObject;
 
 const DbusSettingsIface =
     '<node> \
-        <interface name="org.Cinnamon"> \
-            <method name="Eval"> \
-                <arg type="s" direction="in" name="script" /> \
-                <arg type="b" direction="out" name="success" /> \
-                <arg type="s" direction="out" name="result" /> \
-            </method> \
-            <method name="ScreenshotArea"> \
-                <arg type="b" direction="in" name="include_cursor"/> \
-                <arg type="i" direction="in" name="x"/> \
-                <arg type="i" direction="in" name="y"/> \
-                <arg type="i" direction="in" name="width"/> \
-                <arg type="i" direction="in" name="height"/> \
-                <arg type="b" direction="in" name="flash"/> \
-                <arg type="s" direction="in" name="filename"/> \
-            </method> \
-            <method name="ScreenshotWindow"> \
-                <arg type="b" direction="in" name="include_frame"/> \
-                <arg type="b" direction="in" name="include_cursor"/> \
-                <arg type="b" direction="in" name="flash"/> \
-                <arg type="s" direction="in" name="filename"/> \
-            </method> \
-            <method name="Screenshot"> \
-                <arg type="b" direction="in" name="include_frame"/> \
-                <arg type="b" direction="in" name="flash"/> \
-                <arg type="s" direction="in" name="filename"/> \
-            </method> \
-            <method name="ShowOSD"> \
-                <arg type="a{sv}" direction="in" name="params"/> \
-            </method> \
-            <method name="FlashArea"> \
-                <arg type="i" direction="in" name="x"/> \
-                <arg type="i" direction="in" name="y"/> \
-                <arg type="i" direction="in" name="width"/> \
-                <arg type="i" direction="in" name="height"/> \
-            </method> \
-            <method name="highlightXlet"> \
-                <arg type="s" direction="in" /> \
-                <arg type="s" direction="in" /> \
-                <arg type="b" direction="in" /> \
-            </method> \
-            <method name="highlightPanel"> \
-                <arg type="i" direction="in" /> \
-                <arg type="b" direction="in" /> \
-            </method> \
-            <method name="addPanelQuery"> \
-            </method> \
-            <method name="destroyDummyPanels"> \
-            </method> \
+        <interface name="org.Gnome.Global.Menu"> \
             <method name="activateCallback"> \
                 <arg type="s" direction="in" /> \
                 <arg type="s" direction="in" /> \
@@ -71,33 +24,19 @@ const DbusSettingsIface =
                 <arg type="s" direction="in" /> \
                 <arg type="s" direction="in" /> \
             </method> \
-            <method name="switchWorkspaceRight" /> \
-            <method name="switchWorkspaceLeft" /> \
-            <method name="switchWorkspaceUp" /> \
-            <method name="switchWorkspaceDown" /> \
-            <method name="JumpToNewWorkspace" /> \
-            <method name="RemoveCurrentWorkspace" /> \
-            <method name="ShowExpo" /> \
-            <method name="GetRunningXletUUIDs"> \
-                <arg type="s" direction="in" /> \
-                <arg type="as" direction="out" /> \
-            </method> \
             <method name="ReloadXlet"> \
                 <arg type="s" direction="in" name="uuid" /> \
                 <arg type="s" direction="in" name="type" /> \
             </method> \
-            <property name="OverviewActive" type="b" access="readwrite" /> \
-            <property name="ExpoActive" type="b" access="readwrite" /> \
-            <property name="CinnamonVersion" type="s" access="read" /> \
+            <method name="highlightXlet"> \
+                <arg type="s" direction="in" /> \
+                <arg type="s" direction="in" /> \
+                <arg type="b" direction="in" /> \
+            </method> \
             <signal name="XletAddedComplete"> \
                 <arg type="b" direction="out" /> \
                 <arg type="s" direction="out" /> \
             </signal> \
-            <method name="PushSubprocessResult"> \
-                <arg type="i" direction="in" name="process_id" /> \
-                <arg type="s" direction="in" name="result" /> \
-            </method> \
-            <method name="ToggleKeyboard"/> \
         </interface> \
     </node>';
 
@@ -109,7 +48,8 @@ function ClientSettings() {
 
 ClientSettings.prototype = {
     _init: function() {
-        this._proxy = new ProxyWrapper(Gio.DBus.session, 'org.Cinnamon', '/org/Cinnamon', Lang.bind(this, this._clientReady), null);
+        this._proxy = null;
+        this._initProxy = new ProxyWrapper(Gio.DBus.session, 'org.Gnome.Global.Menu', '/org/Gnome/Global/Menu', Lang.bind(this, this._clientReady), null);
     },
 
     _clientReady: function(result, error) {
@@ -119,46 +59,39 @@ ClientSettings.prototype = {
             global.log("Could not initialize settings proxy: " + error);
             return;
         }
+        this._proxy = this._initProxy;
         if (this._proxy) {
             global.log("Initialize settings proxy");
             this._proxy.connectSignal("XletAddedComplete", Lang.bind(this, this._onXletAddedComplete));
         }
     },
 
-    getRunningXletUUIDs: function(collection_type) {
-        return this._proxy.GetRunningXletUUIDsRemote(collection_type);
-    },
-
     reloadXlet: function(uuid, collection_type) {
-        this._proxy.ReloadXletRemote(uuid, collection_type);
+        if (this._proxy) {
+            this._proxy.ReloadXletRemote(uuid, collection_type);
+        }
     },
 
     _onXletAddedComplete: function(proxy, success, uuid) {
         this.emit("xlet-added-complete", success, uuid);
     },
 
-    addPanelQuery: function() {
-        this._proxy.addPanelQueryRemote();
-    },
-
-    highlightPanel: function(panel_id, state) {
-        this._proxy.highlightPanelRemote(panel_id, state);
-    },
-
-    highlightXlet: function(uuid, instance_id, state) {
-        this._proxy.highlightXletRemote(uuid, instance_id, state);
-    },
-
     activateCallback: function(xletCallback, uuid, instance_id) {
-        this._proxy.activateCallbackRemote(xletCallback, uuid, instance_id);
+        if (this._proxy) {
+            this._proxy.activateCallbackRemote(xletCallback, uuid, instance_id);
+        }
     },
 
     updateSetting: function(uuid, instance_id, key, json_value) {
-        this._proxy.updateSettingRemote(uuid, instance_id, key, json_value);
+        if (this._proxy) {
+            this._proxy.updateSettingRemote(uuid, instance_id, key, json_value);
+        }
     },
 
-    destroyDummyPanels: function() {
-        this._proxy.destroyDummyPanelsRemote();
+    highlightXlet: function(uuid, instance_id, state) {
+        if (this._proxy) {
+            this._proxy.highlightXletRemote(uuid, instance_id, state);
+        }
     },
 }
 Signals.addSignalMethods(ClientSettings.prototype);
