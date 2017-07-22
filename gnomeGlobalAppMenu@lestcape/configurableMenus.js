@@ -3273,7 +3273,7 @@ ConfigurableMenuManager.prototype = {
       let actorDestroyId = actor.connect('destroy', function() {
          let index = Main._findModal(actor);
          if (index >= 0)
-            Main.popModal(actor);
+            this._popModal(actor);
       });
 
       let prevFocus = global.stage.get_key_focus();

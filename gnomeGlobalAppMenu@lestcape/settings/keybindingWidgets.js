@@ -186,7 +186,7 @@ const CellRendererKeybinding = new GObject.Class({
 
     update_label: function() {
         let text;
-        if (!this.accel_string) {
+        if (!this.accel_string || (this.accel_string === "") || (this.accel_string === undefined)) {
             text = _("unassigned");
         } else {
             let [key, codes, mods] = Gtk.accelerator_parse_with_keycode(this.accel_string);
@@ -196,6 +196,8 @@ const CellRendererKeybinding = new GObject.Class({
     },
 
     set_value: function(accel_string) {//accel_string=null
+        if(!accel_string || (accel_string === undefined))
+            accel_string = "";
         this.set_property("accel-string", accel_string);
     },
 

@@ -9,6 +9,7 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const Meta = imports.gi.Meta;
+const Shell = imports.gi.Shell;
 
 const Main = imports.ui.main;
 const Util = imports.misc.util;
@@ -45,10 +46,69 @@ function KeybindingManager() {
 KeybindingManager.prototype = {
     _init: function() {
         this.bindings = {};
-        this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));
-        this.updateId = Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated)); 
+        this._custom_keybindings = {};
         this.actionGrab = null;
         this.keyGrab = null;
+        this.inihibit = false;
+
+        this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));
+        this.updateId = Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated)); 
+
+        this._accelId = global.display.connect('accelerator-activated', Lang.bind(this, this._acceleratorActivated)); 
+        this._modAccelId = global.display.connect('modifiers-accelerator-activated', Lang.bind(this, this._modifiersAceleratorActivated)); 
+    },
+
+    _acceleratorActivated: function(display, actionPreformed, deviceid, timestamp) {
+        if (actionPreformed && !this.inihibit) {
+            let extName = Meta.external_binding_name_for_action(actionPreformed);
+            if(extName.indexOf("external-grab") != -1) {
+                //global.log("was " + extName);
+                for (let name in this._custom_keybindings) {
+                    let keyBinds = this._custom_keybindings[name];
+                    for (let pos in keyBinds) {
+                        if(keyBinds[pos]["action"] == actionPreformed) {
+                            let handler = keyBinds[pos]["handler"];
+                            let kb = null; //FIXME: What it's this a keyboard map, the active keyboard state?
+                            let event = Clutter.get_current_event(); // This is the current keyboard event-
+                            handler(display, global.screen, event, kb, actionPreformed);
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    _modifiersAceleratorActivated: function(display) {
+        global.log("Accel active: modifiers-accelerator-activated");
+    },
+
+    _add_custom_keybinding: function(name, bindings, handler) {
+        this._custom_keybindings[name] = [];
+        let modes = Shell.ActionMode.ALL;
+        for (let pos in bindings) {
+            let action = global.display.grab_accelerator(bindings[pos]);
+            this._custom_keybindings[name].push({ "action": action, "handler": handler });
+            if (action != Meta.KeyBindingAction.NONE) {
+                Main.wm.allowKeybinding(Meta.external_binding_name_for_action(action), modes);
+            }
+        }
+        return true;
+    },
+
+    _remove_custom_keybinding: function(name) {
+        if(this._custom_keybindings && (name in this._custom_keybindings)) {
+            let keyBinds = this._custom_keybindings[name];
+            for(let pos in keyBinds) {
+                if(keyBinds[pos]["action"] != Meta.KeyBindingAction.NONE) {
+                    global.display.ungrab_accelerator(keyBinds[pos]["action"]);
+                }
+            }
+            delete this._custom_keybindings[name];
+        }
+    },
+
+    _rebuild_keybindings: function() {
+        //let ungrabSucceeded = global.display.ungrab_accelerator(action);
     },
 
     _stageEventHandler: function(actor, event) {
@@ -102,7 +162,7 @@ KeybindingManager.prototype = {
             if (this.bindings[name].bindings.toString() == bindings.toString()) {
               return true;
             }
-            global.display.remove_custom_keybinding(name);
+            this._remove_custom_keybinding(name);
         }
 
         if (!bindings) {
@@ -118,18 +178,18 @@ KeybindingManager.prototype = {
         if (empty) {
             if (name in this.bindings)
                 delete this.bindings[name];
-            global.display.rebuild_keybindings();
+            this._rebuild_keybindings();
             return true;
         }
         //name
-        if (!global.display.add_custom_keybinding(name, bindings, Lang.bind(this, this._filter, callback))) {
+        if (!this._add_custom_keybinding(name, bindings, Lang.bind(this, this._filter, callback))) {
             global.logError("Warning, unable to bind hotkey with name '" + name + "'.  The selected keybinding could already be in use.");
-            global.display.rebuild_keybindings();
+            this._rebuild_keybindings();
             return false;
         } else {
             this.bindings[name] = { "bindings": bindings, "callback": callback };
         }
-        global.display.rebuild_keybindings();
+        this._rebuild_keybindings();
         return true;
     },
 
@@ -152,16 +212,28 @@ KeybindingManager.prototype = {
     removeHotKey: function(name) {
         if (name in this.bindings) {
             //FIXME: This next line won't work on unloock screen.
-            //global.display.remove_custom_keybinding(name);
-            global.display.rebuild_keybindings();
+            this._remove_custom_keybinding(name);
+            this._rebuild_keybindings();
             delete this.bindings[name];
         }
     },
 
     destroy: function() {
+        if(this.updateId) {
+            Main.sessionMode.disconnect(this.updateId);
+            this.updateId = null;
+        }
         if(this.hackId) {
             global.stage.disconnect(this.hackId);
             this.hackId = null;
+        }
+        if(this._accelId) {
+            global.stage.disconnect(this._accelId);
+            this._accelId = null;
+        }
+        if(this._modAccelId) {
+            global.stage.disconnect(this._modAccelId);
+            this._modAccelId = null;
         }
         for (let name in this.bindings) {
             this.removeHotKey(name);
@@ -641,7 +713,7 @@ Applet.prototype = {
      *
      * This is meant to be overridden in individual applets.
      */
-    on_applet_added_to_panel: function(userEnabled) {
+    on_applet_added_to_panel: function(userEnabled) { 
         if(this.actor.get_parent()) {
             this._newPanelLocation = this.actor.get_parent();
         }

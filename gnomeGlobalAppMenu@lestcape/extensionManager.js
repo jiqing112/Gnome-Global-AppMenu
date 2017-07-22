@@ -524,9 +524,10 @@ MyApplet.prototype = {
          parent.remove_actor(this.actor);
       let children = Main.panel._leftBox.get_children();
       if(this.replaceAppMenu) {
-         if(Main.panel.statusArea.appMenu) {
+         if(Main.panel.statusArea.appMenu && !(Main.panel.statusArea.appMenu instanceof St.Bin)) {
             let index = children.indexOf(Main.panel.statusArea.appMenu.container);
             if(index != -1) {
+               Main.panel.statusArea.appMenu.menu = null;
                Main.panel.statusArea.appMenu.destroy();
                //Main.panel.statusArea['appMenu'] = null;
                // Fake appmenu, to avoid the gnome shell behavior.
@@ -534,6 +535,7 @@ MyApplet.prototype = {
                Main.panel.statusArea['appMenu'].actor = Main.panel.statusArea['appMenu'];
                Main.panel.statusArea['appMenu'].container = Main.panel.statusArea['appMenu'];
                Main.panel.statusArea['appMenu'].connect = function() {};
+               Main.panel.statusArea['appMenu'].disconnect = function() {};
                Main.panel._leftBox.insert_child_at_index(this.actor, index);
             } else {
                Main.panel._leftBox.insert_child_at_index(this.actor, index);
@@ -868,16 +870,19 @@ MyApplet.prototype = {
    },
 
    on_applet_added_to_panel: function() {
-      this._onReplaceAppMenuChanged();
       Applet.Applet.prototype.on_applet_added_to_panel.call(this);
+      this.keybindingManager.inihibit = false;
+      this._onReplaceAppMenuChanged();
    },
 
    on_applet_removed_from_panel: function() {
+      Applet.Applet.prototype.on_applet_removed_from_panel.call(this);
       let temp = this.replaceAppMenu;
       this.replaceAppMenu = false;
       this._onReplaceAppMenuChanged();
       this.replaceAppMenu = temp;
       let parent = this.actor.get_parent();
+      this.keybindingManager.inihibit = true;
       if(parent) {
          parent.remove_actor(this.actor);
       }
@@ -890,7 +895,6 @@ MyApplet.prototype = {
           this.indicatorDbus = null;
       }
       this._finalizeEnvironment();
-      this.keybindingManager.destroy();
       this.hubProvider.disable();
       if(this._overviewHidingId != 0) {
          Main.overview.disconnect(this._overviewHidingId);

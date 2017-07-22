@@ -56,50 +56,6 @@ function init() {
         FULLSCREEN : 3,
     };
 
-    if(!global.display.add_custom_keybinding) {
-        global.display.add_custom_keybinding = function(name, bindings, handler) {
-            if(!global.display._custom_keybindings)
-                global.display._custom_keybindings = {};
-            global.display._custom_keybindings[name] = [];
-            let modes = Shell.ActionMode.ALL;
-            for (let pos in bindings) {
-                let action = global.display.grab_accelerator(bindings[pos]);
-                global.display._custom_keybindings[name].push(action);
-                if (action != Meta.KeyBindingAction.NONE) {
-                    Main.wm.allowKeybinding(Meta.external_binding_name_for_action(action), modes);
-                    global.display.connect('modifiers-accelerator-activated', function (display) {
-                        Main.notify("acel active");
-                    });
-                    global.display.connect('accelerator-activated', function (display, actionPreformed, deviceid, timestamp) {
-                        if (actionPreformed == action) {
-                            let kb = null; //FIXME: What it's this a keyboard map, the active keyboard state?
-                            let event = Clutter.get_current_event(); // This is the current keyboard event-
-                            handler(display, global.screen, event, kb, actionPreformed);
-                        }
-                    });
-                }
-            }
-            return true;
-        };
-
-        global.display.remove_custom_keybinding = function(name) {
-            if(global.display._custom_keybindings && (name in global.display._custom_keybindings)) {
-                let actions = global.display._custom_keybindings[name];
-                for(let pos in actions) {
-                    if(actions[pos] != Meta.KeyBindingAction.NONE) {
-                        global.display.ungrab_accelerator(actions[pos]);
-                    }
-                }
-                delete global.display._custom_keybindings[name];
-            }
-        };
-
-        // Do nothing, just not crash
-        global.display.rebuild_keybindings = function() {
-            //let ungrabSucceeded = global.display.ungrab_accelerator(action);
-        };
-    }
-
     if(!global.set_stage_input_mode) {//FIXME: How simulate this?
         Object.defineProperty(global, "stage_input_mode", {
             get: function() {
@@ -145,4 +101,7 @@ function init() {
     };
 
     StPatches.init();
+}
+
+function finalized() {
 }
