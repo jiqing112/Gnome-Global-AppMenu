@@ -93,9 +93,9 @@ ScrollItemsBox.prototype = {
 
    destroy: function() {
       if(this.actor) {
-         this.emit('destroy');
          this.actor.destroy();
          this.actor = null;
+         this.emit('destroy');
       }
    },
 
@@ -1910,9 +1910,9 @@ ConfigurablePopupBaseMenuItem.prototype = {
 
    destroy: function() {
       if(this.actor) {
-         this.emit('destroy');
          this.actor.destroy();
          this.actor = null;
+         this.emit('destroy');
       }
    },
 };
@@ -3445,21 +3445,18 @@ ConfigurablePopupMenuBase.prototype = {
    },
 
    addChildMenu: function(menu) {
-      if(this.isChildMenu(menu))
-         return;
-
-      this._childMenus.push(menu);
-      this.emit('child-menu-added', menu);
+      if(!this.isChildMenu(menu)) {
+          this._childMenus.push(menu);
+          this.emit('child-menu-added', menu);
+      }
    },
 
    removeChildMenu: function(menu) {
       let index = this._childMenus.indexOf(menu);
-
-      if(index == -1)
-         return;
-
-      this._childMenus.splice(index, 1);
-      this.emit('child-menu-removed', menu);
+      if(index != -1) {
+          this._childMenus.splice(index, 1);
+          this.emit('child-menu-removed', menu);
+      }
    },
 
    _updateSeparatorVisibility: function(menuItem) {
@@ -3792,9 +3789,9 @@ ConfigurablePopupMenuBase.prototype = {
          if (index >= 0)
              Main.popModal(this.actor);
          this.destroyAllMenuItems();
-         this.emit('destroy');
          this.actor.destroy();
          this.actor = null;
+         this.emit('destroy');
       }
    }
 };
@@ -4818,23 +4815,6 @@ ConfigurableMenu.prototype = {
       children.map(function(child) {
          this.removeMenuItem(child);
       }, this);
-   },
-
-   addChildMenu: function(menu) {
-      if(this.isChildMenu(menu))
-         return;
-      this._childMenus.push(menu);
-      menu._destroyChildId = menu.connect('destroy', Lang.bind(this, this.removeChildMenu));
-      this.emit('child-menu-added', menu);
-   },
-
-   removeChildMenu: function(menu) {
-      let index = this._childMenus.indexOf(menu);
-      if(index == -1)
-         return;
-      menu.disconnect(menu._destroyChildId);
-      this._childMenus.splice(index, 1);
-      this.emit('child-menu-removed', menu);
    },
 
    getScale: function(menu) {
@@ -7216,14 +7196,14 @@ ConfigurableMenuApplet.prototype = {
          parent.remove_actor(this.actor);
       this.launcher.actor.add(this.actor);
       this.actor.set_style_class_name('applet-container-box');
-      this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
+      //this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
       this._menuManager.addMenu(this);
-      this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
+      //this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
 
-      this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+      //this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
       if(this.launcher._applet_tooltip) {
-         this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
-         this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
+         //this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
+         //this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
       }
    },
 
@@ -7605,6 +7585,7 @@ ConfigurableMenuApplet.prototype = {
 
    destroy: function() {
       if(this.actor) {
+         global.log("Im here");
          ConfigurableMenu.prototype.destroy.call(this);
          this.actor = null;
       }
@@ -7645,9 +7626,9 @@ ConfigurableAppletMenu.prototype = {
             this.parent.actor.add_style_class_name('menu-applet-panel-top-box');
          else
             this.parent.actor.add_style_class_name('menu-applet-panel-bottom-box');
-         this.emit('destroy');
          this.actor.destroy();
          this.actor = null;
+         this.emit('destroy');
       }
    },
 
@@ -8428,10 +8409,6 @@ MenuFactory.prototype = {
 
    _createItem: function(factoryItem) {
       let shellItem = this._createShellItem(factoryItem);
-
-      // Initially create children on idle, to not stop Shell mainloop.
-      Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
-
       // Now, connect various events
       this._setShellItem(factoryItem, shellItem, {
          'type-changed':       Lang.bind(this, this._onTypeChanged, shellItem),
@@ -8439,6 +8416,9 @@ MenuFactory.prototype = {
          'child-removed':      Lang.bind(this, this._onChildRemoved, shellItem),
          'child-moved':        Lang.bind(this, this._onChildMoved, shellItem)
       });
+      // Initially create children on idle, to not stop Shell mainloop?
+      //Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
+      this._createChildrens(shellItem);
       return shellItem;
    },
 
@@ -8453,7 +8433,8 @@ MenuFactory.prototype = {
                   shellItem.menu.addMenuItem(chItem);
                }
             }
-         } else if(shellItem instanceof ConfigurablePopupMenuSection) {
+         } else if((shellItem instanceof ConfigurablePopupMenuSection) ||
+                   (shellItem instanceof ConfigurableMenu)) {
             let children = factoryItem.getChildren();
             if(children) {
                for(let i = 0; i < children.length; ++i) {
@@ -8484,8 +8465,16 @@ MenuFactory.prototype = {
    _onChildRemoved: function(factoryItem, child, shellItem) {
       if(shellItem && (shellItem.factoryItem == factoryItem)) {
          if (shellItem instanceof ConfigurablePopupSubMenuMenuItem) {
-            // find it!
             let family = shellItem.menu.getAllMenuItems();
+            for(let i = 0; i < family.length; ++i) {
+               if(family[i].factoryItem == child) {
+                  this._destroyShellItem(family[i]);
+                  break;
+               }
+            }
+         } else if((shellItem instanceof ConfigurablePopupMenuSection) ||
+                   (shellItem instanceof ConfigurableMenu)) {
+            let family = shellItem.getAllMenuItems();
             for(let i = 0; i < family.length; ++i) {
                if(family[i].factoryItem == child) {
                   this._destroyShellItem(family[i]);
@@ -8537,12 +8526,26 @@ MenuFactory.prototype = {
          // if not insert the item in first position.
          if(pos < 0)
             pos = 0;
-         // Now destroy our old self
-         this._destroyShellItem(shellItem);
-         if(shellItemParent && shellItemParent.addMenuItem) {
-            // Add our new self
-            let newShellItem = this._createItem(factoryItem);
-            shellItemParent.addMenuItem(newShellItem, null, pos);
+         if(factoryItem.getFactoryType() != FactoryClassTypes.RootMenuClass) {
+             // Now destroy our old self
+             this._destroyShellItem(shellItem);
+             if(shellItemParent && shellItemParent.addMenuItem) {
+                 // Add our new self
+                let newShellItem = this._createItem(factoryItem);
+                shellItemParent.addMenuItem(newShellItem, null, pos);
+             }
+         } else if(shellItem.removeAllMenuItems) {
+             shellItem.removeAllMenuItems();
+             /*shellItem.factoryItem = null;
+             this._setShellItem(factoryItem, shellItem, {
+                 'type-changed':       Lang.bind(this, this._onTypeChanged, shellItem),
+                 'child-added':        Lang.bind(this, this._onChildAdded, shellItem),
+                 'child-removed':      Lang.bind(this, this._onChildRemoved, shellItem),
+                 'child-moved':        Lang.bind(this, this._onChildMoved, shellItem)
+             });*/
+             this._createChildrens(shellItem);
+         } else {
+             global.log("Error: We can not remove the root item.");
          }
       }
    },

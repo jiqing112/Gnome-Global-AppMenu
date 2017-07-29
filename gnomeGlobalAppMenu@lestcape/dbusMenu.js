@@ -1113,13 +1113,13 @@ DBusClientGtk.prototype = {
          global.logWarning("Could not initialize menu proxy: " + error);
          return;
       }
-      if(type == "unity") {
+      if((type == "unity") && this._proxyUnityAction) {
          this._requestActionsUpdate(this._proxyUnityAction, type);
          this._proxyUnityAction.connectSignal("Changed", Lang.bind(this, this._onActionsUpdated, type));
-      } else if(type == "win") {
+      } else if((type == "win") && this._requestActionsUpdate) {
          this._requestActionsUpdate(this._proxyWindowAction, type);
          this._proxyWindowAction.connectSignal("Changed", Lang.bind(this, this._onActionsUpdated, type));
-      } else if(type == "app") {
+      } else if((type == "app") && this._proxyAppAction) {
          this._requestActionsUpdate(this._proxyAppAction, type);
          this._proxyAppAction.connectSignal("Changed", Lang.bind(this, this._onActionsUpdated, type));
       }
