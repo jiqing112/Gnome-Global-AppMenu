@@ -7196,14 +7196,14 @@ ConfigurableMenuApplet.prototype = {
          parent.remove_actor(this.actor);
       this.launcher.actor.add(this.actor);
       this.actor.set_style_class_name('applet-container-box');
-      //this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
+      this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
       this._menuManager.addMenu(this);
-      //this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
+      this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
 
-      //this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+      this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
       if(this.launcher._applet_tooltip) {
-         //this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
-         //this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
+         this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
+         this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
       }
    },
 
@@ -7585,7 +7585,6 @@ ConfigurableMenuApplet.prototype = {
 
    destroy: function() {
       if(this.actor) {
-         global.log("Im here");
          ConfigurableMenu.prototype.destroy.call(this);
          this.actor = null;
       }
@@ -8536,13 +8535,6 @@ MenuFactory.prototype = {
              }
          } else if(shellItem.removeAllMenuItems) {
              shellItem.removeAllMenuItems();
-             /*shellItem.factoryItem = null;
-             this._setShellItem(factoryItem, shellItem, {
-                 'type-changed':       Lang.bind(this, this._onTypeChanged, shellItem),
-                 'child-added':        Lang.bind(this, this._onChildAdded, shellItem),
-                 'child-removed':      Lang.bind(this, this._onChildRemoved, shellItem),
-                 'child-moved':        Lang.bind(this, this._onChildMoved, shellItem)
-             });*/
              this._createChildrens(shellItem);
          } else {
              global.log("Error: We can not remove the root item.");
