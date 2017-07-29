@@ -3906,21 +3906,6 @@ ConfigurableMenu.prototype = {
       }
    },
 
-   getAllMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
-         return actor._delegate;
-      })
-   },
-
-   getMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
-         return actor._delegate;
-      }).filter(function(item) {
-         return item instanceof ConfigurablePopupBaseMenuItem ||
-                item instanceof ConfigurablePopupMenuSection;
-      });
-   },
-
    _onVectorBoxReleased: function(vector, actor) {
       if(actor && actor._delegate && !actor._delegate.active && this.actor._delegate.setActive) {
          actor._delegate.setActive(true);
@@ -4937,27 +4922,29 @@ ConfigurableMenu.prototype = {
    // menu is higher then the screen; it's useful if part of the menu is
    // scrollable so the minimum height is smaller than the natural height
    setMaxHeight: function() {
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-      let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-      let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
+      if(this.actor) {
+         let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+         let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+         let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
 
-      // The workarea and margin dimensions are in physical pixels, but CSS
-      // measures are in logical pixels, so make sure to consider the scale
-      // factor when computing max-height
-      let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
-      this.actor.style = ('max-height: %spx;').format(maxHeight);
+         // The workarea and margin dimensions are in physical pixels, but CSS
+         // measures are in logical pixels, so make sure to consider the scale
+         // factor when computing max-height
+         let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
+         this.actor.style = ('max-height: %spx;').format(maxHeight);
 
-      let topMenu = this;
-      if(!this._floating)
-         topMenu = this.getTopMenu();
-      if(topMenu) {
-         let [topMinHeight, topNaturalHeight] = topMenu.actor.get_preferred_height(-1);
-         let topThemeNode = topMenu.actor.get_theme_node();
-         let topMaxHeight = topThemeNode.get_max_height();
-         let needsScrollbar = topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
-         if (needsScrollbar) {
-            this._scroll.vscrollbar_policy =
-                 needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+         let topMenu = this;
+         if(!this._floating)
+            topMenu = this.getTopMenu();
+         if(topMenu) {
+            let [topMinHeight, topNaturalHeight] = topMenu.actor.get_preferred_height(-1);
+            let topThemeNode = topMenu.actor.get_theme_node();
+            let topMaxHeight = topThemeNode.get_max_height();
+            let needsScrollbar = topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
+            if (needsScrollbar) {
+               this._scroll.vscrollbar_policy =
+                    needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+            }
          }
       }
    },
@@ -5102,21 +5089,6 @@ ConfigurablePopupMenuSection.prototype = {
          actor = actor.get_parent();
       }
       return null;
-   },
-
-   getAllMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
-         return actor._delegate;
-      })
-   },
-
-   getMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
-         return actor._delegate;
-      }).filter(function(item) {
-         return item instanceof ConfigurablePopupBaseMenuItem ||
-                item instanceof ConfigurablePopupMenuSection;
-      });
    },
 
    getTopMenu: function() {
@@ -8509,7 +8481,8 @@ MenuFactory.prototype = {
    // is not valid right now, so we can destroy it with all the deprecate
    // submenu structure and then create again for the new factoryItem source.
    _onTypeChanged: function(factoryItem, shellItem) {
-      if(shellItem && (shellItem.factoryItem == factoryItem)) {
+      if(shellItem && shellItem.mapped && (shellItem.factoryItem == factoryItem) &&
+         (factoryItem.getFactoryType() != FactoryClassTypes.RootMenuClass)) {
          let shellItemParent = null;
          if(shellItem.getContainer)
              shellItemParent = shellItem.getContainer();
@@ -8525,7 +8498,10 @@ MenuFactory.prototype = {
          // if not insert the item in first position.
          if(pos < 0)
             pos = 0;
-         if(factoryItem.getFactoryType() != FactoryClassTypes.RootMenuClass) {
+         if(shellItem.removeAllMenuItems) {
+             shellItem.removeAllMenuItems();
+             this._createChildrens(shellItem);
+         } else {
              // Now destroy our old self
              this._destroyShellItem(shellItem);
              if(shellItemParent && shellItemParent.addMenuItem) {
@@ -8533,11 +8509,6 @@ MenuFactory.prototype = {
                 let newShellItem = this._createItem(factoryItem);
                 shellItemParent.addMenuItem(newShellItem, null, pos);
              }
-         } else if(shellItem.removeAllMenuItems) {
-             shellItem.removeAllMenuItems();
-             this._createChildrens(shellItem);
-         } else {
-             global.log("Error: We can not remove the root item.");
          }
       }
    },
