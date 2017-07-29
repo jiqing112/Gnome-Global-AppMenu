@@ -274,7 +274,7 @@ MyApplet.prototype = {
          this._actionGroupNotifyId = 0;
          this._busyNotifyId = 0;
 
-         this.gradient = new ConfigurableMenus.GradientLabelMenuItem("", 10);
+         this.gradient = new ConfigurableMenus.GradientLabelMenuItem("", 10, { focusOnHover: false });
          this.actor.add(this.gradient.actor);
          this.actor.connect("enter-event", Lang.bind(this, this._onAppletEnterEvent));
 
@@ -762,12 +762,23 @@ MyApplet.prototype = {
                if(!newMenu) {
                   let menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
                   newMenu = this.menuFactory.buildShellMenu(dbusMenu, this, this.orientation, menuManager);
+                  if(!newMenu.appletStagechangeId) {
+                     newMenu.appletStagechangeId = newMenu.connect('open-state-changed', Lang.bind(this, this._onMenuStateChanged));
+                  }
                }
             }
          }
       }
       this._tryToShow(newLabel, newIcon, newMenu);
       this._tryToTrackAppMenu(app);
+   },
+
+   _onMenuStateChanged: function(menu, open) {
+      if(menu.isInFloatingState()) {
+          this.gradient.setActive(open, true);
+      } else {
+          this.gradient.setActive(false, true);
+      }
    },
 
    _tryToTrackAppMenu: function(app) {
@@ -806,8 +817,9 @@ MyApplet.prototype = {
       if(newMenu != this.menu) {
          this._closeMenu();
          this.menu = newMenu;
-         if(this.menu && this.automaticActiveMainMenu && !this.menu.isInFloatingState())
+         if(this.menu && this.automaticActiveMainMenu && !this.menu.isInFloatingState()) {
             this.menu.open();
+         }
       }
       this.gradient.setText(newLabel);
       if(newIcon != this.gradient.getIcon()) {
@@ -851,8 +863,9 @@ MyApplet.prototype = {
             this.sendWindow = this.currentWindow;
          }
       }
-      if((this.menu)&&(this.openOnHover))
+      if((this.menu)&&(this.openOnHover)) {
          this.menu.open(true);
+      }
    },
 
    on_orientation_changed: function(orientation) {

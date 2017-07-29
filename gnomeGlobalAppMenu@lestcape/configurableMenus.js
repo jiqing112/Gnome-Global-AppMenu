@@ -1769,8 +1769,7 @@ ConfigurablePopupBaseMenuItem.prototype = {
    },
 
    _onButtonReleaseEvent: function(actor, event) {
-      /*Main.notify("called");
-      this.activate(event, false);
+      /*this.activate(event, false);
       return true;*/
    },
 
@@ -2145,18 +2144,23 @@ const PANGO_STYLES = {
    2: Cairo.FontSlant.ITALIC
 };
 
+// Experiment: The Gradient menuitem could be a popupsubmenu.
+// It will control his childrens then base on if they are inside the panel or not.
 function GradientLabelMenuItem() {
    this._init.apply(this, arguments);
 }
 
 GradientLabelMenuItem.prototype = {
    __proto__: ConfigurablePopupBaseMenuItem.prototype,
+   //__proto__: ConfigurablePopupSubMenuMenuItem.prototype,
 
    _init: function(text, size, params) {
       ConfigurablePopupBaseMenuItem.prototype._init.call(this, params);
+      //ConfigurablePopupSubMenuMenuItem.prototype._init.call(this, text, false, true, params);
       this._text = text;
       this._size = size;
       this.margin = 2;
+      this.reactOnActivation = false;
       this._textDegradation = true;
       this.actor.set_style_class_name('popup-menu-item');
       this.actor.add_style_class_name('applet-box');
@@ -2176,6 +2180,12 @@ GradientLabelMenuItem.prototype = {
       this.actor.add(this.actorIcon, { y_align: St.Align.MIDDLE, y_fill: false });
       this.actor.add(this._drawingArea, { y_align: St.Align.MIDDLE, y_fill: false });
       this.actor._delegate = this;
+   },
+
+   setActive: function(active, force) {
+      if(this.reactOnActivation || force) {
+          ConfigurablePopupBaseMenuItem.prototype.setActive.call(this, active);
+      }
    },
 
    _onButtonPressEvent: function(actor, event) {
@@ -2324,6 +2334,7 @@ GradientLabelMenuItem.prototype = {
       this._drawingArea.destroy();
       this._label.destroy();
       ConfigurablePopupBaseMenuItem.prototype.destroy.call(this);
+      //ConfigurablePopupSubMenuMenuItem.prototype.destroy.call(this);
    },
 };
 
@@ -2538,6 +2549,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
           icon_type: St.IconType.SYMBOLIC,
           style_class: 'popup-menu-icon'
       });
+      this.reactOnActivation = true;
       this._triangle.rotation_center_z_gravity = Clutter.Gravity.CENTER;
       if(this._hide_expander)
          this._triangle.hide();
@@ -2731,6 +2743,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    _subMenuOpenStateChanged: function(menu, open) {
       if(open) {
          this.actor.add_style_pseudo_class('open');
+         this.actor.add_style_pseudo_class('active');
          if((!this._hide_expander)&&(this.menu && !this.menu._floating)) {
              let rotationAngle = 90;
              if(this.actor.get_direction() == St.TextDirection.RTL)
@@ -2739,6 +2752,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          }
       } else {
          this.actor.remove_style_pseudo_class('open');
+         this.actor.remove_style_pseudo_class('active');
          this._triangle.rotation_angle_z = 0;
       }
       this.emit('open-state-changed', menu, open);
@@ -2799,12 +2813,13 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
             if(active)
                this.menu.open();
          }
-         ConfigurableBasicPopupMenuItem.prototype.setActive.call(this, active);
+         if(this.reactOnActivation) {
+             ConfigurableBasicPopupMenuItem.prototype.setActive.call(this, active);
+         }
       }
    },
 
    _onButtonPressEvent: function(actor, event) {
-      //Main.notify("called66666");
       if(event.get_button() == 1) {
          if(this.menu && !this._openMenuOnActivation) {
             if((!this.menu.isOpen)&&(this.menu._floating)) {
@@ -2818,8 +2833,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    },
 
    _onButtonReleaseEvent: function(actor, event) {
-/*      Main.notify("called66666");
-      if(event.get_button() == 1) {
+/*   if(event.get_button() == 1) {
          if(this.menu && !this._openMenuOnActivation) {
             if((!this.menu.isOpen)&&(this.menu._floating)) {
                this.menu.repositionActor(this.actor);
@@ -7181,8 +7195,9 @@ ConfigurableMenuApplet.prototype = {
 
    setFloatingState: function(floating) {
       ConfigurableMenu.prototype.setFloatingState.call(this, floating);
-      if(this.launcher)
+      if(this.launcher) {
          this.launcher.actor.set_track_hover(this._floating);
+      }
       this.box.set_vertical(this._floating);
       if(!this._floating) {
          if(this.launcher && !this.actor.get_parent())
@@ -7319,8 +7334,9 @@ ConfigurableMenuApplet.prototype = {
 
    open: function(animate) {
       if(this._floating) {
-         if(this._childMenus.length > 0)
+         if(this._childMenus.length > 0) {
             ConfigurableMenu.prototype.open.call(this, false);
+         }
       } else if(!this.isOpen) {
          if(global.menuStackLength == undefined)
             global.menuStackLength = 0;
@@ -7527,6 +7543,7 @@ ConfigurableMenuApplet.prototype = {
    },
 
    _setMenuInPosition: function(menuItem) {
+      menuItem.reactOnActivation = this._floating;
       if(this._floating) {
          if(menuItem.menu)
             menuItem.menu.setArrowSide(St.Side.LEFT);
@@ -7544,7 +7561,6 @@ ConfigurableMenuApplet.prototype = {
          menuItem.actor.add_style_class_name('applet-box');
          menuItem.actor.add_style_class_name('panel-button');
          menuItem.label.set_style_class_name('applet-label');
-
       }
    },
 
