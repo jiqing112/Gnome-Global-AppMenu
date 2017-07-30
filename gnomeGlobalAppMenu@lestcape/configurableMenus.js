@@ -317,9 +317,9 @@ ScrollItemsBox.prototype = {
 
    setScrollVisible: function(visible) {
       this.visible = visible;
-      if(this.actor.get_vertical())
+      if(this.actor.get_vertical()) {
          this.scroll.get_vscroll_bar().visible = visible;
-      else {
+      } else {
          if((visible)&&(this.idSignalAlloc == 0))
             this.idSignalAlloc = this.actor.connect('allocation_changed', Lang.bind(this, this._onAllocationChanged));
          else if(this.idSignalAlloc > 0) {
@@ -3871,6 +3871,17 @@ ConfigurableMenu.prototype = {
             if(topMenu)
                topMenu.passEvents = false;
          }));
+         let hscroll = this._scroll.get_hscroll_bar();
+         hscroll.connect('scroll-start', Lang.bind(this, function() {
+            let topMenu = this._topMenu;
+            if(topMenu)
+               topMenu.passEvents = true;
+         }));
+         hscroll.connect('scroll-stop', Lang.bind(this, function() {
+            let topMenu = this._topMenu;
+            if(topMenu)
+               topMenu.passEvents = false;
+         }));
          this._boxPointer = new ConfigurablePointer(orientation, {
             x_fill: true,
             y_fill: true,
@@ -4416,8 +4427,10 @@ ConfigurableMenu.prototype = {
       } else {
          this.actor.show();
       }
-
-      Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
+      if (this.box.vertical)
+          Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
+      else
+          Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
       this.emit('open-state-changed', true);
       this.isChanging = false;
    },
@@ -4873,7 +4886,7 @@ ConfigurableMenu.prototype = {
       this._updateTopMenu();
    },
 
-   isInFloatingState: function(animate) {
+   isInFloatingState: function() {
        return this._floating;
    },
 
@@ -4936,7 +4949,7 @@ ConfigurableMenu.prototype = {
    // menu is higher then the screen; it's useful if part of the menu is
    // scrollable so the minimum height is smaller than the natural height
    setMaxHeight: function() {
-      if(this.actor) {
+      if(this.actor && this.isInFloatingState()) {
          let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
          let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
          let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
@@ -4957,6 +4970,35 @@ ConfigurableMenu.prototype = {
             let needsScrollbar = topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
             if (needsScrollbar) {
                this._scroll.vscrollbar_policy =
+                    needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+            }
+         }
+      }
+   },
+
+   setMaxWidth: function() {
+      if(this.actor && this.isInFloatingState()) {
+         let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+         let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+         let verticalMargins = this.actor.margin_left + this.actor.margin_right;
+
+         // The workarea and margin dimensions are in physical pixels, but CSS
+         // measures are in logical pixels, so make sure to consider the scale
+         // factor when computing max-width
+         let maxWidth = Math.round((workArea.width - verticalMargins) / scaleFactor);
+         this.actor.style = ('max-width: %spx;').format(maxWidth);
+
+         let topMenu = this;
+         if(!this._floating)
+            topMenu = this.getTopMenu();
+         this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+         if(topMenu) {
+            let [topMinWidth, topNaturalWidth] = topMenu.actor.get_preferred_width(-1);
+            let topThemeNode = topMenu.actor.get_theme_node();
+            let topMaxWidth = topThemeNode.get_max_width();
+            let needsScrollbar = topMaxWidth >= 0 && topNaturalWidth >= topMaxWidth;
+            if (needsScrollbar) {
+               this._scroll.hscrollbar_policy =
                     needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
             }
          }
@@ -5001,7 +5043,7 @@ ConfigurableMenu.prototype = {
    open: function(animate) {
       if(!this.isOpen) {
          this._openClean();
-         if(this._isFloating)
+         if(this.isInFloatingState())
             this.repositionActor(this.sourceActor);
          if(animate) {
             this._applyEffectOnOpen();
@@ -7175,6 +7217,7 @@ ConfigurableMenuApplet.prototype = {
       this._inWrapMode = false;
       this._openOnHover = false;
       this._startCounter = 0;
+      this._autoScroll = false;
 
       this.launcher.actor.set_track_hover(this._floating);
       let parent = this.actor.get_parent();
@@ -7191,6 +7234,7 @@ ConfigurableMenuApplet.prototype = {
          this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
          this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
       }
+      this._scroll.set_auto_scrolling(true);
    },
 
    setFloatingState: function(floating) {
@@ -7284,6 +7328,28 @@ ConfigurableMenuApplet.prototype = {
       this.launcher._applet_tooltip.preventShow = false;
    },
 
+   setAutoScrolling: function(autoScroll) {
+      this._autoScroll = autoScroll;
+   },
+
+   setMaxWidth: function() {
+      this._scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
+      this._scroll.get_hscroll_bar().visible = true;
+      this.actor.style = '';
+      this._scroll.get_hscroll_bar().get_adjustment().set_value(0);
+      if(this._autoScroll) {
+         if(!this.isInFloatingState()) {
+            let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            let verticalMargins = this.actor.margin_left + this.actor.margin_right;
+            this._scroll.get_hscroll_bar().visible = false;
+            this.actor.style = ('max-width: %spx;').format(this.actor.width);
+            this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+         } else {
+            ConfigurableMenu.prototype.setMaxWidth.call(this);
+         }
+      }
+   },
+
    toggleSubmenu: function(animate) {
       if(this._isSubMenuOpen)
          this.closeSubmenu(animate);
@@ -7341,6 +7407,10 @@ ConfigurableMenuApplet.prototype = {
          if(global.menuStackLength == undefined)
             global.menuStackLength = 0;
          global.menuStackLength += 1;
+         if (this.box.vertical)
+            Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
+         else
+            Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
          this.actor.show();
          this.isOpen = true;
          this.emit('open-state-changed', true);
@@ -7427,6 +7497,10 @@ ConfigurableMenuApplet.prototype = {
       } else {
          ConfigurableMenu.prototype.addMenuItem.call(this, menuItem, params, position);
       }
+      if (this.box.vertical)
+         Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
+      else
+         Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
    },
 
    removeMenuItem: function(menuItem) {
@@ -7437,6 +7511,10 @@ ConfigurableMenuApplet.prototype = {
          menuItem.actor.disconnect(menuItem._notifyHoverId);
       }
       ConfigurableMenu.prototype.removeMenuItem.call(this, menuItem);
+      if (this.box.vertical)
+         Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
+      else
+         Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
    },
 
    _onMenuItemHoverChanged: function(actor) {

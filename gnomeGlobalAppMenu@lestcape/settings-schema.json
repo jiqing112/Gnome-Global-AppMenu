@@ -24,8 +24,14 @@
     "replace-appmenu" : {
         "type" : "checkbox",
         "default" : false,
-        "description": "Use the extension as a replace of Gnome AppMenu",
+        "description": "Use the extension as a replace of Gnome AppMenu (Experimental)",
         "tooltip": "Select if you want to use the extension as a replace of Gnome AppMenu."
+    },
+    "autoscrollig-appmenu" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Enable the panel menu auto scrolling (Experimental)",
+        "tooltip": "Select if you want to enable the auto scrolling feature inside the panel menu when there is no space available."
     },
     "separator-application-top" : {
         "type": "separator"

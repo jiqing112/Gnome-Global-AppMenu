@@ -59,6 +59,7 @@ MyMenuFactory.prototype = {
       this._openSubMenu = false;
       this._closeSubMenu = false;
       this._floatingMenu = false;
+      this._autoScrollig = false;
       this._floatingSubMenu = true;
       this._alignSubMenu = false;
       this._showItemIcon = true;
@@ -128,6 +129,18 @@ MyMenuFactory.prototype = {
             let shellMenu = this._menuLinkend[pos];
             if(shellMenu) {
                shellMenu.setFloatingState(this._floatingMenu);
+            }
+         }
+      }
+   },
+
+   setAutoScrolligAppMenu: function(autoScrollig) {
+      if(this._autoScrollig != autoScrollig) {
+         this._autoScrollig = autoScrollig;
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
+            if(shellMenu) {
+               shellMenu.setAutoScrolling(this._autoScrollig);
             }
          }
       }
@@ -225,6 +238,7 @@ MyMenuFactory.prototype = {
       //    throw new TypeError('Trying to instantiate a shell item with an invalid factory type');
       if(itemType == ConfigurableMenus.FactoryClassTypes.RootMenuClass) {
          shellItem.setFloatingState(this._floatingMenu);
+         shellItem.setAutoScrolling(this._autoScrollig);
          shellItem.setOpenOnHover(this._openOnHover);
       } else if(itemType == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
          shellItem.menu.setFloatingState(this._floatingSubMenu);
@@ -379,6 +393,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-search-provider", "enableProvider", this._onEnableProviderChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-environment", "enableEnvironment", this._onEnableEnvironmentChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "replace-appmenu", "replaceAppMenu", this._onReplaceAppMenuChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "autoscrollig-appmenu", "autoScrolligAppMenu", this._onAutoScrolligAppMenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-jayantana", "enableJayantana", this._onEnableJayantanaChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-icon", "showAppIcon", this._onShowAppIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "desaturate-app-icon", "desaturateAppIcon", this._onDesaturateAppIconChanged, null);
@@ -426,6 +441,7 @@ MyApplet.prototype = {
       this._onEffectTypeChanged();
       this._onEffectTimeChanged();
       this._onReplaceAppMenuChanged();
+      this._onAutoScrolligAppMenuChanged();
    },
 
    _initEnvironment: function() {
@@ -562,6 +578,10 @@ MyApplet.prototype = {
             Main.panel._leftBox.insert_child_at_index(this.actor, children.length);
          }
       }
+   },
+
+   _onAutoScrolligAppMenuChanged: function() {
+      this.menuFactory.setAutoScrolligAppMenu(this.autoScrolligAppMenu);
    },
 
    _onEnableProviderChanged: function() {
