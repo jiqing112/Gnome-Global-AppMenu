@@ -1,5 +1,9 @@
-Gnome Shell Extension: Gnome Global Application Menu Version: v0.7-Beta
+Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
 --------------
+
+**Discontinued:** https://github.com/lestcape/Gnome-Global-AppMenu/issues/63
+--------------
+
 I don't want donations, I work only for users and not for companies or communities that receive money or donations.
 
 
