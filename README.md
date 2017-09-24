@@ -9,7 +9,7 @@ I don't want donations, I work only for users and not for companies or communiti
 
 This is a fork of an old extension I made for Cinnamon. The initial extension doesn't support Cinnamon anymore, as all extensions were `forked by Clement`
 
-Latest update: 16 April 2017
+Latest update: 24 September 2017
 
 ***
 Special thanks to:
@@ -17,10 +17,12 @@ Special thanks to:
 
 - rgcjonas             (https://github.com/rgcjonas)               The initial code.
 - Canonical devs       (http://www.canonical.com/)                 The protocols and patches.
-- Cinnamon devs        (https://github.com/mtwebster)              Who help me to find the xsettings.
-- Gnome Shell devs     (https://github.com/GNOME/gnome-shell)      The support.
-- rilian-la-te         (https://github.com/rilian-la-te)           Understand and fix a lot of things.
+- Cinnamon devs        (https://github.com/linuxmint/cinnamon)     The settings (specially @JosephMcc)
+- jaszhix              (https://github.com/jaszhix)                Has helped to port the settings to gjs from python.
+- mtwebster            (https://github.com/mtwebster)              Has helped to implement it in the Cinnamon desktop.
 - collinss             (https://github.com/collinss)               Has helped fix the behavior of firefox and thunderbird.
+- Gnome Shell devs     (https://github.com/GNOME/gnome-shell)      The support of most of internal API and toolkit.
+- rilian-la-te         (https://github.com/rilian-la-te)           Understand and fix a lot of things.
 
 Translators:
 --------------
@@ -42,11 +44,13 @@ Description
 --------------
 **Warning:** This is a third-party extension, not official.
 
-This extension integrates the Ubuntu-Unity Application Menu (Global Menu) support into the Gnome Shell Desktop.
+This extension integrates the Ubuntu-Unity Application Menu (Global Menu) support into the Gnome Shell desktop.
 
-It's used the same idea of the Gnome Shell extension made by rgcjonas:
+It's based on patches made by Giovanni Campagna:
+https://bugzilla.gnome.org/show_bug.cgi?id=652122used 
 
-https://github.com/rgcjonas/gnome-shell-extension-appindicator
+Also used the same idea of the Gnome Shell extension made by @rgcjonas (with is now part of ubuntu code):
+https://github.com/ubuntu/gnome-shell-extension-appindicator
 
 Known issues (Try at your own risk):
 --------------
@@ -74,6 +78,15 @@ Changelog
 --------------
 0.7-Beta
  - Initialized the support into the Gnome Shell enviroment.
+ - A lot of bug fixed to work inside gnome shell.
+ - A lot of translation was added. Thank to different peoples.
+ - The settings was ported to gjs.
+ - Added a gnome shell provider to search for menu actions.
+ - Added a hud-menu to search for menu action.
+ - Was improved the support to have several dbusmenu providers.
+ - More experimental options was added, but they remain incomplete.
+ - Was ported to our API the appmenu of gnome-shell.
+ - Was introduced a hack to disable the appmenu of gnome.
 
 0.6-Beta
  - Added Croatian language, thanks to https://github.com/muzena
@@ -176,5 +189,6 @@ Uninstallation instructions:
 Restart your computer.
 
 ==============
+
 Thank you very much for using this product.
 Lester.
