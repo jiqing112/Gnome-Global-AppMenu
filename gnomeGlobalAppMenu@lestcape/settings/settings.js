@@ -16,6 +16,7 @@ const Main = imports.ui.main;
 
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
 const Config = MyExtension.imports.settings.config;
+const MD5 = MyExtension.imports.settings.md5;
 const SettingsDBusServer = MyExtension.imports.settings.settingsDbusServer;
 const EXTENSION_PATH = MyExtension.dir.get_path();
 
@@ -607,19 +608,19 @@ XletSettingsBase.prototype = {
             this.settingsData = this._loadFromFile();
             if (templateFile.query_exists(null)) {
                 let templateData = Shell.get_file_contents_utf8_sync(templateFile.get_path());
-                let checksum = global.get_md5_for_string(templateData);
+                let checksum = MD5.md5(templateData);
 
                 try {
                     if (checksum != this.settingsData.__md5__) this._doUpgrade(templateData, checksum);
                     needsSave = true;
                 } catch(e) {
                     if (e) global.logError(e);
-                    global.logWarning("upgrade failed for " + this.uuid + ": falling back to previous settings");
+                    global.log("Upgrade failed for " + this.uuid + ": falling back to previous settings");
                 }
             }
             // if settings-schema.json is missing, we can still load the settings from data, so we
             // will merely skip the upgrade test
-            else global.logWarning("Couldn't find file settings-schema.json for " + this.uuid + ": skipping upgrade");
+            else global.log("Couldn't find file settings-schema.json for " + this.uuid + ": skipping upgrade");
         }
         else {
             // If the settings haven't already been installed, we need to do that now
@@ -650,7 +651,7 @@ XletSettingsBase.prototype = {
 
     _doInstall: function(templateData) {
         global.log("Installing settings for " + this.uuid);
-        let checksum = global.get_md5_for_string(templateData);
+        let checksum = MD5.md5(templateData);
         this.settingsData = JSON.parse(templateData);
         for (let key in this.settingsData) {
             let props = this.settingsData[key];

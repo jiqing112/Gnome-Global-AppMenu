@@ -15,10 +15,10 @@ const Main = imports.ui.main;
 const Util = imports.misc.util;
 const ModalDialog = imports.ui.modalDialog;
 const DND = imports.ui.dnd;
-const PopupMenu = imports.ui.popupMenu;
 
 const ExtensionSystem = imports.ui.extensionSystem;
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
+const ConfigurableMenus = MyExtension.imports.configurableMenus;
 
 
 const COLOR_ICON_HEIGHT_FACTOR = .875;  // Panel height factor for normal color icons
@@ -279,14 +279,14 @@ SpicesAboutDialog.prototype = {
         //icon
         let icon;
         if (metadata.icon) {
-            icon = new St.Icon({icon_name: metadata.icon, icon_size: 48, icon_type: St.IconType.FULLCOLOR, style_class: "about-icon"});
+            icon = new St.Icon({icon_name: metadata.icon, icon_size: 48, style_class: "about-icon"});
         } else {
             let file = Gio.file_new_for_path(MyExtension.path).get_child("icon.png");
             if (file.query_exists(null)) {
                 let gicon = new Gio.FileIcon({file: file});
-                icon = new St.Icon({gicon: gicon, icon_size: 48, icon_type: St.IconType.FULLCOLOR, style_class: "about-icon"});
+                icon = new St.Icon({gicon: gicon, icon_size: 48, style_class: "about-icon"});
             } else {
-                icon = new St.Icon({icon_name: "cs-"+type, icon_size: 48, icon_type: St.IconType.FULLCOLOR, style_class: "about-icon"});
+                icon = new St.Icon({icon_name: "cs-"+type, icon_size: 48, style_class: "about-icon"});
             }
         }
         topBox.add_actor(icon);
@@ -403,16 +403,6 @@ SpicesAboutDialog.prototype = {
 }
 
 /**
- * #MenuItem
- * @short_description: Deprecated. Use #PopupMenu.PopupIconMenuItem instead.
- */
-function MenuItem(label, icon, callback) {
-    this.__proto__ = PopupMenu.PopupIconMenuItem.prototype;
-    PopupMenu.PopupIconMenuItem.prototype._init.call(this, label, icon, St.IconType.SYMBOLIC);
-    this.connect('activate', callback);
-}
-
-/**
  * #AppletContextMenu
  * @short_description: Applet right-click menu
  *
@@ -425,7 +415,7 @@ function AppletContextMenu(launcher, orientation) {
 }
 
 AppletContextMenu.prototype = {
-    __proto__: PopupMenu.PopupMenu.prototype,
+    __proto__: ConfigurableMenus.ConfigurableMenu.prototype,
 
     /**
      * _init:
@@ -435,7 +425,7 @@ AppletContextMenu.prototype = {
      * Constructor function
      */
     _init: function(launcher, orientation) {
-        PopupMenu.PopupMenu.prototype._init.call(this, launcher.actor, orientation);
+        ConfigurableMenus.ConfigurableMenu.prototype._init.call(this, launcher, 0.0, orientation, true);
         this.launcher = launcher;
         Main.uiGroup.add_actor(this.actor);
         this.actor.hide();
@@ -446,7 +436,10 @@ AppletContextMenu.prototype = {
     },
 
     _onOpenStateChanged: function(menu, open, sourceActor) {
-        sourceActor.change_style_pseudo_class("checked", open);
+        if(open)
+           sourceActor.add_style_pseudo_class("checked");
+        else
+           sourceActor.remove_style_pseudo_class("checked");
     },
 
     destroy: function() {
@@ -454,7 +447,7 @@ AppletContextMenu.prototype = {
             this.launcher.disconnect(this._orientationId);
             this._orientationId = null;
         }
-        PopupMenu.PopupMenu.prototype.destroy.call(this);
+        ConfigurableMenus.ConfigurableMenu.prototype.destroy.call(this);
     }
 };
 
@@ -471,7 +464,7 @@ function AppletPopupMenu(launcher, orientation) {
 }
 
 AppletPopupMenu.prototype = {
-    __proto__: PopupMenu.PopupMenu.prototype,
+    __proto__: ConfigurableMenus.ConfigurableMenu.prototype,
 
     /**
      * _init:
@@ -481,7 +474,7 @@ AppletPopupMenu.prototype = {
      * Constructor function
      */
     _init: function(launcher, orientation) {
-        PopupMenu.PopupMenu.prototype._init.call(this, launcher.actor, orientation);
+        ConfigurableMenus.ConfigurableMenu.prototype._init.call(this, launcher, 0.0, orientation, true);
         Main.uiGroup.add_actor(this.actor);
         this.actor.hide();
         this.launcher = launcher;
@@ -507,7 +500,7 @@ AppletPopupMenu.prototype = {
             this.launcher.disconnect(this._orientationId);
             this._orientationId = null;
         }
-        PopupMenu.PopupMenu.prototype.destroy.call(this);
+        ConfigurableMenus.ConfigurableMenu.prototype.destroy.call(this);
     }
 };
 
@@ -558,10 +551,13 @@ Applet.prototype = {
         this._allowedLayout = AllowedLayout.HORIZONTAL;
         this.setOrientationInternal(orientation);
 
+        //Add our search path
+        Gtk.IconTheme.get_default().append_search_path(MyExtension.dir.get_child("icons").get_path());
+
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonReleaseEvent));
         this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
 
-        this._menuManager = new PopupMenu.PopupMenuManager(this);
+        this._menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
         this._applet_context_menu = new AppletContextMenu(this, orientation);
         this._menuManager.addMenu(this._applet_context_menu);
 
@@ -835,28 +831,32 @@ Applet.prototype = {
         let items = this._applet_context_menu._getMenuItems();
 
         if (this.context_menu_item_remove == null) {
-            this.context_menu_item_remove = new PopupMenu.PopupIconMenuItem(_("Remove '%s'").format(_(this._meta.name)),
-                   "edit-delete",
-                   St.IconType.SYMBOLIC);
+            this.context_menu_item_remove = new ConfigurableMenus.ConfigurableBasicPopupMenuItem(_("Remove '%s'").format(_(this._meta.name)));
+            this.context_menu_item_remove.setIconName("edit-delete");
+            this.context_menu_item_remove.setIconVisible(true);
+            //this.context_menu_item_remove.setIconType(St.IconType.SYMBOLIC);
+            this.context_menu_item_remove.setIconSymbolic(true);
             this.context_menu_item_remove.connect('activate', Lang.bind(this, function() {
-               let enabled = global.settings.get_strv('enabled-extensions');
-               let index = enabled.indexOf(MyExtension.uuid);
-               if (index > -1) {
-                  enabled.splice(index, 1);
-               }
-               global.settings.set_strv('enabled-extensions', enabled);
+                let enabled = global.settings.get_strv('enabled-extensions');
+                let index = enabled.indexOf(MyExtension.uuid);
+                if (index > -1) {
+                    enabled.splice(index, 1);
+                }
+                global.settings.set_strv('enabled-extensions', enabled);
             }));
         }
 
         if (this.context_menu_item_about == null) {
-            this.context_menu_item_about = new PopupMenu.PopupIconMenuItem(_("About..."),
-                    "dialog-question",
-                    St.IconType.SYMBOLIC);
+            this.context_menu_item_about = new ConfigurableMenus.ConfigurableBasicPopupMenuItem(_("About..."));
+            this.context_menu_item_about.setIconName("dialog-question");
+            this.context_menu_item_about.setIconVisible(true);
+            //this.context_menu_item_about.setIconType(St.IconType.SYMBOLIC);
+            this.context_menu_item_about.setIconSymbolic(true);
             this.context_menu_item_about.connect('activate', Lang.bind(this, this.openAbout));
         }
 
         if (this.context_menu_separator == null) {
-            this.context_menu_separator = new PopupMenu.PopupSeparatorMenuItem();
+            this.context_menu_separator = new ConfigurableMenus.ConfigurableSeparatorMenuItem();
         }
 
         if (this._applet_context_menu._getMenuItems().length > 0) {
@@ -868,10 +868,12 @@ Applet.prototype = {
         }
 
         if (!this._meta["hide-configuration"] && GLib.file_test(MyExtension.path + "/settings-schema.json", GLib.FileTest.EXISTS)) {
-            if (this.context_menu_item_configure == null) {
-                this.context_menu_item_configure = new PopupMenu.PopupIconMenuItem(_("Configure..."),
-                        "system-run",
-                        St.IconType.SYMBOLIC);
+            if (this.context_menu_item_configure == null) {            
+                this.context_menu_item_configure = new ConfigurableMenus.ConfigurableBasicPopupMenuItem(_("Configure..."));
+                this.context_menu_item_configure.setIconName("system-run");
+                this.context_menu_item_configure.setIconVisible(true);
+                //this.context_menu_item_configure.setIconType(St.IconType.SYMBOLIC);
+                this.context_menu_item_configure.setIconSymbolic(true);
                 this.context_menu_item_configure.connect('activate', Lang.bind(this, this.configureApplet));
             }
             if (items.indexOf(this.context_menu_item_configure) == -1) {
@@ -891,7 +893,10 @@ Applet.prototype = {
      * Turns on/off the highlight of the applet
      */
     highlight: function(highlight) {
-        this.actor.change_style_pseudo_class("highlight", highlight);
+        if(highlight)
+           this.actor.add_style_pseudo_class("highlight");
+        else
+           this.actor.remove_style_pseudo_class("highlight");
     },
 
     openAbout: function() {
@@ -931,6 +936,7 @@ IconApplet.prototype = {
         Applet.prototype._init.call(this, orientation, panel_height, instance_id);
 
         this._applet_icon_box = new St.Bin(); // https://developer.gnome.org/st/stable/StBin.htm
+        this.isSymbolic = false;
 
         this._applet_icon_box.set_fill(true,true);
         this._applet_icon_box.set_alignment(St.Align.MIDDLE,St.Align.MIDDLE);
@@ -949,7 +955,7 @@ IconApplet.prototype = {
         this._ensureIcon();
 
         this._applet_icon.set_icon_name(icon_name);
-        this._applet_icon.set_icon_type(St.IconType.FULLCOLOR);
+        this.isSymbolic = true;
         this._setStyle();
     },
 
@@ -964,8 +970,8 @@ IconApplet.prototype = {
     set_applet_icon_symbolic_name: function (icon_name) {
         this._ensureIcon();
 
-        this._applet_icon.set_icon_name(icon_name);
-        this._applet_icon.set_icon_type(St.IconType.SYMBOLIC);
+        this._applet_icon.set_icon_name(icon_name+"-symbolic");
+        this.isSymbolic = true;
         this._setStyle();
     },
 
@@ -983,7 +989,7 @@ IconApplet.prototype = {
         try {
             let file = Gio.file_new_for_path(icon_path);
             this._applet_icon.set_gicon(new Gio.FileIcon({ file: file }));
-            this._applet_icon.set_icon_type(St.IconType.FULLCOLOR);
+            this.isSymbolic = false;
             this._setStyle();
         } catch (e) {
             global.log(e);
@@ -1004,7 +1010,7 @@ IconApplet.prototype = {
         try {
             let file = Gio.file_new_for_path(icon_path);
             this._applet_icon.set_gicon(new Gio.FileIcon({ file: file }));
-            this._applet_icon.set_icon_type(St.IconType.SYMBOLIC);
+            this.isSymbolic = true;
             this._setStyle();
         } catch (e) {
             global.log(e);
@@ -1018,30 +1024,32 @@ IconApplet.prototype = {
         this._applet_icon_box.set_child(this._applet_icon);
     },
 
+    _getScale: function() {
+        try {
+            let scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            if(scale)
+                return scale;
+        } catch(e) {
+            //do nothing
+        }
+        return 1;
+    },
+
     _setStyle: function() {
+        let scale = this._getScale();
+        let symb_scaleup = ((this._panelHeight / DEFAULT_PANEL_HEIGHT) * PANEL_SYMBOLIC_ICON_DEFAULT_HEIGHT) / scale;
+        let fullcolor_scaleup = this._panelHeight * COLOR_ICON_HEIGHT_FACTOR / scale;
 
-        let symb_scaleup = ((this._panelHeight / DEFAULT_PANEL_HEIGHT) * PANEL_SYMBOLIC_ICON_DEFAULT_HEIGHT) / global.ui_scale;
-        let fullcolor_scaleup = this._panelHeight * COLOR_ICON_HEIGHT_FACTOR / global.ui_scale;
-        let icon_type = this._applet_icon.get_icon_type();
-
-        switch (icon_type) {
-            case St.IconType.FULLCOLOR:
-                this._applet_icon.set_icon_size(this._scaleMode ?
-                                                fullcolor_scaleup :
-                                                DEFAULT_ICON_HEIGHT);
-                this._applet_icon.set_style_class_name('applet-icon');
-            break;
-            case St.IconType.SYMBOLIC:
-                this._applet_icon.set_icon_size(this._scaleMode ?
-                                                symb_scaleup :
-                                                -1);
-                this._applet_icon.set_style_class_name('system-status-icon');
-            break;
-            default:
-                this._applet_icon.set_icon_size(this._scaleMode ?
-                                                symb_scaleup :
-                                                -1);
-                                                this._applet_icon.set_style_class_name('system-status-icon');
+        if(this.isSymbolic) {
+            this._applet_icon.set_icon_size(this._scaleMode ?
+                                            fullcolor_scaleup :
+                                            DEFAULT_ICON_HEIGHT);
+            this._applet_icon.set_style_class_name('applet-icon');
+        } else {
+            this._applet_icon.set_icon_size(this._scaleMode ?
+                                            symb_scaleup :
+                                            -1);
+            this._applet_icon.set_style_class_name('system-status-icon');
         }
     },
 

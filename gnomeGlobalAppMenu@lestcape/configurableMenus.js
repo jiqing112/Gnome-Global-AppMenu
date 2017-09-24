@@ -57,13 +57,118 @@ const FactoryEventTypes = {
    'clicked'   : "clicked"
 };
 
+const ScrollBox = new Lang.Class({
+    Name: 'ScrollBox',
+    Extends: St.ScrollView,
+
+    _init: function(params) {
+        this.parent(params);
+        this._timeOutScroll = null;
+    },
+
+    _doScrolling: function() {
+        if(this._timeOutScroll) {
+            Mainloop.source_remove(this._timeOutScroll);
+            this._timeOutScroll = null;
+            if(this._actorScrolling && this.auto_scrolling &&
+               this._auto_scrolling_id || (this._auto_scrolling_id !== undefined)) {
+                let dMin = 20;
+                let dMax = 100;
+                let speed = 10;
+                let hScroll = this._actorScrolling.get_hscroll_bar();
+                let vScroll = this._actorScrolling.get_vscroll_bar();
+                let hAdjustment = hScroll.get_adjustment();
+                let vAdjustment = vScroll.get_adjustment();
+                let [mx, my, mask] = global.get_pointer();
+                let [ax, ay] = this._actorScrolling.get_transformed_position();
+                let [aw, ah] = [this._actorScrolling.get_width(), this._actorScrolling.get_height()];
+                if((vAdjustment.upper > vAdjustment.page_size) && (mx < ax + aw) && (mx > ax)) {
+                    if((my < ay + dMin) && (my > ay - dMax)) {
+                        if(ay > my)
+                            speed = speed*(ay - my);
+                        let val = vAdjustment.get_value();
+                        vAdjustment.set_value(val - speed);
+                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                    } else if((my > ay + ah - dMin)&&(my < ay + ah + dMax)) {
+                        if(ay + ah < my)
+                            speed = speed*(my - ay - ah);
+                        let val = vAdjustment.get_value();
+                        vAdjustment.set_value(val + speed);
+                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                    }
+                } else if ((hAdjustment.upper > hAdjustment.page_size) && (my < ay + ah) && (my > ay)) {
+                    if((mx < ax + dMin) && (mx > ax - dMax)) {
+                        if(ax > mx)
+                            speed = speed*(ax - mx);
+                        let val = hAdjustment.get_value();
+                        hAdjustment.set_value(val - speed);
+                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                    } else if((mx > ax + aw - dMin)&&(mx < ax + aw + dMax)) {
+                        if(ax + aw < mx)
+                            speed = speed*(mx - ax - aw);
+                        let val = hAdjustment.get_value();
+                        hAdjustment.set_value(val + speed);
+                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                    }
+                }
+            }
+        }
+    },
+
+    _onMotionEvent: function(actor, event) {
+        let hScroll = this.get_hscroll_bar();
+        let vScroll = this.get_vscroll_bar();
+        let hAdjustment = hScroll.get_adjustment();
+        let vAdjustment = vScroll.get_adjustment();
+        this._timeOutScroll = null;
+        if(vAdjustment.upper > vAdjustment.page_size) {
+            this._actorScrolling = actor;
+            let dMin = 20;
+            let dMax = 100;
+            let [mx, my] = event.get_coords();
+            let [ax, ay] = this._actorScrolling.get_transformed_position();
+            let [aw, ah] = [this._actorScrolling.get_width(), this._actorScrolling.get_height()];
+            if((mx < ax + aw)&&(mx > ax)&&((my < ay + dMin)&&(my > ay - dMax))||
+               ((my > ay + ah - dMin)&&(my < ay + ah + dMax))) {
+                this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+            }
+        } else if(hAdjustment.upper > hAdjustment.page_size) {
+            this._actorScrolling = actor;
+            let dMin = 20;
+            let dMax = 100;
+            let [mx, my] = event.get_coords();
+            let [ax, ay] = this._actorScrolling.get_transformed_position();
+            let [aw, ah] = [this._actorScrolling.get_width(), this._actorScrolling.get_height()];
+            if((my < ay + ah)&&(my > ay)&&((mx < ax + dMin)&&(mx > ax - dMax))||
+               ((mx > ax + aw - dMin)&&(mx < ax + aw + dMax))) {
+                this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+            }
+        }
+    },
+
+    set_auto_scrolling: function(auto_scrolling) {
+        try {
+            if (this.auto_scrolling != auto_scrolling) {
+                this.auto_scrolling = auto_scrolling;
+                if (this.auto_scrolling && (!this._auto_scrolling_id || (this._auto_scrolling_id === undefined))) {
+                    this._auto_scrolling_id = this.connect('motion-event', Lang.bind(this, this._onMotionEvent));
+                } else if(!this.auto_scrolling && (this._auto_scrolling_id || (this._auto_scrolling_id !== undefined))) {
+                    this.disconnect(this._auto_scrolling_id);
+                    this._auto_scrolling_id = null;
+                }
+            }
+        } catch(e) {
+            log("Invalid auto scrolling" + e);
+        }
+    },
+});
+
 function ScrollItemsBox() {
    this._init.apply(this, arguments);
 }
 
 ScrollItemsBox.prototype = {
-   _init: function(parent, panelToScroll, vertical, align, fill) {
-      this.parent = parent;
+   _init: function(panelToScroll, vertical, align, fill) {
       this.idSignalAlloc = 0;
       this._timeOutScroll = 0;
       this._idReparent = 0;
@@ -182,7 +287,7 @@ ScrollItemsBox.prototype = {
    _createScroll: function(vertical) {
       let scrollBox;
       if(vertical) {
-         scrollBox = new St.ScrollView({
+         scrollBox = new ScrollBox({
             x_fill: true, y_fill: false, y_align: St.Align.START,
             style_class: 'vfade menu-applications-scrollbox'
          });
@@ -201,7 +306,7 @@ ScrollItemsBox.prototype = {
                   menu.passEvents = false;
             }));
       } else {
-         scrollBox = new St.ScrollView({
+         scrollBox = new ScrollBox({
             x_fill: false, y_fill: true,
             x_align: St.Align.START, style_class: 'hfade menu-applications-scrollbox'
          });
@@ -358,7 +463,7 @@ ScrollItemsBox.prototype = {
 
    _getAllocationActor: function(actor, currHeight) {
       let actorParent = actor.get_parent();
-      if((actorParent != null)&&(actorParent != this.parent)) {//FIXME
+      if(actorParent != null) {
          if(actorParent != this.panelToScroll) {
             return this._getAllocationActor(actorParent, currHeight + actor.get_allocation_box().y1);
          } else {
@@ -1939,9 +2044,9 @@ ConfigurablePopupSwitchMenuItem.prototype = {
       this._switch = new Switch(active);
 
       if(active)
-         this.icon = new St.Icon({ icon_name: this._imageOn, icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
+         this.icon = new St.Icon({ icon_name: this._imageOn, style_class: 'popup-menu-icon' });
       else
-         this.icon = new St.Icon({ icon_name: this._imageOff, icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
+         this.icon = new St.Icon({ icon_name: this._imageOff, style_class: 'popup-menu-icon' });
 
       this._statusBin = new St.Bin({ x_align: St.Align.END });
       this._statusBin.set_margin_left(6.0);
@@ -2013,12 +2118,10 @@ ConfigurableEntryItem.prototype = {
       });
 
       this._searchActiveIcon = new St.Icon({
-         style_class: 'menu-search-entry-icon',
-         icon_type: St.IconType.SYMBOLIC 
+         style_class: 'menu-search-entry-icon-symbolic',
       });
       this._searchInactiveIcon = new St.Icon({
-         style_class: 'menu-search-entry-icon',
-         icon_type: St.IconType.SYMBOLIC
+         style_class: 'menu-search-entry-icon-symbolic',
       });
       this._previousSearchPattern = "";
 
@@ -2382,7 +2485,8 @@ ConfigurableBasicPopupMenuItem.prototype = {
       ConfigurablePopupMenuItem.prototype._init.call(this, text, params);
       this._icon = new St.Icon({ style_class: 'popup-menu-icon' });
       this._icon.hide();
-      this.actor.insert_before(this._icon, this.label);
+      this._isSymbolic = false;
+      this.actor.insert_child_below(this._icon, this.label);
       this._displayIcon = false;
    },
 
@@ -2402,10 +2506,20 @@ ConfigurableBasicPopupMenuItem.prototype = {
    setIconName: function(name) {
       this._icon.visible = ((this._displayIcon) && (name && name != ""));
       this._icon.icon_name = name;
+      this.setIconSymbolic(this._isSymbolic);
    },
 
-   setIconType: function(type) {
-      this._icon.set_icon_type(type);
+   setIconSymbolic: function(symbolic) {
+      this._isSymbolic = symbolic;
+      if(symbolic && this._icon.icon_name &&
+         ((this._icon.icon_name.length < 10) ||
+         (this._icon.icon_name.substr(this._icon.icon_name.length - 9) != "-symbolic"))) {
+          this._icon.icon_name = this._icon.icon_name + "-symbolic";
+      } else if(!symbolic && this._icon.icon_name &&
+          (this._icon.icon_name.length >= 10) &&
+          (this._icon.icon_name.substr(this._icon.icon_name.length - 9) == "-symbolic")) {
+          this._icon.icon_name = this._icon.icon_name.substr(0, this._icon.icon_name.length - 9);
+      }
    },
 
    setIconSize: function(size) {
@@ -2419,7 +2533,7 @@ ConfigurableBasicPopupMenuItem.prototype = {
           this._icon.destroy();
       }
       this._icon = new St.Icon({ style_class: 'popup-menu-icon', gicon: gicon });
-      this.actor.insert_before(this._icon, this.label);
+      this.actor.insert_child_below(this._icon, this.label);
       this._icon.visible = ((this._displayIcon) && (gicon != null));
    },
 
@@ -2545,8 +2659,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       this._arrowSide = St.Side.LEFT;
       this._hide_expander = (hideExpander == true);
       this._triangle = new St.Icon({ 
-          icon_name: "media-playback-start",
-          icon_type: St.IconType.SYMBOLIC,
+          icon_name: "media-playback-start-symbolic",
           style_class: 'popup-menu-icon'
       });
       this.reactOnActivation = true;
@@ -2612,9 +2725,8 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
             break;
       }
       let arrow = new St.Icon({
-         style_class: 'popup-menu-arrow',
+         style_class: 'popup-menu-arrow-symbolic',
          icon_name: iconName,
-         icon_type: St.IconType.SYMBOLIC,
          y_expand: true,
          y_align: Clutter.ActorAlign.CENTER
       });
@@ -2695,7 +2807,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
                         this.actor.remove_actor(this._triangle);
                         let childs = this.actor.get_children();
                         if(childs.length > 0) {
-                           this.actor.insert_before(this._triangle, childs[childs.length-1]);
+                           this.actor.insert_child_below(this._triangle, childs[childs.length-1]);
                         } else {
                            this.actor.add(this._triangle);
                         }
@@ -2746,7 +2858,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          this.actor.add_style_pseudo_class('active');
          if((!this._hide_expander)&&(this.menu && !this.menu._floating)) {
              let rotationAngle = 90;
-             if(this.actor.get_direction() == St.TextDirection.RTL)
+             if(this.actor.get_text_direction() == Clutter.TextDirection.RTL)
                 rotationAngle = 270;
              this._triangle.rotation_angle_z = rotationAngle;
          }
@@ -2883,7 +2995,6 @@ ConfigurableMenuManager.prototype = {
       this._activeMenu = null;
       this._menus = [];
       this._menuStack = [];
-      this._preGrabInputMode = null;
       this._grabbedFromKeynav = false;
 
       this._lastMenuTimeOut = 0;
@@ -3024,7 +3135,6 @@ ConfigurableMenuManager.prototype = {
 
       if(open) {
          if(!this.grabbed) {
-            this._preGrabInputMode = global.stage_input_mode;
             this._grabbedFromKeynav = hadFocus;
             this._grab();
          }
@@ -3039,8 +3149,6 @@ ConfigurableMenuManager.prototype = {
          this._activeMenu = null;
 
          if(this._grabbedFromKeynav) {
-            //if(this._preGrabInputMode == Shell.StageInputMode.FOCUSED)
-            //   global.stage_input_mode = Shell.StageInputMode.FOCUSED;
             if(hadFocus && menu.sourceActor && menu.actor.contains(focus))
                menu.sourceActor.grab_key_focus();
             else if(focus)
@@ -3847,7 +3955,7 @@ ConfigurableMenu.prototype = {
          // Since a function of a submenu might be to provide a "More.." expander
          // with long content, we make it scrollable - the scrollbar will only take
          // effect if a CSS max-height is set on the top menu.
-         this._scroll = new St.ScrollView({
+         this._scroll = new ScrollBox({
             style_class: 'popup-sub-menu',
             hscrollbar_policy: Gtk.PolicyType.NEVER,
             vscrollbar_policy: Gtk.PolicyType.NEVER
@@ -4001,7 +4109,6 @@ ConfigurableMenu.prototype = {
    },
 
    _onMenuButtonPress: function(actor, event) {
-      //Main.notify("called111");
       if((this._controlingSize) && (event.get_button() == 1)) {
          let [mx, my] = event.get_coords();
          let [ax, ay] = actor.get_transformed_position();
@@ -4009,8 +4116,7 @@ ConfigurableMenu.prototype = {
          let ah = actor.get_height();
          if(this._correctPlaceResize(mx, my, ax, ay, aw, ah) && !this._isInResizeMode) {
             this._findMouseDeltha();
-            global.set_cursor(Shell.Cursor.DND_MOVE);
-            //global.set_stage_input_mode(Shell.StageInputMode.FULLSCREEN);
+            global.screen.set_cursor(Shell.Cursor.DND_MOVE);
             Clutter.grab_pointer(actor);
             this._isInResizeMode = true;
             this.emit('resize-mode-changed', this._isInResizeMode);
@@ -4021,7 +4127,6 @@ ConfigurableMenu.prototype = {
    },
 
    _onMenuButtonRelease: function(actor, event) {
-      //Main.notify("called2222");
       this._disableResize();
    },
 
@@ -4041,10 +4146,10 @@ ConfigurableMenu.prototype = {
             let at = ay + actor.get_height();
             if(this._correctPlaceResize(mx, my, ax, ay, ar, at)) {
                this._cursorChanged = true;
-               global.set_cursor(Shell.Cursor.DND_MOVE);
+               global.screen.set_cursor(Shell.Cursor.DND_MOVE);
             } else if(this._cursorChanged) {
                this._cursorChanged = false;
-               global.unset_cursor();
+               global.screen.set_cursor(Meta.Cursor.DEFAULT);
             }
          }
       }
@@ -4113,14 +4218,13 @@ ConfigurableMenu.prototype = {
 
    _disableOverResizeIcon: function() {
       if((this._controlingSize) && (!this._isInResizeMode))
-         global.unset_cursor();
+         global.screen.set_cursor(Meta.Cursor.DEFAULT);
    },
 
    _disableResize: function() {
-      //global.set_stage_input_mode(Shell.StageInputMode.NORMAL);
       if(this._isInResizeMode) {
          this._isInResizeMode = false;
-         global.unset_cursor();
+         global.screen.set_cursor(Meta.Cursor.DEFAULT);
          Clutter.ungrab_pointer(this.actor);
          this.emit('resize-mode-changed', this._isInResizeMode);
       }
@@ -4829,9 +4933,14 @@ ConfigurableMenu.prototype = {
       }, this);
    },
 
-   getScale: function(menu) {
-      if(global.ui_scale)
-         return global.ui_scale;
+   _getScale: function() {
+      try {
+         let scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+         if(scale)
+            return scale;
+      } catch(e) {
+         //do nothing
+      }
       return 1;
    },
 
@@ -5364,7 +5473,7 @@ ArrayBoxLayout.prototype = {
 
    _init: function(params) {
       ConfigurablePopupMenuSection.prototype._init.call(this);
-      this.scrollBox = new ScrollItemsBox(this, this.box, true, St.Align.START);
+      this.scrollBox = new ScrollItemsBox(this.box, true, St.Align.START);
       this.actor = this.scrollBox.actor;
       this.box.set_vertical(true);
       this.actor._delegate = this;
@@ -6610,7 +6719,7 @@ ConfigurableGridSection.prototype = {
    },
 
    _onScrollEvent: function() {
-      Main.notify("scroll");
+      //Main.notify("scroll");
    },
 
    setActive: function(active) {
@@ -8251,7 +8360,7 @@ MenuFactory.prototype = {
    _setShellItem: function(factoryItem, shellItem, handlers) {
       if(shellItem.factoryItem != factoryItem) {
          if(shellItem.factoryItem) {
-            global.logWarning("Attempt to override a shellItem factory, so we automatically destroy our original shellItem.");
+            global.log("Attempt to override a shellItem factory, so we automatically destroy our original shellItem.");
          }
          shellItem.factoryItem = factoryItem;
          shellItem._internalSignalsHandlers = this._connectAndSaveId(factoryItem, handlers);
@@ -8519,11 +8628,11 @@ MenuFactory.prototype = {
                    (shellItem instanceof ConfigurableMenu)) {
             shellItem.addMenuItem(this._createItem(child), null, position);
          } else {
-            global.logWarning("Tried to add a child to non-submenu item. Better recreate it as whole");
+            global.log("Tried to add a child to non-submenu item. Better recreate it as whole");
             this._onTypeChanged(factoryItem, shellItem);
          }
       } else {
-         global.logWarning("Tried to add a child shell item to non existing shell item.");
+         global.log("Tried to add a child shell item to non existing shell item.");
       }
    },
 
@@ -8547,11 +8656,11 @@ MenuFactory.prototype = {
                }
             }
          } else {
-            global.logWarning("Tried to remove a child from non-submenu item. Better recreate it as whole")
+            global.log("Tried to remove a child from non-submenu item. Better recreate it as whole")
             this._onTypeChanged(factoryItem, shellItem)
          }
       } else {
-         global.logWarning("Tried to remove a child shell item in non existing shell item.");
+         global.log("Tried to remove a child shell item in non existing shell item.");
       }
    },
 
@@ -8563,11 +8672,11 @@ MenuFactory.prototype = {
                     (shellItem instanceof ConfigurableMenu)) {
             this._moveItemInMenu(shellItem, child, newpos);
          } else {
-            global.logWarning("Tried to move a child in non-submenu item. Better recreate it as whole");
+            global.log("Tried to move a child in non-submenu item. Better recreate it as whole");
             this._onTypeChanged(factoryItem, shellItem);
          }
       } else {
-         global.logWarning("Tried to move a child shell item in non existing shell item.");
+         global.log("Tried to move a child shell item in non existing shell item.");
       }
    },
 

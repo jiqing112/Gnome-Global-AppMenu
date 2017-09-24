@@ -301,7 +301,7 @@ MyApplet.prototype = {
          this._applet_context_menu = new ConfigurableMenus.ConfigurableMenu(this, 0.0, orientation, true);
          this._menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
          this._menuManager.addMenu(this._applet_context_menu);
-         this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
+         this.defaultIcon = new St.Icon({ icon_name: "view-app-grid-symbolic", style_class: 'popup-menu-icon' });
          this.hubProvider = new HudProvider.HudSearchProvider();
          this.hudMenuSearch = new HudSearch.GlobalMenuSearch(this.gradient);
          this._menuManager.addMenu(this.hudMenuSearch);
@@ -479,7 +479,8 @@ MyApplet.prototype = {
          this.context_menu_item_remove = new ConfigurableMenus.ConfigurableBasicPopupMenuItem(_("Remove '%s'").format(_(this._meta.name)));
          this.context_menu_item_remove.setIconName("edit-delete");
          this.context_menu_item_remove.setIconVisible(true);
-         this.context_menu_item_remove.setIconType(St.IconType.SYMBOLIC);
+         //this.context_menu_item_remove.setIconType(St.IconType.SYMBOLIC);
+         this.context_menu_item_remove.setIconSymbolic(true);
          this.context_menu_item_remove.connect('activate', Lang.bind(this, function() {
                let enabled = global.settings.get_strv('enabled-extensions');
                let index = enabled.indexOf(MyExtension.uuid);
@@ -493,7 +494,8 @@ MyApplet.prototype = {
          this.context_menu_item_about = new ConfigurableMenus.ConfigurableBasicPopupMenuItem(_("About..."));
          this.context_menu_item_about.setIconName("dialog-question");
          this.context_menu_item_about.setIconVisible(true);
-         this.context_menu_item_about.setIconType(St.IconType.SYMBOLIC);
+         //this.context_menu_item_about.setIconType(St.IconType.SYMBOLIC);
+         this.context_menu_item_about.setIconSymbolic(true);
          this.context_menu_item_about.connect('activate', Lang.bind(this, this.openAbout));
       }
 
@@ -509,7 +511,8 @@ MyApplet.prototype = {
              this.context_menu_item_configure = new ConfigurableMenus.ConfigurableBasicPopupMenuItem(_("Configure..."));
              this.context_menu_item_configure.setIconName("system-run");
              this.context_menu_item_configure.setIconVisible(true);
-             this.context_menu_item_configure.setIconType(St.IconType.SYMBOLIC);
+             //this.context_menu_item_configure.setIconType(St.IconType.SYMBOLIC);
+             this.context_menu_item_configure.setIconSymbolic(true);
              this.context_menu_item_configure.connect('activate', Lang.bind(this, this.configureApplet));
          }
          if (items.indexOf(this.context_menu_item_configure) == -1) {
@@ -865,12 +868,22 @@ MyApplet.prototype = {
       this.gradient.setText("");
    },
 
+   _getScale: function() {
+      try {
+         let scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+         if(scale)
+            return scale;
+      } catch(e) {
+         //do nothing
+      }
+      return 1;
+   },
+
    _getIconSize: function() {
       let iconSize;
-      let ui_scale = global.ui_scale;
-      if(!ui_scale) ui_scale = 1;
+      let scale = this._getScale();
       if(this._scaleMode)
-         iconSize = this._panelHeight * Applet.COLOR_ICON_HEIGHT_FACTOR / ui_scale;
+         iconSize = this._panelHeight * Applet.COLOR_ICON_HEIGHT_FACTOR / scale;
       else
          iconSize = Applet.FALLBACK_ICON_HEIGHT;
       return iconSize;
@@ -997,13 +1010,13 @@ MyApplet.prototype = {
                          src.copy(dest, Gio.FileCopyFlags.OVERWRITE, null, null);
                      }
                   } catch(e) {
-                     global.logWarning("Error %s".format(e.message));
+                     global.log("Error %s".format(e.message));
                   }
                }
             }
          }
       } catch(e) {
-         global.logWarning("Error %s".format(e.message));
+         global.log("Error %s".format(e.message));
       }
    },
 

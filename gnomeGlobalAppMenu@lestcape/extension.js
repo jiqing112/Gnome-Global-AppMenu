@@ -4,15 +4,12 @@ const St = imports.gi.St;
 const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
 
-//const GIRepository = imports.gi.GIRepository;
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
 const ExtensionManager = MyExtension.imports.extensionManager;
-const Environment = MyExtension.imports.environment;
 
 var applet;
 
 function init() {
-    Environment.init();
     applet = ExtensionManager.main(MyExtension.metadata, St.Side.TOP, Main.panel.actor.height, 1);
 }
 

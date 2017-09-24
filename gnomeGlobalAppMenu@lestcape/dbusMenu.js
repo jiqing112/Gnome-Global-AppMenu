@@ -109,7 +109,7 @@ PropertyStore.prototype = {
 
    set: function(name, value) {
       if(name in MandatedTypes && value && value.is_of_type && !value.is_of_type(MandatedTypes[name]))
-         global.logWarning("Cannot set property "+name+": type mismatch!");
+         global.log("Cannot set property "+name+": type mismatch!");
       else if(value)
          this._props[name] = value;
       else
@@ -435,7 +435,7 @@ DBusClient.prototype = {
       if((this._items)&&(id in this._items))
          return this._items[id];
 
-      global.logWarning("trying to retrieve item for non-existing id "+id+" !?");
+      global.log("trying to retrieve item for non-existing id "+id+" !?");
       return null;
    },
 
@@ -467,7 +467,7 @@ DBusClient.prototype = {
       if(this._proxyMenu) {
          this._proxyMenu.AboutToShowRemote(id, Lang.bind(this, function(result, error) {
             if(error)
-               global.logWarning("while calling AboutToShow: " + error);
+               global.log("while calling AboutToShow: " + error);
             else if(result && result[0])
                this._requestLayoutUpdate();
          }));
@@ -535,7 +535,7 @@ DBusClient.prototype = {
 
    _endRequestProperties: function(result, error) {
       if(error) {
-         global.logWarning("Could not retrieve properties: " + error);
+         global.log("Could not retrieve properties: " + error);
       } else if(this._items) {
          // For some funny reason, the result array is hidden in an array
          result[0].forEach(function([id, properties]) {
@@ -583,7 +583,7 @@ DBusClient.prototype = {
 
    _endLayoutUpdate: function(result, error) {
       if(error) {
-         global.logWarning("While reading menu layout: " + error);
+         global.log("While reading menu layout: " + error);
          return;
       }
 
@@ -649,7 +649,7 @@ DBusClient.prototype = {
    _clientReady: function(result, error) {
       if(error) {
          //FIXME: show message to the user?
-         global.logWarning("Could not initialize menu proxy: " + error);
+         global.log("Could not initialize menu proxy: " + error);
          return;
       }
       this._requestLayoutUpdate();
@@ -746,7 +746,7 @@ DBusClientGtk.prototype = {
 
    _endActionsUpdate: function(result, error, type) {//FIXME not all values are updated.
       if(error) {
-         //global.logWarning("While reading menu actions: " + error);
+         //global.log("While reading menu actions: " + error);
       } else if((result) && (result[0])) {
          let propertiesHash = result[0];
          let isNotCreate = false;
@@ -887,7 +887,7 @@ DBusClientGtk.prototype = {
                this._items[id].setGdkIcon(icon);
             }
          } catch(e) {
-            global.logWarning("While reading icon for actions ids: " + e.message);
+            global.log("While reading icon for actions ids: " + e.message);
          }
       }
    },
@@ -921,7 +921,7 @@ DBusClientGtk.prototype = {
 
    _endLayoutUpdate: function(result, error) {
       if(error) {
-         global.logWarning("While reading menu layout: " + error);
+         global.log("While reading menu layout: " + error);
          return;
       }
       // Now unpack the menu and create our items
@@ -1087,7 +1087,7 @@ DBusClientGtk.prototype = {
    _clientReady: function(result, error) {
       if(error) {
          //FIXME: show message to the user?
-         global.logWarning("Could not initialize menu proxy: " + error);
+         global.log("Could not initialize menu proxy: " + error);
          return;
       }
 
@@ -1110,7 +1110,7 @@ DBusClientGtk.prototype = {
    _clientActionReady: function(result, error, type) {
       if(error) {
          //FIXME: show message to the user?
-         global.logWarning("Could not initialize menu proxy: " + error);
+         global.log("Could not initialize menu proxy: " + error);
          return;
       }
       if((type == "unity") && this._proxyUnityAction) {

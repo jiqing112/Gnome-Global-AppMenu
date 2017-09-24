@@ -345,7 +345,7 @@ X11RegisterMenuWatcher.prototype = {
       if(this._everAcquiredName)
          global.log("X11Menu Whatcher: Lost name %s".format(WATCHER_INTERFACE));
       else
-         global.logWarning("X11Menu Whatcher: Failed to acquire %s".format(WATCHER_INTERFACE));
+         global.log("X11Menu Whatcher: Failed to acquire %s".format(WATCHER_INTERFACE));
       this._ownName = null;
    },
 
@@ -550,7 +550,7 @@ X11RegisterMenuWatcher.prototype = {
             try {
                var val = conn.call_finish(result);
             } catch (e) {
-               global.logWarning("X11Menu Whatcher: Invalid menu. %s".format(e));
+               global.log("X11Menu Whatcher: Invalid menu. %s".format(e));
                return callback(false);
             }
             var version = val.deep_unpack()[0].deep_unpack();
@@ -558,7 +558,7 @@ X11RegisterMenuWatcher.prototype = {
             if(version >= 2) {
                return callback(true, bus, path);
             } else {
-               global.logWarning("X11Menu Whatcher: Incompatible dbusmenu version %s".format(version));
+               global.log("X11Menu Whatcher: Incompatible dbusmenu version %s".format(version));
                return callback(false);
             }
          }, null
@@ -728,7 +728,7 @@ GtkMenuWatcher.prototype = {
             try {
                var val = conn.call_finish(result);
             } catch (e) {
-               global.logWarning("GtkMenu Watcher: Invalid menu. %s".format(e));
+               global.log("GtkMenu Watcher: Invalid menu. %s".format(e));
                return callback(false);
             }
             var version = val.deep_unpack()[0].deep_unpack();
@@ -736,7 +736,7 @@ GtkMenuWatcher.prototype = {
             if(version >= 2) {
                return callback(true, bus, path);
             } else {
-               global.logWarning("GtkMenu Watcher: Incompatible dbusmenu version %s".format(version));
+               global.log("GtkMenu Watcher: Incompatible dbusmenu version %s".format(version));
                return callback(false);
             }
          }, null
