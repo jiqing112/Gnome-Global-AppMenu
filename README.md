@@ -15,14 +15,14 @@ Latest update: 24 September 2017
 Special thanks to:
 --------------
 
-- rgcjonas             (https://github.com/rgcjonas)               The initial code.
-- Canonical devs       (http://www.canonical.com/)                 The protocols and patches.
-- Cinnamon devs        (https://github.com/linuxmint/cinnamon)     The settings (specially @JosephMcc)
-- jaszhix              (https://github.com/jaszhix)                Has helped to port the settings to gjs from python.
-- mtwebster            (https://github.com/mtwebster)              Has helped to implement it in the Cinnamon desktop.
-- collinss             (https://github.com/collinss)               Has helped fix the behavior of firefox and thunderbird.
-- Gnome Shell devs     (https://github.com/GNOME/gnome-shell)      The support of most of internal API and toolkit.
-- rilian-la-te         (https://github.com/rilian-la-te)           Understand and fix a lot of things.
+- ![@rgcjonas](https://github.com/rgcjonas)                  The initial code.
+- ![@jaszhix](https://github.com/jaszhix)                    Has helped to port the settings to gjs from python.
+- ![@mtwebster](https://github.com/mtwebster)                Has helped to implement it in the Cinnamon desktop.
+- ![@collinss](https://github.com/collinss)                  Has helped fix the behavior of firefox and thunderbird.
+- ![@rilian-la-te](https://github.com/rilian-la-te)          Understand and fix a lot of things.
+- ![Ubuntu devs](https://github.com/ubuntu/)                 The protocols and patches.
+- ![Cinnamon devs](https://github.com/linuxmint/cinnamon)    The settings, specially ![@JosephMcc](https://github.com/JosephMcc/)
+- ![Gnome devs](https://github.com/GNOME/gnome-shell)        The support of most of internal API and toolkit.
 
 Translators:
 --------------
@@ -47,9 +47,9 @@ Description
 This extension integrates the Ubuntu-Unity Application Menu (Global Menu) support into the Gnome Shell desktop.
 
 It's based on patches made by Giovanni Campagna:
-https://bugzilla.gnome.org/show_bug.cgi?id=652122used 
+https://bugzilla.gnome.org/show_bug.cgi?id=652122
 
-Also used the same idea of the Gnome Shell extension made by @rgcjonas (with is now part of ubuntu code):
+Also used the same idea of the Gnome Shell extension made by ![@rgcjonas](https://github.com/rgcjonas) (with is now part of ubuntu code):
 https://github.com/ubuntu/gnome-shell-extension-appindicator
 
 Known issues (Try at your own risk):
