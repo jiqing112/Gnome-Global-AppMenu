@@ -51,7 +51,7 @@ ServerSettings.prototype = {
         this.settingsManager = manager;
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DbusSettingsIface, this);
         this._dbusImpl.export(Gio.DBus.session, '/org/Gnome/Global/Menu');
-        Gio.DBus.session.own_name('org.Gnome.Global.Menu', Gio.BusNameOwnerFlags.REPLACE, null, null);
+        this._ownNameId = Gio.DBus.session.own_name('org.Gnome.Global.Menu', Gio.BusNameOwnerFlags.REPLACE, null, null);
     },
 
     _getXletObject: function(uuid, instance_id) {
@@ -90,6 +90,16 @@ ServerSettings.prototype = {
         let obj = this._getXletObject(uuid, instance_id);
         if (obj && obj.highlight) {
             obj.highlight(highlight);
+        }
+    },
+
+    destroy: function() {
+        this.settingsManager = null;
+        if(this._ownNameId) {
+            Gio.DBus.session.unown_name(this._ownNameId);
+            this._dbusImpl.unexport();
+            this._dbusImpl = null;
+            this._ownNameId = null;
         }
     },
 

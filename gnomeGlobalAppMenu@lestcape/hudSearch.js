@@ -260,4 +260,13 @@ GlobalMenuSearch.prototype = {
         let maxHeight = Math.round(40 * (workArea.height - verticalMargins) / (100*scaleFactor));
         this.actor.style = ('max-height: %spx;').format(maxHeight);
     },
+
+    destroy: function() {
+        this.setIndicator(null);
+        this.currentWindow = null;
+        this.appData = null;
+        this.isEnabled = false;
+        this._maxItems = 0;
+        ConfigurableMenus.ConfigurableMenu.prototype.destroy.call();
+    },
 };

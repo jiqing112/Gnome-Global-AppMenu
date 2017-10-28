@@ -710,9 +710,23 @@ Applet.prototype = {
      * This is meant to be overridden in individual applets.
      */
     on_applet_added_to_panel: function(userEnabled) { 
+    },
+
+    // should only be called by appletManager
+    _onAppletAddedToPanel: function(userEnabled) {
+        /*if (userEnabled) {
+            Mainloop.timeout_add(300, Lang.bind(this, function() {
+                let [x, y] = this.actor.get_transformed_position();
+                let [w, h] = this.actor.get_transformed_size();
+                let flashspot = new Flashspot.Flashspot({ x : x, y : y, width: w, height: h});
+                flashspot.fire();
+                return false;
+            }));
+        }*/
         if(this.actor.get_parent()) {
             this._newPanelLocation = this.actor.get_parent();
         }
+        this.on_applet_added_to_panel(userEnabled);
     },
 
     /**
@@ -722,7 +736,15 @@ Applet.prototype = {
      *
      * This is meant to be overridden in individual applets.
      */
-    on_applet_removed_from_panel: function() {
+    on_applet_removed_from_panel: function(deleteConfig) {
+    },
+
+    // should only be called by appletManager
+    _onAppletRemovedFromPanel: function(deleteConfig) {
+        //global.settings.disconnect(this._panelEditModeChangedId);
+        this.keybindingManager.destroy();
+        this.keybindingManager = null;
+        this.on_applet_removed_from_panel(deleteConfig);
     },
 
     /**
@@ -826,7 +848,6 @@ Applet.prototype = {
     },
 
     finalizeContextMenu: function () {
-
         // Add default context menus if we're in panel edit mode, ensure their removal if we're not
         let items = this._applet_context_menu._getMenuItems();
 

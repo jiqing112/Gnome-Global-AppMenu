@@ -33,21 +33,27 @@ const HudSearchProvider = new Lang.Class({
         this.appData = null;
         this._indicatorId = 0;
         this._focusId = 0;
+        this._hack();
+    },
+
+    // Hack, I don't know what is doing gnome... A missing function, this is intentional?
+    _hack: function() {
+        Main.overview.viewSelector._real_addSearchProvider = Main.overview.viewSelector.addSearchProvider;
+        if(!Main.overview.viewSelector.addSearchProvider) {
+            Main.overview.viewSelector.addSearchProvider = function(searchProvider) {
+                Main.overview.viewSelector._searchResults._registerProvider(searchProvider);
+            };
+        }
+        Main.overview.viewSelector._real_removeSearchProvider = Main.overview.viewSelector.removeSearchProvider;
+        if(!Main.overview.viewSelector.removeSearchProvider) {
+            Main.overview.viewSelector.removeSearchProvider = function(searchProvider) {
+                Main.overview.viewSelector._searchResults._unregisterProvider(searchProvider);
+            };
+        }
     },
 
     enable: function() {
         if (!this.isEnabled) {
-            // Hack, I don't know what is doing gnome... A missing function, this is intentional?
-            if(!Main.overview.viewSelector.addSearchProvider) {
-                Main.overview.viewSelector.addSearchProvider = function(searchProvider) {
-                    Main.overview.viewSelector._searchResults._registerProvider(searchProvider);
-                };
-            }
-            if(!Main.overview.viewSelector.removeSearchProvider) {
-                Main.overview.viewSelector.removeSearchProvider = function(searchProvider) {
-                    Main.overview.viewSelector._searchResults._unregisterProvider(searchProvider);
-                };
-            }
             this._hackDisplay(true);
             Main.overview.addSearchProvider(this);
             this.isEnabled = true;
@@ -206,6 +212,24 @@ const HudSearchProvider = new Lang.Class({
 
     getName: function() {
         return this.name;
+    },
+
+    destroy: function() {
+        this.setIndicator(null);
+        this.disable();
+        this.id = null;
+        this.name = null;
+        this.isEnabled = false;
+        this.currentWindow = null;
+        this.appData = null;
+        if(Main.overview.viewSelector._real_addSearchProvider != Main.overview.viewSelector.addSearchProvider) {
+            Main.overview.viewSelector.addSearchProvider = Main.overview.viewSelector._real_addSearchProvider;
+            Main.overview.viewSelector._real_addSearchProvider = null;
+        }
+        if(Main.overview.viewSelector._real_removeSearchProvider != Main.overview.viewSelector.removeSearchProvider) {
+            Main.overview.viewSelector.removeSearchProvider = Main.overview.viewSelector._real_removeSearchProvider;
+            Main.overview.viewSelector._real_removeSearchProvider = null;
+        }
     },
 });
 

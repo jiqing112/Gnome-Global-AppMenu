@@ -104,11 +104,6 @@ SystemProperties.prototype = {
       let envGtk = this._getEnvGtkModules();
       let xSettingGtk = this._getXSettingGtkModules();
       if(active) {
-         if(!this._gtkSettings.gtk_modules) {
-             this._gtkSettings.gtk_modules = "unity-gtk-module";
-         } else if(this._gtkSettings.gtk_modules.indexOf("unity-gtk-module") == -1) {
-            Gtk.Settings.gtk_modules += ":unity-gtk-module";
-         }
          if(envGtk) {
             if(envGtk.indexOf("unity-gtk-module") == -1) {
                envGtk.push("unity-gtk-module");
@@ -131,37 +126,43 @@ SystemProperties.prototype = {
             xSettingGtk = ["unity-gtk-module"];
             this._setXSettingGtkModules(xSettingGtk);
          }
-      } else {
-         if(this._gtkSettings.gtk_modules) {
-            let index = this._gtkSettings.gtk_modules.indexOf("unity-gtk-module");
-            let len = this._gtkSettings.gtk_modules.length;
-            if(index != -1) {
-               let newModules = null;
-               if(len > 16) {
-                  newModules = this._gtkSettings.gtk_modules.substring(0, index - 2) +
-                               this._gtkSettings.gtk_modules.substring(index + 16, this._gtkSettings.gtk_modules.length);
-               }
-               Gtk.Settings.gtk_modules = newModules;
-            } 
+         if(!this._gtkSettings.gtk_modules) {
+             this._gtkSettings.gtk_modules = "unity-gtk-module";
+         } else if(this._gtkSettings.gtk_modules.indexOf("unity-gtk-module") == -1) {
+            this._gtkSettings.gtk_modules += ":unity-gtk-module";
+         } else {
+            isReady = true;
          }
+      } else {
          if(envGtk) {
             let pos = envGtk.indexOf("unity-gtk-module");
             if(pos != -1) {
-               envGtk.splice(pos, -1);
+               envGtk.splice(pos, 1);
                this._setEnvGtkModules(envGtk);
             } else {
                isReady = true;
             }
-         } else if(xSettingGtk) {
-            let pos = xSettingGtk.indexOf("unity-gtk-module")
+         }
+         if(xSettingGtk) {
+            let pos = xSettingGtk.indexOf("unity-gtk-module");
             if(pos != -1) {
-               xSettingGtk.splice(pos, -1);
+               xSettingGtk.splice(pos, 1);
                this._setXSettingGtkModules(xSettingGtk);
             } else {
                isReady = true;
             }
          } else  {
             isReady = true;
+         }
+         if(this._gtkSettings.gtk_modules) {
+            let modules = this._gtkSettings.gtk_modules.split(":");
+            let index = modules.indexOf("unity-gtk-module");
+            if(index != -1) {
+                modules.splice(index, 1);
+                this._gtkSettings.gtk_modules = modules.join(":");
+            } else {
+               isReady = true;
+            }
          }
       }
       return isReady;
@@ -277,15 +278,7 @@ SystemProperties.prototype = {
    },
 
    _setEnvGtkModules: function(envGtkList) {
-      let envGtk = "";
-      for(let i in envGtkList) {
-         if(i == 0) {
-            envGtk += envGtkList[i];
-         } else if(envGtk.indexOf("unity-gtk-module" ) == -1) {
-            envGtk += ":" + envGtkList[i];
-         }
-      }
-      GLib.setenv('GTK_MODULES', envGtk, true);
+      GLib.setenv('GTK_MODULES', envGtkList.join(":"), true);
    },
 
    _getXSettingGtkModules: function() {
@@ -326,8 +319,8 @@ function X11RegisterMenuWatcher() {
 X11RegisterMenuWatcher.prototype = {
    _init: function() {
       this._registeredWindows = { };
-      this._everAcquiredName = false;
       this._ownName = null;
+      this._ownNameId = null;
       this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
       this._tracker = Shell.WindowTracker.get_default();
@@ -335,14 +328,13 @@ X11RegisterMenuWatcher.prototype = {
    },
 
    // Private functions
-   _acquiredName: function() {
-      this._everAcquiredName = true;
+   _acquiredName: function(connection, name) {
+      this._ownName = name;
       global.log("X11Menu Whatcher: Acquired name %s".format(WATCHER_INTERFACE));
    },
 
-   _lostName: function() {
-      this._everAcquiredName = false;
-      if(this._everAcquiredName)
+   _lostName: function(connection, name) {
+      if(this._ownName)
          global.log("X11Menu Whatcher: Lost name %s".format(WATCHER_INTERFACE));
       else
          global.log("X11Menu Whatcher: Failed to acquire %s".format(WATCHER_INTERFACE));
@@ -352,7 +344,7 @@ X11RegisterMenuWatcher.prototype = {
    watch: function() {
       if(!this._ownName) {
          this._dbusImpl.export(Gio.DBus.session, WATCHER_OBJECT);
-         this._ownName = Gio.DBus.session.own_name(
+         this._ownNameId = Gio.DBus.session.own_name(
             WATCHER_INTERFACE,
             Gio.BusNameOwnerFlags.NONE,
             Lang.bind(this, this._acquiredName),
@@ -649,11 +641,11 @@ X11RegisterMenuWatcher.prototype = {
             this._emitWindowUnregistered(xid);
          }
          this._registeredWindows = null;
-         if(this._ownName) {
-            Gio.DBus.session.unown_name(this._ownName);
+         if(this._ownNameId) {
+            Gio.DBus.session.unown_name(this._ownNameId);
             this._dbusImpl.unexport();
-            this._everAcquiredName = false;
             this._ownName = null;
+            this._ownNameId = null;
          }
       }
    }

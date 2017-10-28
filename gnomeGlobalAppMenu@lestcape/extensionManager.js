@@ -284,6 +284,7 @@ MyApplet.prototype = {
 
          this.appmenu = null;
          this.targetApp = null;
+         this.settings = null;
          this._appMenuNotifyId = 0;
          this._actionGroupNotifyId = 0;
          this._busyNotifyId = 0;
@@ -305,7 +306,6 @@ MyApplet.prototype = {
          this.hubProvider = new HudProvider.HudSearchProvider();
          this.hudMenuSearch = new HudSearch.GlobalMenuSearch(this.gradient);
          this._menuManager.addMenu(this.hudMenuSearch);
-
          this._createSettings();
          this._cleanAppmenu();
          this.indicatorDbus = null;
@@ -316,11 +316,10 @@ MyApplet.prototype = {
          this._appStateChangedSignalId = 0;
          this._switchWorkspaceNotifyId = 0;
          //this._focusAppNotifyId = 0;
-
          this._gtkSettings = Gtk.Settings.get_default();
          this.appSys = Shell.AppSystem.get_default();
          //this.tracker = Shell.WindowTracker.get_default();
-         Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated));
+         this._updateId = Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated));
          this._sessionUpdated();
       } catch(e) {
          Main.notify("Init error %s".format(e.message));
@@ -440,8 +439,8 @@ MyApplet.prototype = {
       this._onOpenOnHoverChanged();
       this._onEffectTypeChanged();
       this._onEffectTimeChanged();
-      this._onReplaceAppMenuChanged();
       this._onAutoScrolligAppMenuChanged();
+      this._onReplaceAppMenuChanged();
    },
 
    _initEnvironment: function() {
@@ -519,22 +518,28 @@ MyApplet.prototype = {
              this._applet_context_menu.addMenuItem(this.context_menu_item_configure);
          }
       }
-
       if (items.indexOf(this.context_menu_item_remove) == -1) {
          this._applet_context_menu.addMenuItem(this.context_menu_item_remove);
       }
    },
 
-   _finalizeEnvironment: function() {
+   _finalizeEnvironment: function(complete) {
       //this._system.shellShowAppmenu(false);
       this._system.shellShowMenubar(false);
       this._system.activeQtPlatform(false);
       this._system.activeUnityMenuProxy(false);
       this._system.activeJAyantanaModule(false);
-      // FIXME When we can call system.activeUnityGtkModule(false)?
-      // Is possible that we need to add an option to the settings
-      // to be more easy to the user uninstall the applet in a
-      // propertly way.
+      // FIXME: Is possible that we need to add an option to the settings
+      // to be more easy to the user uninstall the applet in a propertly way.
+      // For now if is a user request to uninstall the extension, we also will
+      // disable the module and the root path. If user want to install again
+      // the extension he will need to do all steps again.
+      if(complete) {
+          this._system.activeUnityGtkModule(false);
+          if(this._system.isEnvironmentSet()) {
+             this._system.setEnvironmentVar(false, null);
+          }
+      }
    },
 
    _onReplaceAppMenuChanged: function() {
@@ -919,16 +924,17 @@ MyApplet.prototype = {
       Applet.Applet.prototype.on_applet_added_to_panel.call(this);
       this.keybindingManager.inihibit = false;
       this._onReplaceAppMenuChanged();
+      this._onShowAppMenuChanged();
+      this._onAppmenuChanged(this.indicatorDbus, (this.currentWindow || global.display.focus_window));
    },
 
-   on_applet_removed_from_panel: function() {
+   on_applet_removed_from_panel: function(deleteConfig) {
       Applet.Applet.prototype.on_applet_removed_from_panel.call(this);
       let temp = this.replaceAppMenu;
       this.replaceAppMenu = false;
       this._onReplaceAppMenuChanged();
       this.replaceAppMenu = temp;
       let parent = this.actor.get_parent();
-      this.keybindingManager.inihibit = true;
       if(parent) {
          parent.remove_actor(this.actor);
       }
@@ -940,8 +946,13 @@ MyApplet.prototype = {
           this.indicatorDbus.destroy();
           this.indicatorDbus = null;
       }
-      this._finalizeEnvironment();
-      this.hubProvider.disable();
+      this._finalizeEnvironment(Main.sessionMode.allowExtensions);
+      this.hubProvider.destroy();
+      this.hudMenuSearch.destroy();
+      if(this._updateId != 0) {
+         Main.sessionMode.disconnect(this._updateId);
+         this._updateId = 0;
+      }
       if(this._overviewHidingId != 0) {
          Main.overview.disconnect(this._overviewHidingId);
          this._overviewHidingId = 0;
@@ -962,13 +973,15 @@ MyApplet.prototype = {
          global.window_manager.disconnect(this._switchWorkspaceNotifyId);
          this._switchWorkspaceNotifyId = 0;
       }
+      this.setAppMenu(null);
       if(this.targetApp) {
-         if (this._appMenuNotifyId != 0)
-            this.targetApp.disconnect(this._appMenuNotifyId);
-         if (this._actionGroupNotifyId != 0)
-            this.targetApp.disconnect(this._actionGroupNotifyId);
-         if (this._busyNotifyId != 0)
-            this.targetApp.disconnect(this._busyNotifyId);
+         this._tryToTrackAppMenu(null);
+         this.targetApp = null;
+
+      }
+      if(this.settings) {
+          this.settings.destory();
+          this.settings = null;
       }
    },
 
@@ -1035,6 +1048,10 @@ MyApplet.prototype = {
          this._makeDirectoy(fDir.get_parent());
       if(!this._isDirectory(fDir))
          fDir.make_directory(null);
+   },
+
+   destroy: function() {
+       
    },
 };
 

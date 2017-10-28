@@ -248,6 +248,13 @@ const XLetSidePage = new GObject.Class({
         this.topWindow.set_title(translate(this.uuid, this.xlet_meta["name"]));
         this.prev_button.connect("clicked", Lang.bind(this, this.previous_instance));
         this.next_button.connect("clicked", Lang.bind(this, this.next_instance));
+        this.topWindow.connect("delete-event", Lang.bind(this, this.appQuit));
+    },
+
+    appQuit: function() {
+        if (this.proxy && this.selected_instance) {
+            this.proxy.highlightXlet(this.uuid, this.selected_instance.id, false);
+        }
     },
 
     load_instances: function() {

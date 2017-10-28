@@ -752,6 +752,15 @@ XletSettingsBase.prototype = {
         }
         if (this.monitorId) this.monitor.disconnect(this.monitorId);
         this.disconnectAll();
+    },
+
+    destory: function() {
+        this.finalize();
+        this.isReady = false;
+        this.bindObject = null;
+        this.uuid = null;
+        this.instanceId = null;
+        this.bindings = null;
     }
 }
 Signals.addSignalMethods(XletSettingsBase.prototype);
@@ -851,17 +860,29 @@ SettingsManager.prototype = {
         this.uuids = {};
         this.bindObject = bindObject;
         this.bindObject.settingsManager = this;
-        this._dbusSettings = new SettingsDBusServer.ServerSettings(this);
+        this._dbusSettings = null;
     },
 
     register: function (uuid, instance_id, obj) {
+        if (!this._dbusSettings) {
+            this._dbusSettings = new SettingsDBusServer.ServerSettings(this);
+        }
         if (!(uuid in this.uuids))
             this.uuids[uuid] = {}
         this.uuids[uuid][instance_id] = obj;
     },
 
     unregister: function (uuid, instance_id) {
-        this.uuids[uuid][instance_id] = null;
+        delete this.uuids[uuid][instance_id];
+        if (Object.keys(this.uuids[uuid]).length == 0) {
+            delete this.uuids[uuid];
+        }
+        if (Object.keys(this.uuids).length == 0) {
+            if (this._dbusSettings) {
+                this._dbusSettings.destroy();
+                this._dbusSettings = null;
+            }
+        }
     }
 };
 
