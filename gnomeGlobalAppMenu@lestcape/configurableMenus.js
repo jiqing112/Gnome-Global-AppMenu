@@ -30,6 +30,7 @@ const DND = imports.ui.dnd;
 const Tweener = imports.ui.tweener;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
+const Panel = imports.ui.panel;
 
 const ExtensionUtils = imports.misc.extensionUtils.getCurrentExtension();
 const Applet = ExtensionUtils.imports.applet;
@@ -1662,6 +1663,7 @@ CheckButton.prototype = {
             can_focus: true,
             x_fill: true,
             y_fill: true,
+            reactive: true,
             y_align: St.Align.MIDDLE
         };
 
@@ -1670,6 +1672,8 @@ CheckButton.prototype = {
         }
 
         this.actor = new St.Button(this._params);
+        if(this.actor.set_accessible_role)
+            this.actor.set_accessible_role(Atk.Role.CHECK_BOX);
         this.actor._delegate = this;
         this.actor.checked = state;
         // FIXME: The current size is big and the container only is useful,
@@ -1725,9 +1729,11 @@ RadioBox.prototype = {
             can_focus: true,
             x_fill: true,
             y_fill: true,
+            reactive: true,
             y_align: St.Align.MIDDLE
         });
-
+        if(this.actor.set_accessible_role)
+            this.actor.set_accessible_role(Atk.Role.RADIO_BUTTON);
         this.actor._delegate = this;
         this.actor.checked = state;
         this._container = new St.Bin();
@@ -2031,6 +2037,8 @@ ConfigurablePopupSwitchMenuItem.prototype = {
 
    _init: function(text, imageOn, imageOff, active, params) {
       ConfigurablePopupBaseMenuItem.prototype._init.call(this, params);
+      if(this.actor.set_accessible_role)
+          this.actor.set_accessible_role(Atk.Role.CHECK_MENU_ITEM);
 
       this._imageOn = imageOn;
       this._imageOff = imageOff;
@@ -2077,10 +2085,15 @@ ConfigurablePopupSwitchMenuItem.prototype = {
    },
 
    setToggleState: function(state) {
-      if(state)
+      if(state) {
          this.icon.set_icon_name(this._imageOn);
-      else
+         if(this.actor.add_accessible_state)
+             this.actor.add_accessible_state(Atk.StateType.CHECKED);
+      } else {
          this.icon.set_icon_name(this._imageOff);
+         if(this.actor.remove_accessible_state)
+            this.actor.remove_accessible_state(Atk.StateType.CHECKED);
+      }
       this._switch.setToggleState(state);
    },
 
@@ -2116,6 +2129,8 @@ ConfigurableEntryItem.prototype = {
          track_hover: false,//true,
          can_focus: true
       });
+      if(this.actor.set_accessible_role)
+         this.actor.set_accessible_role(Atk.Role.INPUT_METHOD_WINDOW);
 
       this._searchActiveIcon = new St.Icon({
          style_class: 'menu-search-entry-icon-symbolic',
@@ -2239,7 +2254,7 @@ ConfigurableEntryItem.prototype = {
       this.searchEntry.grab_key_focus();
    },
 };
-Signals.addSignalMethods(ConfigurablePopupBaseMenuItem.prototype);
+Signals.addSignalMethods(ConfigurableEntryItem.prototype);
 
 const PANGO_STYLES = {
    0: Cairo.FontSlant.NORMAL,
@@ -2269,6 +2284,9 @@ GradientLabelMenuItem.prototype = {
       this.actor.add_style_class_name('applet-box');
       this.actor.add_style_class_name('panel-button');
       this.actor.add_style_class_name('gradient-menu-item');
+      if(this.actor.set_accessible_role) {
+          this.actor.set_accessible_role(Atk.Role.TEAR_OFF_MENU_ITEM);
+      }
 
       this._label = new St.Label({ style_class: 'chat-log-message' });
       this._label.add_style_class_name('gradient-label-menu-item');
@@ -2288,6 +2306,7 @@ GradientLabelMenuItem.prototype = {
    setActive: function(active, force) {
       if(this.reactOnActivation || force) {
           ConfigurablePopupBaseMenuItem.prototype.setActive.call(this, active);
+          this.actor.grab_key_focus();
       }
    },
 
@@ -2578,6 +2597,8 @@ ConfigurableApplicationMenuItem.prototype = {
       this.actor.add(this._ornament, { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false, y_fill:false });
       this._accel.visible = false;
       this._ornament.visible = false;
+      if(this._accel.set_accessible_role)
+          this._accel.set_accessible_role(Atk.Role.ACCELERATOR_LABEL);
    },
 
    preservedSelection: function(preserve) {
@@ -2590,42 +2611,74 @@ ConfigurableApplicationMenuItem.prototype = {
       this._accel.set_text(accel);
    },
 
+   activate: function(event, keepMenu) {
+      if(this._ornament.child) {
+          this.toggleOrnament();
+      }
+      ConfigurableBasicPopupMenuItem.prototype.activate.call(this, event, keepMenu);
+   },
+
    toggleOrnament: function() {
       if((this._ornament.child)&&(this._ornament.child._delegate.toggle)) {
-         this._ornament.child._delegate.toggle();
+         let swith = this._ornament.child._delegate;
+         swith.toggle();
+         let state = swith.actor.checked;
+         if(state && this.actor.add_accessible_state)
+             this.actor.add_accessible_state(Atk.StateType.CHECKED);
+         else if(!state && this.actor.remove_accessible_state)
+             this.actor.remove_accessible_state(Atk.StateType.CHECKED);
       }
    },
 
    setOrnament: function(ornamentType, state) {
       switch (ornamentType) {
       case OrnamentType.CHECK:
+         this.actor.set_accessible_role(Atk.Role.CHECK_MENU_ITEM);
          if((this._ornament.child)&&(!(this._ornament.child._delegate instanceof CheckButton))) {
              this._ornament.child.destroy();
              this._ornament.child = null;
              this._ornament.visible = false;
          }
          if(!this._ornament.child) {
-             let checkOrn = new CheckButton(state);
+             let checkOrn = new CheckButton(state, { reactive: false });
              this._ornament.child = checkOrn.actor;
              this._ornament.visible = true;
          } else {
              this._ornament.child._delegate.setToggleState(state);
          }
+         if(state && this.actor.add_accessible_state)
+             this.actor.add_accessible_state(Atk.StateType.CHECKED);
+         else if(!state && this.actor.remove_accessible_state)
+             this.actor.remove_accessible_state(Atk.StateType.CHECKED);
          break;
       case OrnamentType.DOT:
+         this.actor.set_accessible_role(Atk.Role.RADIO_MENU_ITEM);
          if((this._ornament.child)&&(!(this._ornament.child._delegate instanceof RadioBox))) {
              this._ornament.child.destroy();
              this._ornament.child = null;
              this._ornament.visible = false;
          }
          if(!this._ornament.child) {
-             let radioOrn = new RadioBox(state);
+             let radioOrn = new RadioBox(state, { reactive: false });
              this._ornament.child = radioOrn.actor;
              this._ornament.visible = true;
          } else {
              this._ornament.child._delegate.setToggleState(state);
          }
+         if(state && this.actor.add_accessible_state)
+             this.actor.add_accessible_state(Atk.StateType.CHECKED);
+         else if(!state && this.actor.remove_accessible_state)
+             this.actor.remove_accessible_state(Atk.StateType.CHECKED);
          break;
+      default:
+         if(this._ornament.child) {
+             this._ornament.child.destroy();
+             this._ornament.child = null;
+             this._ornament.visible = false;
+         }
+         this.actor.set_accessible_role(Atk.Role.MENU_ITEM);
+         if(this.actor.remove_accessible_state)
+             this.actor.remove_accessible_state(Atk.StateType.CHECKED);
       }
    },
 
@@ -2656,12 +2709,16 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       ConfigurableBasicPopupMenuItem.prototype._init.call(this, text, params);
       this.actor._delegate = this;
       this.actor.add_style_class_name('popup-submenu-menu-item');
+      if(this.actor.set_accessible_role)
+         this.actor.set_accessible_role(Atk.Role.TEAR_OFF_MENU_ITEM);
       this._arrowSide = St.Side.LEFT;
       this._hide_expander = (hideExpander == true);
       this._triangle = new St.Icon({ 
           icon_name: "media-playback-start-symbolic",
           style_class: 'popup-menu-icon'
       });
+      if(this._triangle.set_accessible_role)
+         this._triangle.set_accessible_role(Atk.Role.ARROW);
       this.reactOnActivation = true;
       this._triangle.rotation_center_z_gravity = Clutter.Gravity.CENTER;
       if(this._hide_expander)
@@ -3006,6 +3063,7 @@ ConfigurableMenuManager.prototype = {
       this._desaturateItemIcon = false;
       this._effectType = "none";
       this._effectTime = POPUP_ANIMATION_TIME;
+      this._associateManager = null;
    },
 
    addMenu: function(menu, position) {
@@ -3188,6 +3246,13 @@ ConfigurableMenuManager.prototype = {
    _onMenuSourceEnter: function(menu) {
       if(!this._isFloating(menu))
          return false;
+      if(this._associateManager) {
+         let lastMenu = this._associateManager.activeMenu;
+         if(lastMenu) {
+            menu.open(true);
+            return false;
+         }
+      }
       if(this._openSubMenu) {
          if(this.grabbed && this._activeMenu && this._activeMenu.isChildMenu(menu)) {
             menu.open(true);
@@ -3249,11 +3314,23 @@ ConfigurableMenuManager.prototype = {
       return -1;
    },
 
+   //Shell
+   associateManager: function(menuManager) {
+       this._associateManager = menuManager;
+   },
+
+   _findAsociateMenu: function(menus, source) {
+       for (let i = 0; i < menus.length; i++) {
+          if (source == menus[i].menu.sourceActor)
+             return i;
+       }
+       return -1;
+   },
+
    // Override allow return false to active the parent menu actions.
    _onEventCapture: function(actor, event) {
       if(!this.grabbed)
          return false;
-
       if(this._owner.menuEventFilter &&
          this._owner.menuEventFilter(event))
          return true;
@@ -3263,6 +3340,20 @@ ConfigurableMenuManager.prototype = {
 
       if(!this._shouldBlockEvent(event)) {
          return false;
+      }
+
+      if(this._associateManager) {
+         if(this._activeMenu) {
+            let pos = this._findAsociateMenu(this._associateManager._menus, event.get_source());
+            if(pos > -1) {
+               this._activeMenu.close(false);
+               this.emit('close-menu', this._activeMenu);
+               Mainloop.idle_add(Lang.bind(this, function() {
+                  this._associateManager._menus[pos].menu.open(true);
+               }));
+               return false;
+            }
+         }
       }
 
       let eventType = event.type();
@@ -3960,6 +4051,10 @@ ConfigurableMenu.prototype = {
             hscrollbar_policy: Gtk.PolicyType.NEVER,
             vscrollbar_policy: Gtk.PolicyType.NEVER
          });
+         if(this._scroll.set_accessible_role)
+            this._scroll.set_accessible_role(Atk.Role.SCROLL_PANE);
+
+
          this._scroll.clip_to_allocation = true;
          this._scroll.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
          this._scroll.connect('notify::mapped', Lang.bind(this, this._onMapped));
@@ -3979,6 +4074,8 @@ ConfigurableMenu.prototype = {
             if(topMenu)
                topMenu.passEvents = false;
          }));
+         if(vscroll.set_accessible_role)
+            vscroll.set_accessible_role(Atk.Role.SCROLL_PANE);
          let hscroll = this._scroll.get_hscroll_bar();
          hscroll.connect('scroll-start', Lang.bind(this, function() {
             let topMenu = this._topMenu;
@@ -3990,6 +4087,8 @@ ConfigurableMenu.prototype = {
             if(topMenu)
                topMenu.passEvents = false;
          }));
+         if(hscroll.set_accessible_role)
+            hscroll.set_accessible_role(Atk.Role.SCROLL_PANE);
          this._boxPointer = new ConfigurablePointer(orientation, {
             x_fill: true,
             y_fill: true,
@@ -4017,6 +4116,8 @@ ConfigurableMenu.prototype = {
          // Init the launcher and the floating state.
          this.actor = this._boxPointer.actor;
          this.actor._delegate = this;
+         if(this.actor.set_accessible_role)
+            this.actor.set_accessible_role(Atk.Role.MENU);
          this._boxWrapper.add_actor(this._scroll);
 
          this.setFloatingState(floating == true);
@@ -5397,6 +5498,9 @@ ConfigurableSeparatorMenuItem.prototype = {
       this.separatorLine = this.actor;
       this.actor = new St.BoxLayout({ vertical: true });
       this.actor.add_actor(this.separatorLine);
+      if(this.actor.set_accessible_role)
+         this.actor.set_accessible_role(Atk.Role.SEPARATOR);
+
       this._drawingArea.connect('repaint', Lang.bind(this, this._onRepaint));
       this.space = -1;
       this.actor._delegate = this;
@@ -7327,6 +7431,8 @@ ConfigurableMenuApplet.prototype = {
       this._openOnHover = false;
       this._startCounter = 0;
       this._autoScroll = false;
+      this._association = false;
+      this.panel = null;
 
       this.launcher.actor.set_track_hover(this._floating);
       let parent = this.actor.get_parent();
@@ -7334,6 +7440,8 @@ ConfigurableMenuApplet.prototype = {
          parent.remove_actor(this.actor);
       this.launcher.actor.add(this.actor);
       this.actor.set_style_class_name('applet-container-box');
+      if(this.actor.set_accessible_role)
+          this.actor.set_accessible_role(Atk.Role.MENU_BAR);
       this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
       this._menuManager.addMenu(this);
       this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
@@ -7427,6 +7535,40 @@ ConfigurableMenuApplet.prototype = {
 
    _onMapped: function() {
       this._setChildsArrowSide();
+      this._setAssociationInternal();
+   },
+
+   _setAssociationInternal: function(associate) {
+      if(this.panel) {
+         this.panel.menuManager._grabHelper.removeActor(this.launcher.actor);
+         this._menuManager.associateManager(null);
+         this.panel = null;
+      }
+      if(this._association) {
+         this.panel = this.getParentPanel();
+         if(this.panel) {
+            this._menuManager.associateManager(this.panel.menuManager);
+            this.panel.menuManager._grabHelper.addActor(this.launcher.actor);
+         }
+      }
+   },
+
+   //FIXME: Hack to work like other MenuButtons.
+   setAssociation: function(associate) {
+       this._association = associate;
+       if(this.actor.mapped) {
+           this._setAssociationInternal();
+       }
+   },
+
+   getParentPanel: function() {
+      let actor = this.actor.get_parent();
+      while(actor) {
+         if(actor._delegate && (actor._delegate instanceof Panel.Panel))
+            return actor._delegate;
+         actor = actor.get_parent();
+      }
+      return null;
    },
 
    _onEnterEvent: function() {
@@ -7595,6 +7737,9 @@ ConfigurableMenuApplet.prototype = {
                this._isSubMenuOpen = false;
             }
          }));
+         /*if(this.panel && menuItem.menu) {
+             this.panel.menuManager.addMenu(menuItem.menu);
+         }*/
          this._connectItemSignals(menuItem);
          this._setMenuInPosition(menuItem);
          this._setIconVisible(menuItem);
@@ -8525,6 +8670,7 @@ MenuFactory.prototype = {
 
    _setOrnamentPolyfill: function(ornamentType, state) {
       if(ornamentType == OrnamentType.CHECK) {
+         this.actor.set_accessible_role(Atk.Role.CHECK_MENU_ITEM);
          if(state) {
             this._ornament.set_text('\u2714');
             if(this.actor.add_accessible_state)
@@ -8535,6 +8681,7 @@ MenuFactory.prototype = {
                this.actor.remove_accessible_state(Atk.StateType.CHECKED);
          }
       } else if(ornamentType == OrnamentType.DOT) {
+         this.actor.set_accessible_role(Atk.Role.RADIO_MENU_ITEM);
          if(state) {
             this._ornament.set_text('\u2022');
             if(this.actor.add_accessible_state)
@@ -8548,6 +8695,7 @@ MenuFactory.prototype = {
          this._ornament.set_text('');
          if(this.actor.remove_accessible_state)
             this.actor.remove_accessible_state(Atk.StateType.CHECKED);
+         this.actor.set_accessible_role(Atk.Role.MENU_ITEM);
       }
    },
 

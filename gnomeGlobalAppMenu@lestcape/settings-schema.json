@@ -27,6 +27,12 @@
         "description": "Use the extension as a replace of Gnome AppMenu (Experimental)",
         "tooltip": "Select if you want to use the extension as a replace of Gnome AppMenu."
     },
+    "synchronize-panel" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Allow to synchronize the menus with others in the same panel (Experimental)",
+        "tooltip": "Select if you want to synchronize the menus with others in the same panel."
+    },
     "autoscrollig-appmenu" : {
         "type" : "checkbox",
         "default" : false,

@@ -69,6 +69,7 @@ MyMenuFactory.prototype = {
       this._wrapMode = true;
       this._effectType = "none";
       this._effectTime = 0.4;
+      this._associate = false;
    },
 
    setMainMenuArrowSide: function(arrowSide) {
@@ -100,6 +101,17 @@ MyMenuFactory.prototype = {
             let shellMenu = this._menuLinkend[pos];
             if(shellMenu)
                shellMenu.setOpenOnHover(this._openOnHover);
+         }
+      }
+   },
+
+   setAssociation: function(associate) {
+      if(this._associate != associate) {
+         this._associate = associate;
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
+            if(shellMenu)
+               shellMenu.setAssociation(this._associate);
          }
       }
    },
@@ -240,6 +252,7 @@ MyMenuFactory.prototype = {
          shellItem.setFloatingState(this._floatingMenu);
          shellItem.setAutoScrolling(this._autoScrollig);
          shellItem.setOpenOnHover(this._openOnHover);
+         shellItem.setAssociation(this._associate);
       } else if(itemType == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
          shellItem.menu.setFloatingState(this._floatingSubMenu);
       }
@@ -281,6 +294,7 @@ MyApplet.prototype = {
          this.effectType = "none";
          this.effectTime = 0.4;
          this.replaceAppMenu = false;
+         this.associate = true;//Playing
 
          this.appmenu = null;
          this.targetApp = null;
@@ -392,6 +406,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-search-provider", "enableProvider", this._onEnableProviderChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-environment", "enableEnvironment", this._onEnableEnvironmentChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "replace-appmenu", "replaceAppMenu", this._onReplaceAppMenuChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "synchronize-panel", "associate", this._onAssociationChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "autoscrollig-appmenu", "autoScrolligAppMenu", this._onAutoScrolligAppMenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-jayantana", "enableJayantana", this._onEnableJayantanaChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-icon", "showAppIcon", this._onShowAppIconChanged, null);
@@ -440,6 +455,7 @@ MyApplet.prototype = {
       this._onEffectTypeChanged();
       this._onEffectTimeChanged();
       this._onAutoScrolligAppMenuChanged();
+      this._onAssociationChanged();
       this._onReplaceAppMenuChanged();
    },
 
@@ -648,6 +664,10 @@ MyApplet.prototype = {
 
    _onOpenOnHoverChanged: function() {
       this.menuFactory.setOpenOnHover(this.openOnHover);
+   },
+
+   _onAssociationChanged: function() {
+      this.menuFactory.setAssociation(this.associate);
    },
 
    _onDisplayInPanelChanged: function() {
@@ -933,18 +953,21 @@ MyApplet.prototype = {
       let temp = this.replaceAppMenu;
       this.replaceAppMenu = false;
       this._onReplaceAppMenuChanged();
+      if(this.associate) {
+          this.menuFactory.setAssociation(false);
+      }
       this.replaceAppMenu = temp;
       let parent = this.actor.get_parent();
       if(parent) {
          parent.remove_actor(this.actor);
       }
       if(this.indicatorDbus) {
-          if(this._indicatorId != 0) {
-              this.indicatorDbus.disconnect(this._indicatorId);
-              this._indicatorId = 0;
-          }
-          this.indicatorDbus.destroy();
-          this.indicatorDbus = null;
+         if(this._indicatorId != 0) {
+             this.indicatorDbus.disconnect(this._indicatorId);
+             this._indicatorId = 0;
+         }
+         this.indicatorDbus.destroy();
+         this.indicatorDbus = null;
       }
       this._finalizeEnvironment(Main.sessionMode.allowExtensions);
       this.hubProvider.destroy();
@@ -983,6 +1006,21 @@ MyApplet.prototype = {
           this.settings.destory();
           this.settings = null;
       }
+      this.hubProvider = null;
+      this.hudMenuSearch = null;
+      this.menu = null;
+      this.orientation = null;
+      this.menuFactory = null;
+      this.sendWindow = null;
+      this.currentWindow = null;
+      //this.gradient.destroy();
+      this.gradient = null;
+      this._system = null;
+      this._menuManager.removeMenu(this._applet_context_menu);
+      this._applet_context_menu.destroy();
+      this._applet_context_menu = null;
+      this._menuManager = null;
+      this.actor.destroy();
    },
 
    on_applet_clicked: function(event) {
