@@ -637,6 +637,7 @@ MyApplet.prototype = {
    _updateKeybinding: function() { 	
       this.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
          if(this.menu && !Main.overview.visible) {
+            global.log("toggle");
             this.menu.toggleSubmenu(true);
          }
       }));
@@ -822,11 +823,7 @@ MyApplet.prototype = {
    },
 
    _onMenuStateChanged: function(menu, open) {
-      if(menu.isInFloatingState()) {
-          this.gradient.setActive(open, true);
-      } else {
-          this.gradient.setActive(false, true);
-      }
+      this.gradient.setActive(open);
    },
 
    _tryToTrackAppMenu: function(app) {
