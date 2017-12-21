@@ -7893,12 +7893,19 @@ ConfigurableMenuApplet.prototype = {
             }
             if (open) {
                 menuItem.actor.add_style_pseudo_class('active');
-                //FIXME: We don't want to forced the focus here. How to resolved it?
+                // FIXME: We don't want to forced the focus here. How to resolved it?
+                // Aparently it's a fact of give a litle time...
                 if (this._activeMenuItem && this._activeMenuItem.active) {
-                    this._activeMenuItem.active = false;
-                    this._activeMenuItem.setActive(true);
+                   Mainloop.idle_add(Lang.bind(this, function() {
+                      this._activeMenuItem.active = false;
+                      this._activeMenuItem.setActive(true);
+                   }));
+                   //this._activeMenuItem.active = false;
+                   //this._activeMenuItem.setActive(true);
                 }
-            }
+            } else {
+                menuItem.actor.remove_style_pseudo_class('active');
+            } 
          }));
          /*if(this.panel && menuItem.menu) {
              this.panel.menuManager.addMenu(menuItem.menu);
