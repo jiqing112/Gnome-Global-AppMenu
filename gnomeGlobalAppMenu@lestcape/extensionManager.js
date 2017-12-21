@@ -637,7 +637,6 @@ MyApplet.prototype = {
    _updateKeybinding: function() { 	
       this.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
          if(this.menu && !Main.overview.visible) {
-            global.log("toggle");
             this.menu.toggleSubmenu(true);
          }
       }));

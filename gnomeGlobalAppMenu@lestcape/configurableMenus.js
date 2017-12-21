@@ -1289,7 +1289,6 @@ ConfigurablePointer.prototype = {
       // Now align and position the pointing axis, making sure
       // it fits on screen
       let rect = this.getRegionForActor(sourceActor);
-      //global.log("Rectangleeeeeeeeeeeeeeeeee :(" + rect.x + ", " + rect.y + ", " + rect.width + ", " + rect.height + "), (" + Main.panel.actor.width + ", " + Main.panel.actor.height + ")");
       switch (this._arrowSide) {
       case St.Side.TOP:
       case St.Side.BOTTOM:
@@ -2076,11 +2075,8 @@ ConfigurablePopupBaseMenuItem.prototype = {
              this.actor.remove_style_class_name('selected');
              this.actor.remove_style_pseudo_class('active');
          }
-
          if(this.focusOnActivation && this.active) this.actor.grab_key_focus();
-         global.log("active-changed enterrrrrrrrrrrr" + this + "----" + active);
          this.emit('active-changed', active);
-         global.log("active-changed passsssssssssssss" + this + "----" + active);
       }
    },
 
@@ -2471,6 +2467,10 @@ GradientLabelMenuItem.prototype = {
    _onButtonPressEvent: function(actor, event) {
       return false;
    },
+
+   /*setActive: function(active) {
+       this.focusOnActivation
+   },*/
 
    setText: function(text) {
       this._text = text;
@@ -3072,8 +3072,9 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
 
    setActive: function(active) {
       if(this.active != active) {
+         this.active = active;
          if(this._showArrowOnActivation) {
-            if(active)
+            if(this.active)
                this._triangle.icon_name = 'media-playback-start';
             else
                this._triangle.icon_name = null;
@@ -3082,23 +3083,16 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
             if((!this.menu.isOpen)&&(this.menu._floating)) {
                this.menu.repositionActor(this.actor);
             }
-            if(active)
+            if(this.active)
                this.menu.open();
          }
-         //ConfigurableBasicPopupMenuItem.prototype.setActive.call(this, active);
-         this.active = active;
          if(this.active) {
             this.actor.add_style_class_name('selected');
-         } else {
-            global.log("disableeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee SubMenuMenuItem" + this + "  " + this.menu.isOpen);
-            //if (!this.menu.isOpen) {
-               //global.log("disableeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" + this);
-               this.actor.remove_style_class_name('selected');
-               this.actor.remove_style_pseudo_class('active');
-            //}
+         } else if(this.menu && !this.menu.isOpen) {
+            this.actor.remove_style_class_name('selected');
+            this.actor.remove_style_pseudo_class('active');
          }
          if(this.focusOnActivation && this.active) this.actor.grab_key_focus();
-
          this.emit('active-changed', active);
       }
    },
@@ -3115,8 +3109,12 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          this.setActive(true);
       } else {
          this.actor.remove_style_pseudo_class('open');
-         if(this.actor != global.stage.key_focus)
+         if(!this.active) {
              this.actor.remove_style_class_name('selected');
+             this.actor.remove_style_pseudo_class('active');
+         } else if (this.actor != global.stage.key_focus) {
+             this.setActive(false);
+         }
          this._triangle.rotation_angle_z = 0;
       }
       this.emit('open-menu-state-changed', menu, open);
@@ -3138,18 +3136,14 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
 
 //ConfigurablePopupSubMenuMenuItem
    _onKeyPressEvent: function(actor, event) {
-      global.log("pressssssssssssssssssssssssss444444444444 " + actor + "--" + this.menu + "***" + this._arrowSide + "--" + St.Side.TOP + "--" + St.Side.BOTTOM + "--" + St.Side.RIGHT + "--" + St.Side.LEFT);
       if(this.menu) {
-         global.log("pressssssssssssssssssssssssss444444444444 entereeeeeeeeeeee");
          let [openKey, closeKey] = this._getClutterOrientation();
          let symbol = event.get_key_symbol();
          if(symbol == openKey) {
-            global.log("pressssssssssssssssssssssssss opennnnnnnn");
             this.menu.open(true);
             this.menu.actor.navigate_focus(null, Gtk.DirectionType.DOWN, true);
             return true;
          } else if(symbol == closeKey && this.menu.isOpen) {
-            global.log("pressssssssssssssssssssssssss closeeee");
             this.menu.close();
             return true;
          }
@@ -3158,9 +3152,6 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    },
 
    activate: function(event) {
-      /*if((!this.menu.isOpen)&&(this.menu._floating)) {
-         this.menu.repositionActor(this.actor);
-      }*/
       if(this.menu)
          this.menu.open(true);
    },
@@ -3810,9 +3801,22 @@ ConfigurablePopupMenuBase.prototype = {
       this.isOpen = false;
       this.blockSourceEvents = false;
       this.passEvents = false;
+      this._floating = false;
 
       this._activeMenuItem = null;
       this._childMenus = [];
+   },
+
+   isInFloatingState: function() {
+       return this._floating;
+   },
+
+   setVertical: function(vertical) {
+      this.box.set_vertical(vertical);
+   },
+
+   getVertical: function(vertical) {
+      this.box.get_vertical();
    },
 
    addAction: function(title, callback) {
@@ -3899,12 +3903,13 @@ ConfigurablePopupMenuBase.prototype = {
                this.close(true);
             }
          }));
-         menuItem._subMenuActiveChangeId = menu.connect('active-changed', Lang.bind(this, function(menuItem, submenuItem) {
-            if(this._activeMenuItem && this._activeMenuItem != submenuItem)
-               this._activeMenuItem.setActive(false);
-            this._activeMenuItem = submenuItem;
-            global.log("menu active onnnnnnnnnnnnnnnnn " + this._activeMenuItem);
-            this.emit('active-changed', submenuItem);
+         menuItem._subMenuActiveChangeId = menu.connect('active-changed', Lang.bind(this, function(menu, submenuItem) {
+            if (!menu.isInFloatingState()) {
+               if(this._activeMenuItem && this._activeMenuItem != submenuItem)
+                  this._activeMenuItem.setActive(false);
+               this._activeMenuItem = submenuItem;
+               this.emit('active-changed', submenuItem);
+            }
          }));
          menuItem._subMenuDestroyId = menu.connect('destroy', Lang.bind(this, function(menu) {
             if(menu) {
@@ -3941,23 +3946,17 @@ ConfigurablePopupMenuBase.prototype = {
    _connectItemSignals: function(menuItem) {
       if(!menuItem._activeChangeI) {
          menuItem._activeChangeId = menuItem.connect('active-changed', Lang.bind(this, function(menuItem, active) {
-            global.log("actived beginnnnnnnnnnn " + active + " --" + this._activeMenuItem + " **** " + menuItem);
             if(active && (this._activeMenuItem != menuItem)) {
                if(this._activeMenuItem) {
                   this._activeMenuItem.setActive(false);
                }
                this._activeMenuItem = menuItem;
-               global.log("actived onnnnnnnnnnnnnnnnn beginnnn" + this._activeMenuItem);
                this.emit('active-changed', menuItem);
-               global.log("actived onnnnnnnnnnnnnnnnn finishedddddd " + this._activeMenuItem);
             } else if(!active && this._activeMenuItem == menuItem) {
                this._activeMenuItem.setActive(false);
-               global.log("actived offfffffffffffff beginnnn " + active + " --" + this._activeMenuItem + " **** " + menuItem);
                this._activeMenuItem = null;
                this.emit('active-changed', null);
-               global.log("actived offfffffffffffff finishedddddd " + active + " --" + this._activeMenuItem + " **** " + menuItem);
             }
-            global.log("actived finishedddddd " + active + " --" + this._activeMenuItem + " **** " + menuItem);
          }));
          menuItem._sensitiveChangeId = menuItem.connect('sensitive-changed', Lang.bind(this, function(menuItem, sensitive) {
             if(!sensitive && this._activeMenuItem == menuItem) {
@@ -3980,7 +3979,6 @@ ConfigurablePopupMenuBase.prototype = {
                this._disconnectSubMenuSignals(menuItem, menuItem.menu);
             if(menuItem == this._activeMenuItem)
                this._activeMenuItem = null;
-            global.log("destroyeddddddddddddd " + this._activeMenuItem);
             this.length--;
          }));
       } else {
@@ -3989,23 +3987,23 @@ ConfigurablePopupMenuBase.prototype = {
    },
 
    _disconnectItemSignals: function(menuItem) {
-     try {
-      if(menuItem._activeChangeId) {
-         menuItem.disconnect(menuItem._activeChangeId);
-         menuItem._activeChangeId = null;
-      }
-      if(menuItem._sensitiveChangeId) {
-         menuItem.disconnect(menuItem._sensitiveChangeId);
-         menuItem._sensitiveChangeId = null;
-      }
-      if(menuItem._activateId) {
-         menuItem.disconnect(menuItem._activateId);
-         menuItem._activateId = null;
-      }
-      if(menuItem._destroyId) {
-         menuItem.disconnect(menuItem._destroyId);
-         menuItem._destroyId = null;
-      }
+      try {
+         if(menuItem._activeChangeId) {
+            menuItem.disconnect(menuItem._activeChangeId);
+            menuItem._activeChangeId = null;
+         }
+         if(menuItem._sensitiveChangeId) {
+            menuItem.disconnect(menuItem._sensitiveChangeId);
+            menuItem._sensitiveChangeId = null;
+         }
+         if(menuItem._activateId) {
+            menuItem.disconnect(menuItem._activateId);
+            menuItem._activateId = null;
+         }
+         if(menuItem._destroyId) {
+            menuItem.disconnect(menuItem._destroyId);
+            menuItem._destroyId = null;
+         }
       } catch(e) {
          global.logError("Try to disconnect unexisting signals for: " + menuItem);
       }
@@ -4233,7 +4231,6 @@ ConfigurableMenu.prototype = {
          this._paintId = 0;
          this._paintCount = 0;
          this._reactive = true;
-         this._floating = false;
          this._topMenu = null;
          this._showItemIcon = true;
          this._desaturateItemIcon = false;
@@ -4641,48 +4638,36 @@ ConfigurableMenu.prototype = {
 
 //ConfigurableMenu
    _onKeyPressEvent: function(actor, event) {
-      global.log("pressssssssssssssssssssssssss555555555555555 "+this+"++"+this._getClutterScapeKey() +"--"+ St.Side.TOP +"/"+ this._arrowSide +"**"+ this._activeMenuItem +"**"+this._getBorderMenuItem(this) +" xx "+ this._getFirstMenuItem(this));
       if(this.isOpen) {
          if(event.get_key_symbol() == Clutter.Escape) {
             if((this.launcher)&&(this.launcher.setActive)) {
-               global.log("set activeeeeeeeeeeeeeeeeeeeeeee");
+               if (this._activeMenuItem) 
+                   this._activeMenuItem.setActive(false);
+               this.launcher.active = false;//Forced to reactived it.
                this.launcher.setActive(true);
             }
             this.close(true);
             return true;
-         } else if(event.get_key_symbol() == this._getClutterScapeKey()) {
+         } else if(!this._activeMenuItem) {
+            let firstMenuItem = this._getFirstMenuItem(this);
+            if(firstMenuItem) {
+                firstMenuItem.setActive(true);
+                this._activeMenuItem = firstMenuItem;
+                return true;
+            }
+         } else if((event.get_key_symbol() == this._getClutterScapeKey()) && this._isItemInMenuBorder(this, this._activeMenuItem) ) {
             if((this.launcher)&&(this.launcher.setActive)) {
-               global.log("set activeeeeeeeeeeeeeeeeeeeeeee");
+               this._activeMenuItem.setActive(false);
+               this.launcher.active = false;//Forced to reactived it.
                this.launcher.setActive(true);
-            }
+               return true;
+            } else {
+               this.launcher.actor.grab_key_focus();
+               this._activeMenuItem.setActive(false);
+               this.close(true);
+               return true;
+            } 
          }
-         /*if(!this._activeMenuItem) {
-            this._activeMenuItem = this._getFirstMenuItem(this);
-            if(this._activeMenuItem)
-                this._activeMenuItem.setActive(true);
-         }
-         let close = false;
-         if(event.get_key_symbol() == Clutter.Escape) {
-            close = true;
-         } else if(event.get_key_symbol() == this._getClutterScapeKey()) {
-            let topMenu = this.getTopMenu();
-            if(topMenu)
-               topMenu.actor.grab_key_focus();
-            if((!topMenu) || (this._isFloating(topMenu))) {
-               close = true;
-            } else if((this.launcher)&&(this.launcher.setActive)) {
-               global.log("set activeeeeeeeeeeeeeeeeeeeeeee");
-               this.launcher.setActive(true);
-            }
-         }
-         if(close) {
-            if((this.launcher)&&(this.launcher.setActive)) {
-               global.log("set activeeeeeeeeeeeeeeeeeeeeeee");
-               this.launcher.setActive(true);
-            }
-            this.close(true);
-            return true;
-         }*/
       }
       return false;
    },
@@ -4693,20 +4678,19 @@ ConfigurableMenu.prototype = {
          scapeKey = Clutter.KEY_Left;
       else if(this._arrowSide == St.Side.RIGHT)
          scapeKey = Clutter.KEY_Right;
-      else if(this._getBorderMenuItem(this) == this._activeMenuItem) {
-         if(this._arrowSide == St.Side.TOP)
-            scapeKey = Clutter.KEY_Up;
-         else if(this._arrowSide == St.Side.BOTTOM)
-            scapeKey = Clutter.KEY_Down;
-      }
+      else if(this._arrowSide == St.Side.TOP)
+         scapeKey = Clutter.KEY_Up;
+      else if(this._arrowSide == St.Side.BOTTOM)
+         scapeKey = Clutter.KEY_Down;
       return scapeKey;
    },
 
-   _getBorderMenuItem: function(menu) {
-      if(this._arrowSide == St.Side.TOP)
-         return this._getFirstMenuItem(menu);
-      else if(this._arrowSide == St.Side.BOTTOM)
-         return this._getLastMenuItem(menu);
+   _isItemInMenuBorder: function(menu, item) {
+      if(this._arrowSide == St.Side.TOP) {
+         return (item == this._getFirstMenuItem(menu));
+      } else if(this._arrowSide == St.Side.BOTTOM) {
+         return (item == this._getLastMenuItem(menu));
+      }
       return true;
    },
 
@@ -5258,10 +5242,6 @@ ConfigurableMenu.prototype = {
       this._updateTopMenu();
    },
 
-   isInFloatingState: function() {
-       return this._floating;
-   },
-
    setLauncher: function(launcher) {
       this.launcher = launcher;
       if(this.launcher) {
@@ -5507,10 +5487,6 @@ ConfigurablePopupMenuSection.prototype = {
    // deliberately ignore any attempt to open() or close()
    open: function(animate) { },
    close: function() { },
-
-   setVertical: function(vertical) {
-      this.box.set_vertical(vertical);
-   },
 
    _getTopMenu: function(actor) {
       while(actor) {
@@ -7590,7 +7566,6 @@ ConfigurableMenuApplet.prototype = {
    _init: function(launcher, orientation, menuManager) {
       ConfigurableMenu.prototype._init.call(this, launcher, 0.0, orientation, false);
       this._menuManager = menuManager;
-      this._isSubMenuOpen = false;
       this._inWrapMode = false;
       this._openOnHover = false;
       this._startCounter = 0;
@@ -7722,10 +7697,10 @@ ConfigurableMenuApplet.prototype = {
 
    //FIXME: Hack to work like other MenuButtons.
    setAssociation: function(associate) {
-       this._association = associate;
-       if(this.actor.mapped) {
-           this._setAssociationInternal();
-       }
+      this._association = associate;
+      if(this.actor.mapped) {
+         this._setAssociationInternal();
+      }
    },
 
    getParentPanel: function() {
@@ -7769,19 +7744,17 @@ ConfigurableMenuApplet.prototype = {
    },
 
    toggleSubmenu: function(animate) {
-      global.log("toggleeeeeeeeeeeeeeeeeeeeeeeeeeeee " + this._isSubMenuOpen);
-      if(this._isSubMenuOpen)
+      if(this._activeMenuItem && this._activeMenuItem.menu && this._activeMenuItem.menu.isOpen)
          this.closeSubmenu(animate);
       else
          this.openSubmenu(animate);
    },
 
    openSubmenu: function(animate) {
-      if(!this._isSubMenuOpen) {
+      if(!this._activeMenuItem || (this._activeMenuItem.menu && !this._activeMenuItem.menu.isOpen)) {
          if(this._floating) {
             this.open(animate);
-         } else if(!this._isSubMenuOpen) {
-            global.log("toggleeeeeeeeeeeeeeeeeeeeeeeeeeeee222222 " + this._isSubMenuOpen);
+         } else {
             if(!this.isOpen)
                this.open(animate);
             let items = this.getMenuItems();
@@ -7789,20 +7762,28 @@ ConfigurableMenuApplet.prototype = {
             for(let pos in items) {
                if((items[pos] instanceof ConfigurablePopupSubMenuMenuItem) && items[pos].menu) {
                   menuItem = items[pos];
-                  menuItem.setActive(true);
                   menuItem.menu.open(animate);
                   break;
                }
             }
-            //this._activeMenuItem = menuItem;
+            /*if (this._activeMenuItem) {
+                //FIXME: We don't want to forced the focus here. How to resolved it?
+                this._activeMenuItem.actor.grab_key_focus();
+            }*/
          }
-         //this.actor.grab_key_focus();
-         this._isSubMenuOpen = true;
       }
    },
 
+   setMenuItemsFocusState: function(canFocus) {
+       let items = this.getMenuItems();
+       for(let pos in items) {
+           items[pos].focusOnActivation = canFocus;
+           items[pos].focusOnHover = canFocus;
+       }
+   },
+
    closeSubmenu: function(animate) {
-      if(this._isSubMenuOpen) {
+      if(this._activeMenuItem && this._activeMenuItem.menu && this._activeMenuItem.menu.isOpen) {
          if(this._floating) {
             this.close(animate);
          } else {
@@ -7814,8 +7795,6 @@ ConfigurableMenuApplet.prototype = {
                }
             }
          }
-         //this._activeMenuItem = null;
-         this._isSubMenuOpen = false;
       }
    },
 
@@ -7846,11 +7825,13 @@ ConfigurableMenuApplet.prototype = {
          this.actor.hide();
          if(global.menuStackLength > 0)
              global.menuStackLength -= 1;
-         //this._activeMenuItem = null;
-         this._isSubMenuOpen = false;
+         if (this._activeMenuItem) {
+             this._activeMenuItem.setActive(false);
+         }
+         this._activeMenuItem = null;
          this.isOpen = false;
          this._updatePanelVisibility();
-         this.emit('open-state-changed', true);
+         this.emit('open-state-changed', false);
       }
    },
 
@@ -7906,19 +7887,17 @@ ConfigurableMenuApplet.prototype = {
          menuItem._closingMenuId = this.connect('open-state-changed', Lang.bind(this, function(menu, open) {
             this._onOpenMenuChanged(menu, open, menuItem);
          }));
-         menuItem._stateId = menuItem.connect('open-menu-state-changed', Lang.bind(this, function(self, menu, open) {
-            if((!open) && (this._isSubMenuOpen)) {
-               this._isSubMenuOpen = false;
-            }
-         }));
          menuItem._stateId = menuItem.connect('open-menu-state-changed', Lang.bind(this, function(menuItem, menu, open) {
-            if(menu && menu.isOpen) {
-               //this._activeMenuItem = menuItem;
-               //menuItem.actor.add_style_pseudo_class('active');
-               //menuItem.actor.add_style_class_name('selected');
-            } else {
-               //menuItem.actor.remove_style_class_name('selected');
-               //menuItem.actor.remove_style_pseudo_class('active');
+            if (!this.isInFloatingState()) {
+               this.setMenuItemsFocusState(open);
+            }
+            if (open) {
+                menuItem.actor.add_style_pseudo_class('active');
+                //FIXME: We don't want to forced the focus here. How to resolved it?
+                if (this._activeMenuItem && this._activeMenuItem.active) {
+                    this._activeMenuItem.active = false;
+                    this._activeMenuItem.setActive(true);
+                }
             }
          }));
          /*if(this.panel && menuItem.menu) {
@@ -7974,37 +7953,31 @@ ConfigurableMenuApplet.prototype = {
 
 //ConfigurableMenuApplet
    _onKeyPressEvent: function(actor, event) {
-      global.log("pressssssssssssssssssssssssss11111");
       let close = false;
       if(this._floating) {
          let result = ConfigurableMenu.prototype._onKeyPressEvent.call(this, actor, event);
-         if(result)
-             this.closeSubmenu();
          return result;
       } else if(this.isOpen) {
          let direction = this._getGtkDirectionType(event.get_key_symbol());
          if(direction) {
-            global.log("pressssssssssssssssssssssssss dirrrrrrrrrrrr");
             if(!this._activeMenuItem) {
                this._activeMenuItem = this._getFirstMenuItem(this);
             }
             if((direction == Gtk.DirectionType.LEFT)||(direction == Gtk.DirectionType.RIGHT)) {
-               global.log("pressssssssssssssssssssssssss enterrrrrrrrrrrrrr");
                this.actor.navigate_focus(this._activeMenuItem.actor, direction, true);
                this._activeMenuItem = global.stage.key_focus._delegate;
                if(this._activeMenuItem && this._activeMenuItem.menu) {
                   this._activeMenuItem.menu.open(true);
+               } else {
+                  this.actor.grab_key_focus();
                }
-               this.actor.grab_key_focus();
                return true;
             } else if(direction == this._getGtkScapeDirectionType()) {
-               global.log("pressssssssssssssssssssssssss closeeeeeeeeeeeeeeeee");
                close = true;
             } else if(this._activeMenuItem && this._activeMenuItem.menu) {
                let first = this._getFirstMenuItem(this._activeMenuItem.menu);
-               global.log("pressssssssssssssssssssssssss otherrrrrrrrrr" + first);
                if(first) {
-                  first.setActive(false);
+                  first.active = false;
                   first.setActive(true);
                }
                return true;
@@ -8014,7 +7987,6 @@ ConfigurableMenuApplet.prototype = {
       if((close)||(event.get_key_symbol() == Clutter.Escape)) {
          if((this.launcher)&&(this.launcher.setActive))
             this.launcher.setActive(true);
-         global.log("pressssssssssssssssssssssssss willl closeeeee??????? ");
          this.close(true);
          this.closeSubmenu();
          return true;
@@ -8411,7 +8383,7 @@ PopupMenuAbstractFactory.prototype = {
          let iconTheme = Gtk.IconTheme.get_default();
          let iconInfo = iconTheme.lookup_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK);
          if (iconInfo === null) {
-            global.logError("unable to lookup icon for '" + name + "'");
+            global.logError("Unable to lookup icon for '" + name + "'");
          } else {
             // create a gicon for the icon
             gicon = Gio.icon_new_for_string(iconInfo.get_filename());
@@ -8542,7 +8514,7 @@ PopupMenuAbstractFactory.prototype = {
          }
       }
       if(oldpos < 0) {
-         global.logError("tried to move child which wasn't in the list");
+         global.logError("Tried to move child which wasn't in the list");
          return;
       }
 
