@@ -7972,7 +7972,8 @@ ConfigurableMenuApplet.prototype = {
             }
             if((direction == Gtk.DirectionType.LEFT)||(direction == Gtk.DirectionType.RIGHT)) {
                this.actor.navigate_focus(this._activeMenuItem.actor, direction, true);
-               this._activeMenuItem = global.stage.key_focus._delegate;
+               if (global.stage.key_focus)
+                   this._activeMenuItem = global.stage.key_focus._delegate;
                if(this._activeMenuItem && this._activeMenuItem.menu) {
                   this._activeMenuItem.menu.open(true);
                } else {
@@ -7981,13 +7982,6 @@ ConfigurableMenuApplet.prototype = {
                return true;
             } else if(direction == this._getGtkScapeDirectionType()) {
                close = true;
-            } else if(this._activeMenuItem && this._activeMenuItem.menu) {
-               let first = this._getFirstMenuItem(this._activeMenuItem.menu);
-               if(first) {
-                  first.active = false;
-                  first.setActive(true);
-               }
-               return true;
             }
          }
       }
