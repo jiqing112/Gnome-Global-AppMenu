@@ -49,13 +49,15 @@ KeybindingManager.prototype = {
         this._custom_keybindings = {};
         this.actionGrab = null;
         this.keyGrab = null;
+        this.grabFocus = null;
+        this.focusWindow = null;
         this.inihibit = false;
 
         this.hackId = global.stage.connect('captured-event', Lang.bind(this, this._stageEventHandler));
         this.updateId = Main.sessionMode.connect('updated', Lang.bind(this, this._sessionUpdated)); 
 
         this._accelId = global.display.connect('accelerator-activated', Lang.bind(this, this._acceleratorActivated)); 
-        this._modAccelId = global.display.connect('modifiers-accelerator-activated', Lang.bind(this, this._modifiersAceleratorActivated)); 
+        this._modAccelId = global.display.connect('modifiers-accelerator-activated', Lang.bind(this, this._modifiersAceleratorActivated));
     },
 
     _acceleratorActivated: function(display, actionPreformed, deviceid, timestamp) {
@@ -125,18 +127,27 @@ KeybindingManager.prototype = {
             } else {
                 action = global.display.get_keybinding_action(keyCode, modifierState);
                 this.actionGrab = action;
+                this.grabFocus = global.stage.key_focus;
             }
         } else if (event.type() == Clutter.EventType.KEY_RELEASE) {
-            if((MOD_MASK.indexOf(this.keyGrab) > -1) && (this.keyGrab == event.get_key_symbol())) {
+            let execute = false;
+            if((global.stage.key_focus == this.grabFocus) && (MOD_MASK.indexOf(this.keyGrab) > -1) && (this.keyGrab == event.get_key_symbol())) {
                 keyCode = event.get_key_code();
                 modifierState = event.get_state();
                 action = global.display.get_keybinding_action(keyCode, modifierState);
                 if (this.actionGrab && Meta.external_binding_name_for_action(this.actionGrab).indexOf("external-grab") != -1) {
                     let action = this.actionGrab;
                     this.actionGrab = null;
+                    if(this.grabFocus == Main.uiGroup)
+                        global.stage.set_key_focus(null);
                     global.display.emit("accelerator-activated", action, null, global.get_current_time());
+                    execute = true;
                 }
             }
+            if(!execute && this.focusWindow && (!global.stage.key_focus || (global.stage.key_focus == Main.uiGroup))) {
+                this.focusWindow.activate(global.get_current_time());
+            }
+            this.grabFocus = null;
             this.keyGrab = null;
         }
     },
@@ -201,8 +212,13 @@ KeybindingManager.prototype = {
             } else if (event.type() == Clutter.EventType.KEY_RELEASE) {
                 callback(display, global.screen, event, kb, actionPreformed);
             } else {
-                global.stage.set_key_focus(Main.uiGroup);
                 if (event.type() == Clutter.EventType.KEY_PRESS) {
+                    this.grabFocus = global.stage.key_focus;
+                    this.focusWindow = global.display.focus_window;
+                    if(!this.grabFocus) {
+                        this.grabFocus = Main.uiGroup;
+                        global.stage.set_key_focus(this.grabFocus);
+                    }
                     this.actionGrab = actionPreformed;
                 }
             }

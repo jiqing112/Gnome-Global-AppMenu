@@ -822,11 +822,7 @@ MyApplet.prototype = {
    },
 
    _onMenuStateChanged: function(menu, open) {
-      if(menu.isInFloatingState()) {
-          this.gradient.setActive(open, true);
-      } else {
-          this.gradient.setActive(false, true);
-      }
+      this.gradient.setActive(open);
    },
 
    _tryToTrackAppMenu: function(app) {

@@ -95,13 +95,6 @@ GlobalMenuSearch.prototype = {
         if(open) {
             this.entryBox.grabKeyFocus();
             this.searchPattern();
-            Mainloop.idle_add(Lang.bind(this, function() {
-                let menuItems = this.itemsBox.getAllMenuItems();
-                if(menuItems.length > 0) {
-                    this._activeMenuItem = menuItems[0];
-                    this._activeMenuItem.setActive(true);
-                }
-            }));
         } else {
             this.entryBox.setText("");
             if(this._activeMenuItem) {
@@ -133,7 +126,7 @@ GlobalMenuSearch.prototype = {
                     let item = items[id];
                     let label = this.buildLabelForItem(item);
                     if(label.length > 0) {
-                        let componnet = new ConfigurableMenus.ConfigurableApplicationMenuItem(label, { focusOnHover: false });
+                        let componnet = new ConfigurableMenus.ConfigurableApplicationMenuItem(label, { focusOnHover: false, focusOnActivation: false });
                         componnet.setGIcon(item.getIcon(16));
                         componnet.setAccel(item.getAccel());
                         if(item.getToggleType() == "checkmark") {
@@ -151,13 +144,13 @@ GlobalMenuSearch.prototype = {
             for(let pos = 0; pos < Math.min(menuItems.length, 10); pos++) {
                 this.itemsBox.addMenuItem(menuItems[pos]);
             }
+            if(menuItems.length > 0) {
+                this._activeMenuItem = menuItems[0];
+                this._activeMenuItem.setActive(true);
+            }
             Mainloop.idle_add(Lang.bind(this, function() {
-                if(menuItems.length > 0) {
-                    for(let pos = 11; pos < menuItems.length; pos++) {
-                        this.itemsBox.addMenuItem(menuItems[pos]);
-                    }
-                    this._activeMenuItem = menuItems[0];
-                    this._activeMenuItem.setActive(true);
+                for(let pos = 11; pos < menuItems.length; pos++) {
+                    this.itemsBox.addMenuItem(menuItems[pos]);
                 }
             }));
         }

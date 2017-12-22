@@ -966,7 +966,6 @@ ConfigurablePointer.prototype = {
       this._resizeSize = 0;
       this._shiftX = 0;
       this._shiftY = 0;
-      this._screenActor = null;
       this._relativeSide = St.Side.RIGHT;
       try {
          let [res, selectedColor] = Clutter.Color.from_string("#505050");
@@ -976,6 +975,12 @@ ConfigurablePointer.prototype = {
          selectedColor.from_string("#505050");
          this._selectedColor = selectedColor;
       }
+      this.actor.connect('notify::mapped', Lang.bind(this, this._onMapped));
+   },
+
+   _onMapped: function(actor) {
+      if(this._sourceActor && this._sourceActor.mapped)
+         this._reposition(this._sourceActor, this._arrowAlignment);
    },
 
    showArrow: function(show) {
@@ -983,20 +988,20 @@ ConfigurablePointer.prototype = {
       this._border.queue_repaint();
    },
 
-   fixToScreen: function(actor, fixScreen) {
+   fixToScreen: function(fixScreen) {
       this._fixCorner = false;
       this._fixScreen = fixScreen;
-      this._screenActor = actor;
-      this.trySetPosition(actor, this._arrowAlignment);
-      this._border.queue_repaint();
+      if(this._sourceActor && this._sourceActor.mapped) {
+         this.setPosition(this._sourceActor, this._arrowAlignment);
+      }
    },
 
    fixToCorner: function(fixCorner) {
       this._fixScreen = false;
       this._fixCorner = fixCorner;
-      if(this._sourceActor)
-         this.trySetPosition(this._sourceActor, this._arrowAlignment);
-      this._border.queue_repaint();
+      if(this._sourceActor && this._sourceActor.mapped) {
+         this.setPosition(this._sourceActor, this._arrowAlignment);
+      }
    },
 
    getCurrentMenuThemeNode: function() {
@@ -1020,14 +1025,15 @@ ConfigurablePointer.prototype = {
       this._border.queue_repaint();
    },
 
-   trySetPosition: function(sourceActor, alignment) {
+   setPosition: function(sourceActor, alignment) {
       // We need to show it now to force an allocation,
       // so that we can query the correct size.
       //this.actor.show();
       this._sourceActor = sourceActor;
       this._arrowAlignment = alignment;
-      if(this.actor.visible) {
+      if(this.actor.mapped && this._sourceActor && this._sourceActor.mapped) {
          this._reposition(this._sourceActor, this._arrowAlignment);
+         this._border.queue_repaint();
       }
    },
 
@@ -1037,7 +1043,7 @@ ConfigurablePointer.prototype = {
       //this.actor.show();
       this._shiftX = x;
       this._shiftY = y;
-      if(this.actor.visible) {
+      if(this.actor.mapped && this._sourceActor && this._sourceActor.mapped) {
          this._reposition(this._sourceActor, this._arrowAlignment);
       }
    },
@@ -1047,42 +1053,6 @@ ConfigurablePointer.prototype = {
       // recalculated every time it is shown
       this._arrowSide = side;
       this._border.queue_repaint();
-   },
-
-   _maxPanelSize: function() {
-      if(Main.panelManager) {
-         if(this._sourceActor) {
-            let [x, y] = this._sourceActor.get_transformed_position();
-            let i = 0;
-            let monitor;
-            for(; i < global.screen.get_n_monitors(); i++) {
-               monitor = global.screen.get_monitor_geometry(i);
-               if(x >= monitor.x && x < monitor.x + monitor.width &&
-                  x >= monitor.y && y < monitor.y + monitor.height) {
-                  break;
-               }
-            }
-            let maxHeightBottom = 0;
-            let maxHeightTop = 0;
-            let panels = Main.panelManager.getPanelsInMonitor(i);
-            for(let j in panels) {
-               if(panels[j].bottomPosition)
-                  maxHeightBottom = Math.max(maxHeightBottom, panels[j].actor.height);
-               else
-                  maxHeightTop = Math.max(maxHeightTop, panels[j].actor.height);
-            }
-            return [maxHeightBottom, maxHeightTop];
-         }
-      } else {
-         if(!Main.panel2) {
-            if(this._arrowSide == St.Side.TOP)
-               return [0, Main.panel.actor.height];
-            else
-               return [Main.panel.actor.height, 0];
-         }
-         return [Main.panel2.actor.height, Main.panel.actor.height];
-      }
-      return 0;
    },
 
    _fixToCorner: function(x, y, sourceActor, sourceAllocation, monitor, maxPHV, gap, borderWidth) {
@@ -1114,9 +1084,8 @@ ConfigurablePointer.prototype = {
             }
          } else {
             if(this._fixScreen) {
-               let allocScreen = Shell.util_get_transformed_allocation(this._screenActor);
-               this._xOffset = - x + allocScreen.x1 + this._screenActor.width;
-               this._yOffset = - y + allocScreen.y1;
+               this._xOffset = - x + monitor.x + monitor.width;
+               this._yOffset = - y + monitor.y;
             } else if(this._fixCorner) {
                if(sourceAllocation.y2 < monitor.y + monitor.height)
                    this._yOffset = - y + sourceAllocation.y1;
@@ -1147,6 +1116,129 @@ ConfigurablePointer.prototype = {
          actor = actor.get_parent();
       }
       return null;
+   },
+
+   getRegionForActor: function(actor) {
+       let index = Main.layoutManager.findIndexForActor(actor);
+       if (index >= 0 && index < Main.layoutManager.monitors.length) {
+           let regions = this._getRegions();
+           if(regions[index]) {
+               let sideRect = regions[index];
+               let rectLeft = sideRect[Meta.Side.LEFT];
+               let rectRight = sideRect[Meta.Side.RIGHT];
+               let rectTop = sideRect[Meta.Side.TOP];
+               let rectBottom = sideRect[Meta.Side.BOTTOM];
+               let x1 = rectLeft.x + rectLeft.width;
+               let x2 = rectRight.x;
+               let y1 = rectTop.y + rectTop.height;
+               let y2 = rectBottom.y;
+               return new Meta.Rectangle({ x: x1, y: y1, width: x2 - x1, height: y2 - y1});
+           }
+       }
+       return null;
+   },
+
+   _isPopupMetaWindow: function(actor) {
+      switch(actor.meta_window.get_window_type()) {
+      case Meta.WindowType.DROPDOWN_MENU:
+      case Meta.WindowType.POPUP_MENU:
+      case Meta.WindowType.COMBO:
+         return true;
+      default:
+        return false;
+      }
+   },
+
+   _unionRectangles: function(rect1, rect2) {
+      let x1 = Math.min(rect1.x, rect2.x);
+      let y1 = Math.min(rect1.y, rect2.y);
+      let x2 = Math.max(rect1.x + rect1.width, rect2.x + rect2.width);
+      let y2 = Math.max(rect1.y + rect1.height, rect2.y + rect2.height);
+      return new Meta.Rectangle({ x: x1, y: y1, width: x2 - x1, height: y2 - y1});
+   },
+
+   _getRegions: function() {
+      let layout = Main.layoutManager;
+      let isPopupMenuVisible = global.top_window_group.get_children().some(this._isPopupMetaWindow);
+      let wantsInputRegion = !isPopupMenuVisible;
+      let resultRect = [];
+
+      for (let i = 0; i < layout.monitors.length; i++) {
+         let monitor = layout.monitors[i];
+         let sideRect = {};
+         sideRect[Meta.Side.LEFT] = new Meta.Rectangle({ x: monitor.x, y: monitor.y, width: 0, height: 0 });
+         sideRect[Meta.Side.RIGHT] = new Meta.Rectangle({ x: monitor.x + monitor.width, y: monitor.y, width: 0, height: 0 });
+         sideRect[Meta.Side.TOP] = new Meta.Rectangle({ x: monitor.x, y: monitor.y, width: 0, height: 0 });
+         sideRect[Meta.Side.BOTTOM] = new Meta.Rectangle({ x: monitor.x, y: monitor.y + monitor.height, width: 0, height: 0 });
+         resultRect.push(sideRect);
+      }
+
+      for (let i = 0; i < layout._trackedActors.length; i++) {
+         let actorData = layout._trackedActors[i];
+         if (!(actorData.affectsInputRegion && wantsInputRegion) && !actorData.affectsStruts)
+            continue;
+
+         let [x, y] = actorData.actor.get_transformed_position();
+         let [w, h] = actorData.actor.get_transformed_size();
+         x = Math.round(x);
+         y = Math.round(y);
+         w = Math.round(w);
+         h = Math.round(h);
+
+         let index = -1;
+         if (actorData.affectsStruts) {
+            index = layout.findIndexForActor(actorData.actor);
+         }
+         if (index >= 0 && index < layout.monitors.length) {
+            let monitor = layout.monitors[index];
+
+            // Limit struts to the size of the screen
+            let x1 = Math.max(x, 0);
+            let x2 = Math.min(x + w, global.screen_width);
+            let y1 = Math.max(y, 0);
+            let y2 = Math.min(y + h, global.screen_height);
+
+            // Metacity wants to know what side of the monitor the
+            // strut is considered to be attached to. First, we find
+            // the monitor that contains the strut. If the actor is
+            // only touching one edge, or is touching the entire
+            // border of that monitor, then it's obvious which side
+            // to call it. If it's in a corner, we pick a side
+            // arbitrarily. If it doesn't touch any edges, or it
+            // spans the width/height across the middle of the
+            // screen, then we don't create a strut for it at all.
+
+            let side;
+            if (x1 <= monitor.x && x2 >= monitor.x + monitor.width) {
+               if (y1 <= monitor.y)
+                  side = Meta.Side.TOP;
+               else if (y2 >= monitor.y + monitor.height)
+                  side = Meta.Side.BOTTOM;
+               else
+                  continue;
+            } else if (y1 <= monitor.y && y2 >= monitor.y + monitor.height) {
+               if (x1 <= monitor.x)
+                  side = Meta.Side.LEFT;
+               else if (x2 >= monitor.x + monitor.width)
+                  side = Meta.Side.RIGHT;
+               else
+                 continue;
+            } else if (x1 <= monitor.x)
+               side = Meta.Side.LEFT;
+            else if (y1 <= monitor.y)
+               side = Meta.Side.TOP;
+            else if (x2 >= monitor.x + monitor.width)
+               side = Meta.Side.RIGHT;
+            else if (y2 >= monitor.y + monitor.height)
+               side = Meta.Side.BOTTOM;
+            else
+               continue;
+
+            let strutRect = new Meta.Rectangle({ x: x1, y: y1, width: x2 - x1, height: y2 - y1});
+            resultRect[index][side] = this._unionRectangles(resultRect[index][side], strutRect);
+         }
+      }
+      return resultRect;
    },
 
    _reposition: function(sourceActor, alignment) {
@@ -1196,35 +1288,21 @@ ConfigurablePointer.prototype = {
 
       // Now align and position the pointing axis, making sure
       // it fits on screen
+      let rect = this.getRegionForActor(sourceActor);
       switch (this._arrowSide) {
       case St.Side.TOP:
       case St.Side.BOTTOM:
          resX = sourceCenterX - (halfMargin + (natWidth - margin) * alignment);
-         resX = Math.max(resX, monitor.x + 10);
-         resX = Math.min(resX, monitor.x + monitor.width - (10 + natWidth));
+         resX = Math.max(resX, monitor.x + rect.y);
+         resX = Math.min(resX, monitor.x + monitor.width - (rect.y + natWidth));
          this.setArrowOrigin(sourceCenterX - resX);
          break;
 
       case St.Side.LEFT:
       case St.Side.RIGHT:
          resY = sourceCenterY - (halfMargin + (natHeight - margin) * alignment);
-         let [maxHeightBottom, maxHeightTop] = this._maxPanelSize();
-         maxPHV = Math.max(maxHeightBottom, maxHeightTop);
-         resY = Math.max(resY, monitor.y + maxPHV);
-         let topMenu = this._getTopMenu(sourceActor);
-         if(Main.panelManager) {
-            if(((maxHeightBottom == 0)||(maxHeightTop==0))&&(topMenu)&&(topMenu._arrowSide == St.Side.TOP)) {
-               resY = Math.min(resY, monitor.y + monitor.height - (natHeight));
-            } else {
-               resY = Math.min(resY, monitor.y + monitor.height - (maxPHV + natHeight));
-            }
-         } else {
-            if((!Main.panel2)&&(topMenu)&&(topMenu._arrowSide == St.Side.TOP)) {
-               resY = Math.min(resY, monitor.y + monitor.height - (natHeight));
-            } else {
-               resY = Math.min(resY, monitor.y + monitor.height - (maxPHV + natHeight));
-            }
-         }
+         resY = Math.max(resY, monitor.y + rect.x);
+         resY = Math.min(resY, monitor.y + monitor.height - (rect.x + natHeight));
 
          this.setArrowOrigin(sourceCenterY - resY);
          break;
@@ -1810,10 +1888,11 @@ ConfigurablePopupBaseMenuItem.prototype = {
       params = Params.parse (params, {
          reactive: true,
          activate: true,
-         hover: true,
+         activeOnFocus: true,
          sensitive: true,
          style_class: null,
          focusOnHover: true,
+         focusOnActivation: true,
       });
       this.actor = new St.BoxLayout({
          style_class: 'popup-menu-item',
@@ -1821,6 +1900,7 @@ ConfigurablePopupBaseMenuItem.prototype = {
          track_hover: params.reactive,
          can_focus: params.reactive
       });
+
       if(this.actor.set_accessible_role)
          this.actor.set_accessible_role(Atk.Role.MENU_ITEM);
       this.actor.connect('style-changed', Lang.bind(this, this._onStyleChanged));
@@ -1829,28 +1909,103 @@ ConfigurablePopupBaseMenuItem.prototype = {
       this._children = [];
       this._columnWidths = null;
       this._spacing = 0;
-      this.active = false;
-      this.preserveSelection = false;
-      this._activatable = params.reactive && params.activate;
-      this.sensitive = true;
-      this.focusOnHover = params.focusOnHover;
       this._desaturateIcon = false;
+      this._preserveSelection = false; //FIXME: not used yet.
+      this._sensitive = params.sensitive;
 
-      this.setSensitive(this._activatable && params.sensitive);
+      this._activatable = params.activate;
+      // Public Properties
+      this.active = false;
+      this.focusOnHover = params.focusOnHover;
+      this.focusOnActivation = params.focusOnActivation;
+      this.activeOnFocus = params.activeOnFocus;
 
       if(params.style_class)
          this.actor.add_style_class_name(params.style_class);
 
-      if(this._activatable) {
-         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonReleaseEvent));
-         this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
-         this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+      this.actor._notifyHoverId = null;
+      this.actor._keyFocusOutId = null;
+      this.actor._keyFocusInId = null;
+      this.actor._notifyHoverId = null;
+      this.actor._keyFocusOutId = null;
+      this.actor._keyFocusInId = null;
+      if(this.actor.reactive) {
+         this.actor._notifyHoverId = this.actor.connect('notify::hover', Lang.bind(this, this._onHoverChanged));
+         this.actor._keyFocusOutId = this.actor.connect('key-focus-out', Lang.bind(this, this._onKeyFocusOut));
+         this.actor._keyFocusInId = this.actor.connect('key-focus-in', Lang.bind(this, this._onKeyFocusIn));
+         if(this._activatable) {
+            this.actor._bttReleaseId = this.actor.connect('button-release-event', Lang.bind(this, this._onButtonReleaseEvent));
+            this.actor._bttPressId = this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
+            this.actor._keyPressId = this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+
+            this.actor.reactive = this._sensitive;
+            this.actor.can_focus = this._sensitive;
+            if(!this._sensitive)
+               this.actor.add_style_pseudo_class('insensitive');
+         }
       }
-      if(params.reactive && params.hover)
-         this.actor.connect('notify::hover', Lang.bind(this, this._onHoverChanged));
-      if(params.reactive) {
-         this.actor.connect('key-focus-out', Lang.bind(this, this._onKeyFocusOut));
-         this.actor.connect('key-focus-in', Lang.bind(this, this._onKeyFocusIn));
+   },
+
+   setReactive: function(reactive) {
+      if(this.actor.reactive != reactive) {
+         this.actor.reactive = reactive;
+         this.actor.track_hover = reactive;
+         this.actor.can_focus = reactive;
+         if(this.actor.reactive) {
+            if(!this.actor._notifyHoverId) {
+               this.actor._notifyHoverId = this.actor.connect('notify::hover', Lang.bind(this, this._onHoverChanged));
+            }
+            if(!this.actor._keyFocusOutId) {
+               this.actor._keyFocusOutId =this.actor.connect('key-focus-out', Lang.bind(this, this._onKeyFocusOut));
+            }
+            if(!this.actor._keyFocusInId) {
+               this.actor._keyFocusInId =this.actor.connect('key-focus-in', Lang.bind(this, this._onKeyFocusIn));
+            }
+         } else {
+            if(this.actor._notifyHoverId) {
+               this.actor._notifyHoverId = this.actor.disconnect(this.actor._notifyHoverId);
+               this.actor._notifyHoverId = null;
+            }
+            if(this.actor._keyFocusOutId) {
+               this.actor._keyFocusOutId =this.actor.disconnect(this.actor._keyFocusOutId);
+               this.actor._keyFocusOutId = null;
+            }
+            if(this.actor._keyFocusInId) {
+               this.actor._keyFocusInId =this.actor.disconnect(this.actor._keyFocusInId);
+               this.actor._keyFocusInId = null;
+            }
+         }
+         this.setActivatable(this._activatable);
+      }
+   },
+
+   setActivatable: function(activatable) {
+      if(this._activatable != activatable) {
+         this._activatable = activatable;
+         if(this.actor.reactive && this._activatable) {
+            if(!this.actor._bttReleaseId) {
+               this.actor._bttReleaseId = this.actor.connect('button-release-event', Lang.bind(this, this._onButtonReleaseEvent));
+            }
+            if(!this.actor._bttPressId) {
+               this.actor._bttPressId = this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
+            }
+            if(!this.actor._keyPressId) {
+               this.actor._keyPressId = this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+            }
+         } else {
+            if(this.actor._bttReleaseId) {
+               this.actor.disconnect(this.actor._bttReleaseId);
+               this.actor._bttReleaseId = null;
+            }
+            if(this.actor._bttPressId) {
+               this.actor.disconnect(this.actor._bttPressId);
+               this.actor._bttPressId = null;
+            }
+            if(this.actor._keyPressId) {
+               this.actor.disconnect(this.actor._keyPressId);
+               this.actor._keyPressId = null;
+            }
+         }
       }
    },
 
@@ -1895,15 +2050,16 @@ ConfigurablePopupBaseMenuItem.prototype = {
    },
 
    _onKeyFocusIn: function(actor) {
-      this.setActive(true);
+      if(this.activeOnFocus) this.setActive(true);
    },
 
    _onKeyFocusOut: function(actor) {
-      this.setActive(false);
+      if(this.activeOnFocus) this.setActive(false);
    },
 
    _onHoverChanged: function(actor) {
-      this.setActive(actor.hover);
+      if(this.focusOnHover && actor.hover) actor.grab_key_focus();
+      if(this.activeOnFocus) this.setActive(actor.hover);
    },
 
    activate: function(event, keepMenu) {
@@ -1913,31 +2069,33 @@ ConfigurablePopupBaseMenuItem.prototype = {
    setActive: function(active) {
       if(active != this.active) {
          this.active = active;
-         if(this.active)
-             this.actor.add_style_pseudo_class('active');
-         else
+         if(this.active) {
+             this.actor.add_style_class_name('selected');
+         } else {
+             this.actor.remove_style_class_name('selected');
              this.actor.remove_style_pseudo_class('active');
-         if(this.focusOnHover && this.active) this.actor.grab_key_focus();
-
+         }
+         if(this.focusOnActivation && this.active) this.actor.grab_key_focus();
          this.emit('active-changed', active);
       }
    },
 
    setSensitive: function(sensitive) {
-      if(!this._activatable)
-         return;
-      if(this.sensitive == sensitive)
-         return;
+      if((this._sensitive != sensitive) && this.actor.reactive && this._activatable) {
+          this._sensitive = sensitive;
+          this.actor.reactive = sensitive;
+          this.actor.can_focus = sensitive;
 
-      this.sensitive = sensitive;
-      this.actor.reactive = sensitive;
-      this.actor.can_focus = sensitive;
+          if(!sensitive)
+              this.actor.add_style_pseudo_class('insensitive');
+          else
+              this.actor.remove_style_pseudo_class('insensitive');
+          this.emit('sensitive-changed', sensitive);
+      }
+   },
 
-      if(!sensitive)
-          this.actor.add_style_pseudo_class('insensitive');
-      else
-          this.actor.remove_style_pseudo_class('insensitive');
-      this.emit('sensitive-changed', sensitive);
+   isSensitive: function() {
+      return this._sensitive;
    },
 
    // adds an actor to the menu item; @params can contain %span
@@ -2113,10 +2271,11 @@ ConfigurableEntryItem.prototype = {
       ConfigurablePopupBaseMenuItem.prototype._init.call(this, {
          reactive: true,
          activate: true,
-         hover: true,
+         activeOnFocus: true,
          sensitive: true,
          style_class: 'popup-menu-entry',
          focusOnHover: false,
+         focusOnActivation: false,
       });
       this.actor.style_class = ''; //menu-search-box
       this.label = new St.Label({ text: label, style_class: 'menu-selected-app-title' });
@@ -2273,12 +2432,14 @@ GradientLabelMenuItem.prototype = {
    //__proto__: ConfigurablePopupSubMenuMenuItem.prototype,
 
    _init: function(text, size, params) {
-      ConfigurablePopupBaseMenuItem.prototype._init.call(this, params);
+      ConfigurablePopupBaseMenuItem.prototype._init.call(this, Params.parse(params, {
+         focusOnHover: false,
+         focusOnActivation: false,
+      }));
       //ConfigurablePopupSubMenuMenuItem.prototype._init.call(this, text, false, true, params);
       this._text = text;
       this._size = size;
       this.margin = 2;
-      this.reactOnActivation = false;
       this._textDegradation = true;
       this.actor.set_style_class_name('popup-menu-item');
       this.actor.add_style_class_name('applet-box');
@@ -2303,16 +2464,13 @@ GradientLabelMenuItem.prototype = {
       this.actor._delegate = this;
    },
 
-   setActive: function(active, force) {
-      if(this.reactOnActivation || force) {
-          ConfigurablePopupBaseMenuItem.prototype.setActive.call(this, active);
-          this.actor.grab_key_focus();
-      }
-   },
-
    _onButtonPressEvent: function(actor, event) {
       return false;
    },
+
+   /*setActive: function(active) {
+       this.focusOnActivation
+   },*/
 
    setText: function(text) {
       this._text = text;
@@ -2514,7 +2672,7 @@ ConfigurableBasicPopupMenuItem.prototype = {
    },
 
    preservedSelection: function(preserve) {
-      this.preserveSelection = preserve;
+      this._preserveSelection = preserve;
    },
 
    setIconVisible: function(show) {
@@ -2602,7 +2760,7 @@ ConfigurableApplicationMenuItem.prototype = {
    },
 
    preservedSelection: function(preserve) {
-      this.preserveSelection = preserve;
+      this._preserveSelection = preserve;
    },
 
    setAccel: function(accel) {
@@ -2719,7 +2877,6 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       });
       if(this._triangle.set_accessible_role)
          this._triangle.set_accessible_role(Atk.Role.ARROW);
-      this.reactOnActivation = true;
       this._triangle.rotation_center_z_gravity = Clutter.Gravity.CENTER;
       if(this._hide_expander)
          this._triangle.hide();
@@ -2762,7 +2919,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    },
 
    preservedSelection: function(preserve) {
-      this.preserveSelection = preserve;
+      this._preserveSelection = preserve;
    },
 
    _createArrowIcon: function(side) {
@@ -2884,10 +3041,14 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    },
 
    _onHoverChanged: function(actor) {
-      this.setActive(actor.hover);
+      if(this.focusOnHover && actor.hover) actor.grab_key_focus();
+      if(this.activeOnFocus) this.setActive(actor.hover);
       if((this._vectorBlocker)&&(actor.hover)&&(this.menu)) {
          this._vectorBlocker.executeInActors(this.actor, this.menu.actor);
       }
+      /*if((actor.hover)&&(this._openOnHover)&&(this.menu)) {
+         this.menu.open(true);
+      }*/
    },
 
    _onMapped: function() {
@@ -2909,30 +3070,71 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
       }
    },
 
+   setActive: function(active) {
+      if(this.active != active) {
+         this.active = active;
+         if(this._showArrowOnActivation) {
+            if(this.active)
+               this._triangle.icon_name = 'media-playback-start';
+            else
+               this._triangle.icon_name = null;
+         }
+         if(this.menu && this._openMenuOnActivation) {
+            if((!this.menu.isOpen)&&(this.menu._floating)) {
+               this.menu.repositionActor(this.actor);
+            }
+            if(this.active)
+               this.menu.open();
+         }
+         if(this.active) {
+            this.actor.add_style_class_name('selected');
+         } else if(this.menu && !this.menu.isOpen) {
+            this.actor.remove_style_class_name('selected');
+            this.actor.remove_style_pseudo_class('active');
+         }
+         if(this.focusOnActivation && this.active) this.actor.grab_key_focus();
+         this.emit('active-changed', active);
+      }
+   },
+
    _subMenuOpenStateChanged: function(menu, open) {
       if(open) {
          this.actor.add_style_pseudo_class('open');
-         this.actor.add_style_pseudo_class('active');
          if((!this._hide_expander)&&(this.menu && !this.menu._floating)) {
              let rotationAngle = 90;
              if(this.actor.get_text_direction() == Clutter.TextDirection.RTL)
                 rotationAngle = 270;
              this._triangle.rotation_angle_z = rotationAngle;
          }
+         this.setActive(true);
       } else {
          this.actor.remove_style_pseudo_class('open');
-         this.actor.remove_style_pseudo_class('active');
+         if(!this.active) {
+             this.actor.remove_style_class_name('selected');
+             this.actor.remove_style_pseudo_class('active');
+         } else if (this.actor != global.stage.key_focus) {
+             this.setActive(false);
+         }
          this._triangle.rotation_angle_z = 0;
       }
-      this.emit('open-state-changed', menu, open);
+      this.emit('open-menu-state-changed', menu, open);
    },
 
    _getClutterOrientation: function() {
-       if(this._arrowSide == St.Side.RIGHT)
-           return [Clutter.KEY_Left, Clutter.KEY_Right];
-       return [Clutter.KEY_Right, Clutter.KEY_Left];
+      switch (this._arrowSide) {
+      case St.Side.RIGHT:
+         return [Clutter.KEY_Left, Clutter.KEY_Right];
+      case St.Side.LEFT:
+         return [Clutter.KEY_Right, Clutter.KEY_Left];
+      case St.Side.TOP:
+         return [Clutter.KEY_Down, Clutter.KEY_Up];
+      case St.Side.BOTTOM:
+         return [Clutter.KEY_Up, Clutter.KEY_Down];
+      }
+      return [Clutter.KEY_Right, Clutter.KEY_Left];
    },
 
+//ConfigurablePopupSubMenuMenuItem
    _onKeyPressEvent: function(actor, event) {
       if(this.menu) {
          let [openKey, closeKey] = this._getClutterOrientation();
@@ -2950,42 +3152,18 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    },
 
    activate: function(event) {
-      /*if((!this.menu.isOpen)&&(this.menu._floating)) {
-         this.menu.repositionActor(this.actor);
-      }*/
       if(this.menu)
          this.menu.open(true);
    },
 
    _onKeyFocusInit: function(actor) {
-      if(this.menu && !this.menu.IsOpen && this.menu.isInFloatingState())
+      if(this.activeOnFocus && this.menu && !this.menu.IsOpen && this.menu.isInFloatingState())
          this.setActive(true);
    },
 
    _onKeyFocusOut: function(actor) {
-      if(this.menu && this.menu.IsOpen && this.menu.isInFloatingState())
+      if(this.activeOnFocus && this.menu && this.menu.IsOpen && this.menu.isInFloatingState())
          this.setActive(false);
-   },
-
-   setActive: function(active) {
-      if(this.active != active) {
-         if(this._showArrowOnActivation) {
-            if(active)
-               this._triangle.icon_name = 'media-playback-start';
-            else
-               this._triangle.icon_name = null;
-         }
-         if(this.menu && this._openMenuOnActivation) {
-            if((!this.menu.isOpen)&&(this.menu._floating)) {
-               this.menu.repositionActor(this.actor);
-            }
-            if(active)
-               this.menu.open();
-         }
-         if(this.reactOnActivation) {
-             ConfigurableBasicPopupMenuItem.prototype.setActive.call(this, active);
-         }
-      }
    },
 
    _onButtonPressEvent: function(actor, event) {
@@ -3174,27 +3352,27 @@ ConfigurableMenuManager.prototype = {
    _onMenuOpenState: function(menu, open) {
       if(!this._isFloating(menu))
          return;
-      let focus = global.stage.key_focus;
       if(open) {
          if(this._activeMenu && this._activeMenu.isChildMenu(menu)) {
             this._menuStack.push(this._activeMenu);
-         } else if(!this._activeMenu && (!focus || !menu.actor.contains(focus))) {
-            menu.actor.grab_key_focus();
-            if(menu.sourceActor)
-               menu.sourceActor.grab_key_focus();
          }
          this._activeMenu = menu;
       } else if(this._menuStack.length > 0) {
          this._activeMenu = this._menuStack.pop();
       }
       // Check what the focus was before calling pushModal/popModal
-      focus = global.stage.key_focus;
+      let focus = global.stage.key_focus;
       let hadFocus = focus && this._activeMenuContains(focus);
 
       if(open) {
          if(!this.grabbed) {
             this._grabbedFromKeynav = hadFocus;
             this._grab();
+            if(!this._activeMenu && (!focus || !menu.actor.contains(focus))) {
+               menu.actor.grab_key_focus();
+               if(menu.sourceActor)
+                  menu.sourceActor.grab_key_focus();
+            }
          }
          // FIXME: this is buggy and open the menu and closed it several times.
          if(hadFocus)
@@ -3205,7 +3383,6 @@ ConfigurableMenuManager.prototype = {
          if(this.grabbed)
             this._ungrab();
          this._activeMenu = null;
-
          if(this._grabbedFromKeynav) {
             if(hadFocus && menu.sourceActor && menu.actor.contains(focus))
                menu.sourceActor.grab_key_focus();
@@ -3624,9 +3801,22 @@ ConfigurablePopupMenuBase.prototype = {
       this.isOpen = false;
       this.blockSourceEvents = false;
       this.passEvents = false;
+      this._floating = false;
 
       this._activeMenuItem = null;
       this._childMenus = [];
+   },
+
+   isInFloatingState: function() {
+       return this._floating;
+   },
+
+   setVertical: function(vertical) {
+      this.box.set_vertical(vertical);
+   },
+
+   getVertical: function(vertical) {
+      this.box.get_vertical();
    },
 
    addAction: function(title, callback) {
@@ -3713,11 +3903,13 @@ ConfigurablePopupMenuBase.prototype = {
                this.close(true);
             }
          }));
-         menuItem._subMenuActiveChangeId = menu.connect('active-changed', Lang.bind(this, function(menuItem, submenuItem) {
-            if(this._activeMenuItem && this._activeMenuItem != submenuItem)
-               this._activeMenuItem.setActive(false);
-            this._activeMenuItem = submenuItem;
-            this.emit('active-changed', submenuItem);
+         menuItem._subMenuActiveChangeId = menu.connect('active-changed', Lang.bind(this, function(menu, submenuItem) {
+            if (!menu.isInFloatingState()) {
+               if(this._activeMenuItem && this._activeMenuItem != submenuItem)
+                  this._activeMenuItem.setActive(false);
+               this._activeMenuItem = submenuItem;
+               this.emit('active-changed', submenuItem);
+            }
          }));
          menuItem._subMenuDestroyId = menu.connect('destroy', Lang.bind(this, function(menu) {
             if(menu) {
@@ -3754,12 +3946,14 @@ ConfigurablePopupMenuBase.prototype = {
    _connectItemSignals: function(menuItem) {
       if(!menuItem._activeChangeI) {
          menuItem._activeChangeId = menuItem.connect('active-changed', Lang.bind(this, function(menuItem, active) {
-            if(active && this._activeMenuItem != menuItem) {
-               if(this._activeMenuItem)
+            if(active && (this._activeMenuItem != menuItem)) {
+               if(this._activeMenuItem) {
                   this._activeMenuItem.setActive(false);
+               }
                this._activeMenuItem = menuItem;
                this.emit('active-changed', menuItem);
             } else if(!active && this._activeMenuItem == menuItem) {
+               this._activeMenuItem.setActive(false);
                this._activeMenuItem = null;
                this.emit('active-changed', null);
             }
@@ -3793,23 +3987,23 @@ ConfigurablePopupMenuBase.prototype = {
    },
 
    _disconnectItemSignals: function(menuItem) {
-     try {
-      if(menuItem._activeChangeId) {
-         menuItem.disconnect(menuItem._activeChangeId);
-         menuItem._activeChangeId = null;
-      }
-      if(menuItem._sensitiveChangeId) {
-         menuItem.disconnect(menuItem._sensitiveChangeId);
-         menuItem._sensitiveChangeId = null;
-      }
-      if(menuItem._activateId) {
-         menuItem.disconnect(menuItem._activateId);
-         menuItem._activateId = null;
-      }
-      if(menuItem._destroyId) {
-         menuItem.disconnect(menuItem._destroyId);
-         menuItem._destroyId = null;
-      }
+      try {
+         if(menuItem._activeChangeId) {
+            menuItem.disconnect(menuItem._activeChangeId);
+            menuItem._activeChangeId = null;
+         }
+         if(menuItem._sensitiveChangeId) {
+            menuItem.disconnect(menuItem._sensitiveChangeId);
+            menuItem._sensitiveChangeId = null;
+         }
+         if(menuItem._activateId) {
+            menuItem.disconnect(menuItem._activateId);
+            menuItem._activateId = null;
+         }
+         if(menuItem._destroyId) {
+            menuItem.disconnect(menuItem._destroyId);
+            menuItem._destroyId = null;
+         }
       } catch(e) {
          global.logError("Try to disconnect unexisting signals for: " + menuItem);
       }
@@ -3838,10 +4032,9 @@ ConfigurablePopupMenuBase.prototype = {
          menuItem._menuChangedId = menuItem.connect('menu-changed', Lang.bind(this, function(menuItem, oldMenu) {
             this._onMenuChanged(menuItem, oldMenu);
          }));
-         menuItem._closingMenuId = this.connect('open-state-changed', function(menu, open) {
-            if(!open && menuItem.menu)
-               menuItem.menu.close(false);
-         });
+         menuItem._closingMenuId = this.connect('open-state-changed', Lang.bind(this, function(menu, open) {
+            this._onOpenMenuChanged(menu, open, menuItem);
+         }));
          this._onMenuChanged(menuItem, null);
       } else if(menuItem instanceof ConfigurableSeparatorMenuItem) {
          this._connectItemSignals(menuItem);
@@ -3910,6 +4103,11 @@ ConfigurablePopupMenuBase.prototype = {
             this.box.insert_child_above(menuItem.menu.actor, menuItem.actor);
          this._connectSubMenuSignals(menuItem, menuItem.menu);
       }
+   },
+
+   _onOpenMenuChanged: function(menu, open, menuItem) {
+      if(!open && menuItem.menu)
+         menuItem.menu.close(false);
    },
 
    getColumnWidths: function() {
@@ -4033,7 +4231,6 @@ ConfigurableMenu.prototype = {
          this._paintId = 0;
          this._paintCount = 0;
          this._reactive = true;
-         this._floating = false;
          this._topMenu = null;
          this._showItemIcon = true;
          this._desaturateItemIcon = false;
@@ -4150,63 +4347,6 @@ ConfigurableMenu.prototype = {
       this._setChildsArrowSide();
       if(this.requestedWidth != -1 || this.requestedHeight != -1)
          this.setSize(this.requestedWidth, this.requestedHeight);
-   },
-
-   _processNewPanelSize: function(bottomPosition) {
-      if(Main.panelManager) {
-         let [x, y] =this.launcher.actor.get_transformed_position();
-
-         let i = 0;
-         let monitor;
-         for(; i < global.screen.get_n_monitors(); i++) {
-            monitor = global.screen.get_monitor_geometry(i);
-            if(x >= monitor.x && x < monitor.x + monitor.width &&
-               x >= monitor.y && y < monitor.y + monitor.height) {
-               break;
-            }
-         }
-
-         let maxHeight = 0
-         let panels = Main.panelManager.getPanelsInMonitor(i);
-         for(let j in panels) {
-            if(panels[j].bottomPosition == bottomPosition)
-               maxHeight = Math.max(maxHeight, panels[j].actor.height);
-         }
-         return maxHeight;
-      } else {
-         if(bottomPosition) {
-            if(!Main.panel2) {
-               if(this._arrowSide == St.Side.BOTTOM)
-                  return Main.panel.actor.height;
-               else
-                  return 0;
-            } else {
-               return Main.panel2.actor.height;
-            }
-         } else {
-            if(!Main.panel2) {
-               if(this._arrowSide == St.Side.BOTTOM)
-                  return 0;
-               else
-                  return Main.panel.actor.height;
-            } else {
-               return Main.panel.actor.height;
-            }
-         }
-      }
-      return 0;
-   },
-
-   _processPanelSize: function(bottomPosition) {
-      let panelHeight = 0;
-      try {
-         panelHeight = this._processNewPanelSize(bottomPosition);
-         if(!panelHeight)
-            panelHeight = 0;
-      } catch(e) {
-         panelHeight = 0;
-      }
-      return panelHeight;
    },
 
    _onMenuButtonPress: function(actor, event) {
@@ -4495,27 +4635,38 @@ ConfigurableMenu.prototype = {
       this._scroll.allocate(box, flags);
    },
 
+
+//ConfigurableMenu
    _onKeyPressEvent: function(actor, event) {
       if(this.isOpen) {
-         if(!this._activeMenuItem) {
-            this._activeMenuItem = this._getFirstMenuItem(this);
-            this._activeMenuItem.setActive(true);
-         }
-         let close = false;
          if(event.get_key_symbol() == Clutter.Escape) {
-            close = true;
-         } else if(event.get_key_symbol() == this._getClutterScapeKey()) {
-            let topMenu = this.getTopMenu();
-            if(topMenu)
-               topMenu.actor.grab_key_focus();
-            if((!topMenu) || (this._isFloating(topMenu)))
-               close = true;
-         }
-         if(close) {
-            if((this.launcher)&&(this.launcher.setActive))
+            if((this.launcher)&&(this.launcher.setActive)) {
+               if (this._activeMenuItem) 
+                   this._activeMenuItem.setActive(false);
+               this.launcher.active = false;//Forced to reactived it.
                this.launcher.setActive(true);
+            }
             this.close(true);
             return true;
+         } else if(!this._activeMenuItem) {
+            let firstMenuItem = this._getFirstMenuItem(this);
+            if(firstMenuItem) {
+                firstMenuItem.setActive(true);
+                this._activeMenuItem = firstMenuItem;
+                return true;
+            }
+         } else if((event.get_key_symbol() == this._getClutterScapeKey()) && this._isItemInMenuBorder(this, this._activeMenuItem) ) {
+            if((this.launcher)&&(this.launcher.setActive)) {
+               this._activeMenuItem.setActive(false);
+               this.launcher.active = false;//Forced to reactived it.
+               this.launcher.setActive(true);
+               return true;
+            } else {
+               this.launcher.actor.grab_key_focus();
+               this._activeMenuItem.setActive(false);
+               this.close(true);
+               return true;
+            } 
          }
       }
       return false;
@@ -4527,20 +4678,19 @@ ConfigurableMenu.prototype = {
          scapeKey = Clutter.KEY_Left;
       else if(this._arrowSide == St.Side.RIGHT)
          scapeKey = Clutter.KEY_Right;
-      else if(this._getBorderMenuItem(this) == this._activeMenuItem) {
-         if(this._arrowSide == St.Side.TOP)
-            scapeKey = Clutter.KEY_Up;
-         else if(this._arrowSide == St.Side.BOTTOM)
-            scapeKey = Clutter.KEY_Down;
-      }
+      else if(this._arrowSide == St.Side.TOP)
+         scapeKey = Clutter.KEY_Up;
+      else if(this._arrowSide == St.Side.BOTTOM)
+         scapeKey = Clutter.KEY_Down;
       return scapeKey;
    },
 
-   _getBorderMenuItem: function(menu) {
-      if(this._arrowSide == St.Side.TOP)
-         return this._getFirstMenuItem(menu);
-      else if(this._arrowSide == St.Side.BOTTOM)
-         return this._getLastMenuItem(menu);
+   _isItemInMenuBorder: function(menu, item) {
+      if(this._arrowSide == St.Side.TOP) {
+         return (item == this._getFirstMenuItem(menu));
+      } else if(this._arrowSide == St.Side.BOTTOM) {
+         return (item == this._getLastMenuItem(menu));
+      }
       return true;
    },
 
@@ -4551,7 +4701,7 @@ ConfigurableMenu.prototype = {
             let result = this._getFirstMenuItem(items[pos]);
             if(result)
                return result;
-         } else if((items[pos].actor.visible)&&(items[pos].sensitive)&&
+         } else if((items[pos].actor.visible) && (items[pos].isSensitive()) &&
                    (!(items[pos] instanceof ConfigurableSeparatorMenuItem))) {
             return items[pos];
          }
@@ -4567,7 +4717,7 @@ ConfigurableMenu.prototype = {
                let result = this._getLastMenuItem(items[pos]);
                if(result)
                   return result;
-            } else if((items[pos].actor.visible)&&(items[pos].sensitive)&&
+            } else if((items[pos].actor.visible)&&(items[pos].isSensitive())&&
                       (!(items[pos] instanceof ConfigurableSeparatorMenuItem))) {
                return items[pos];
             }
@@ -4920,13 +5070,11 @@ ConfigurableMenu.prototype = {
       if(active != this.active) {
          this.active = active;
          if(this.active) {
-            let items = this.getMenuItems();
-            for(let pos in items) {
-               if(items[pos].actor.visible && items[pos].setActive) {
-                  items[pos].setActive(true);
-                  return items[pos];
-               }
-            }
+            let item = this._getFirstMenuItem(this);
+            if(item) {
+               item.setActive(true);
+               //this._activeMenuItem = item;
+            } 
          } else if(this._activeMenuItem) {
             this._activeMenuItem.setActive(false);
          }
@@ -4990,15 +5138,13 @@ ConfigurableMenu.prototype = {
    setSize: function(width, height) {
       if(this.actor.mapped) {
          let monitor = Main.layoutManager.findMonitorForActor(this.actor);
-         let panelTop = this._processPanelSize(false);
-         let panelButton = this._processPanelSize(true);
+         let rect = this._boxPointer.getRegionForActor(this._boxPointer._sourceActor);
          //let bordersY = themeNode.get_length('border-bottom') + themeNode.get_length('border-top') + themeNode.get_length('-boxpointer-gap');
-         //let maxHeight = monitor.height - panelButton - panelTop + bordersY - difference;
-         let maxHeight = monitor.height - panelButton - panelTop;
-         if(height > maxHeight)
-            height = maxHeight;
-         if(width > monitor.width)
-            width = monitor.width;
+         //let maxHeight = rect.height + bordersY - difference;
+         if(height > rect.height)
+            height = rect.height;
+         if(width > rect.width)
+            width = rect.width;
          if(height > 0 && height < 100)
             height = 100;
          this.actor.set_width(width);
@@ -5096,16 +5242,12 @@ ConfigurableMenu.prototype = {
       this._updateTopMenu();
    },
 
-   isInFloatingState: function() {
-       return this._floating;
-   },
-
    setLauncher: function(launcher) {
       this.launcher = launcher;
       if(this.launcher) {
          this.sourceActor = this.launcher.actor;
          if(this._floating)
-            this._boxPointer.trySetPosition(this.launcher.actor, this._arrowAlignment);
+            this._boxPointer.setPosition(this.launcher.actor, this._arrowAlignment);
          else
             this._boxPointer.clearPosition();
          this._updateTopMenu();
@@ -5220,18 +5362,20 @@ ConfigurableMenu.prototype = {
    },
 
    fixToCorner: function(fixCorner) {
-      if(this._floating)
+      if(this._floating) {
          this._boxPointer.fixToCorner(fixCorner);
+      }
    },
 
-   fixToScreen: function(fixCorner) {
-      if(this._floating)
-         this._boxPointer.fixToScreen(this.launcher.actor, fixCorner);
+   fixToScreen: function(fixScreen) {
+      if(this._floating) {
+         this._boxPointer.fixToScreen(fixScreen);
+      }
    },
 
    repositionActor: function(actor) {
       if((this._floating)&&(this.launcher.actor)&&(this.launcher.actor != actor)) {
-         this._boxPointer.trySetPosition(actor, this._arrowAlignment);
+         this._boxPointer.setPosition(actor, this._arrowAlignment);
       }
    },
 
@@ -5343,10 +5487,6 @@ ConfigurablePopupMenuSection.prototype = {
    // deliberately ignore any attempt to open() or close()
    open: function(animate) { },
    close: function() { },
-
-   setVertical: function(vertical) {
-      this.box.set_vertical(vertical);
-   },
 
    _getTopMenu: function(actor) {
       while(actor) {
@@ -7426,7 +7566,6 @@ ConfigurableMenuApplet.prototype = {
    _init: function(launcher, orientation, menuManager) {
       ConfigurableMenu.prototype._init.call(this, launcher, 0.0, orientation, false);
       this._menuManager = menuManager;
-      this._isSubMenuOpen = false;
       this._inWrapMode = false;
       this._openOnHover = false;
       this._startCounter = 0;
@@ -7447,6 +7586,7 @@ ConfigurableMenuApplet.prototype = {
       this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
 
       this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+
       if(this.launcher._applet_tooltip) {
          this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
          this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
@@ -7472,6 +7612,8 @@ ConfigurableMenuApplet.prototype = {
          if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
             this._setMenuInPosition(menuItem);
             this._setIconVisible(menuItem);
+            menuItem.focusOnHover = this._floating;
+            menuItem.focusOnActivation = this._floating;
             if(menuItem.menu)
                menuItem.menu.fixToCorner(menuItem.menu.fixCorner);
          }
@@ -7555,10 +7697,10 @@ ConfigurableMenuApplet.prototype = {
 
    //FIXME: Hack to work like other MenuButtons.
    setAssociation: function(associate) {
-       this._association = associate;
-       if(this.actor.mapped) {
-           this._setAssociationInternal();
-       }
+      this._association = associate;
+      if(this.actor.mapped) {
+         this._setAssociationInternal();
+      }
    },
 
    getParentPanel: function() {
@@ -7602,14 +7744,14 @@ ConfigurableMenuApplet.prototype = {
    },
 
    toggleSubmenu: function(animate) {
-      if(this._isSubMenuOpen)
+      if(this._activeMenuItem && this._activeMenuItem.menu && this._activeMenuItem.menu.isOpen)
          this.closeSubmenu(animate);
       else
          this.openSubmenu(animate);
    },
 
    openSubmenu: function(animate) {
-      if(!this._isSubMenuOpen) {
+      if(!this._activeMenuItem || (this._activeMenuItem.menu && !this._activeMenuItem.menu.isOpen)) {
          if(this._floating) {
             this.open(animate);
          } else {
@@ -7618,21 +7760,30 @@ ConfigurableMenuApplet.prototype = {
             let items = this.getMenuItems();
             let menuItem = null;
             for(let pos in items) {
-               menuItem = items[pos];
-               if((menuItem instanceof ConfigurablePopupSubMenuMenuItem) && menuItem.menu) {
+               if((items[pos] instanceof ConfigurablePopupSubMenuMenuItem) && items[pos].menu) {
+                  menuItem = items[pos];
                   menuItem.menu.open(animate);
                   break;
                }
             }
-            this._activeSubMenuItem = menuItem;
+            /*if (this._activeMenuItem) {
+                //FIXME: We don't want to forced the focus here. How to resolved it?
+                this._activeMenuItem.actor.grab_key_focus();
+            }*/
          }
-         this.actor.grab_key_focus();
-         this._isSubMenuOpen = true;
       }
    },
 
+   setMenuItemsFocusState: function(canFocus) {
+       let items = this.getMenuItems();
+       for(let pos in items) {
+           items[pos].focusOnActivation = canFocus;
+           items[pos].focusOnHover = canFocus;
+       }
+   },
+
    closeSubmenu: function(animate) {
-      if(this._isSubMenuOpen) {
+      if(this._activeMenuItem && this._activeMenuItem.menu && this._activeMenuItem.menu.isOpen) {
          if(this._floating) {
             this.close(animate);
          } else {
@@ -7644,8 +7795,6 @@ ConfigurableMenuApplet.prototype = {
                }
             }
          }
-         this._activeSubMenuItem = null;
-         this._isSubMenuOpen = false;
       }
    },
 
@@ -7676,11 +7825,13 @@ ConfigurableMenuApplet.prototype = {
          this.actor.hide();
          if(global.menuStackLength > 0)
              global.menuStackLength -= 1;
-         this._activeSubMenuItem = null;
-         this._isSubMenuOpen = false;
+         if (this._activeMenuItem) {
+             this._activeMenuItem.setActive(false);
+         }
+         this._activeMenuItem = null;
          this.isOpen = false;
          this._updatePanelVisibility();
-         this.emit('open-state-changed', true);
+         this.emit('open-state-changed', false);
       }
    },
 
@@ -7730,16 +7881,36 @@ ConfigurableMenuApplet.prototype = {
             } else
                this.box.add(menuItem.actor, params);
          }
-         menuItem.connect('menu-changed', Lang.bind(this, function(menuItem, oldMenu) { this._onMenuChanged(menuItem, oldMenu); }));
-         this._onMenuChanged(menuItem, menuItem.menu);
-         menuItem._stateId = menuItem.connect('open-state-changed', Lang.bind(this, function(self, menu, open) {
-            if((!open) && (this._isSubMenuOpen)) {
-               this._isSubMenuOpen = false;
+         menuItem.connect('menu-changed', Lang.bind(this, function(menuItem, oldMenu) {
+             this._onMenuChanged(menuItem, oldMenu); 
+         }));
+         menuItem._closingMenuId = this.connect('open-state-changed', Lang.bind(this, function(menu, open) {
+            this._onOpenMenuChanged(menu, open, menuItem);
+         }));
+         menuItem._stateId = menuItem.connect('open-menu-state-changed', Lang.bind(this, function(menuItem, menu, open) {
+            if (!this.isInFloatingState()) {
+               this.setMenuItemsFocusState(open);
             }
+            if (open) {
+                menuItem.actor.add_style_pseudo_class('active');
+                // FIXME: We don't want to forced the focus here. How to resolved it?
+                // Aparently it's a fact of give a litle time...
+                if (this._activeMenuItem && this._activeMenuItem.active) {
+                   Mainloop.idle_add(Lang.bind(this, function() {
+                      this._activeMenuItem.active = false;
+                      this._activeMenuItem.setActive(true);
+                   }));
+                   //this._activeMenuItem.active = false;
+                   //this._activeMenuItem.setActive(true);
+                }
+            } else {
+                menuItem.actor.remove_style_pseudo_class('active');
+            } 
          }));
          /*if(this.panel && menuItem.menu) {
              this.panel.menuManager.addMenu(menuItem.menu);
          }*/
+         this._onMenuChanged(menuItem, menuItem.menu);
          this._connectItemSignals(menuItem);
          this._setMenuInPosition(menuItem);
          this._setIconVisible(menuItem);
@@ -7759,7 +7930,7 @@ ConfigurableMenuApplet.prototype = {
 
    removeMenuItem: function(menuItem) {
       if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
-         if(menuItem.menu && menuItem._stateId != 0)
+         if(menuItem._stateId != 0)
             menuItem.disconnect(menuItem._stateId);
          menuItem.actor.disconnect(menuItem._pressId);
          menuItem.actor.disconnect(menuItem._notifyHoverId);
@@ -7772,39 +7943,45 @@ ConfigurableMenuApplet.prototype = {
    },
 
    _onMenuItemHoverChanged: function(actor) {
-      if((actor.hover)&&(!this._floating)&&(this._openOnHover)) {
+      if((actor.hover)&&(!this._floating)&&
+         (this._openOnHover)&&(actor._delegate)&&(actor._delegate.menu)) {
          actor._delegate.menu.open(true);
       }
    },
 
+   _onOpenMenuChanged: function(menu, open, menuItem) {
+      if(!open) {
+         //this._activeMenuItem = null;
+         if(menuItem.menu) {
+             menuItem.menu.close(false);
+         }
+      }
+   },
+
+//ConfigurableMenuApplet
    _onKeyPressEvent: function(actor, event) {
       let close = false;
       if(this._floating) {
          let result = ConfigurableMenu.prototype._onKeyPressEvent.call(this, actor, event);
-         if(result)
-             this.closeSubmenu();
          return result;
       } else if(this.isOpen) {
          let direction = this._getGtkDirectionType(event.get_key_symbol());
          if(direction) {
-            if(!this._activeSubMenuItem) {
-               this._activeSubMenuItem = this._getFirstMenuItem(this);
+            if(!this._activeMenuItem) {
+               this._activeMenuItem = this._getFirstMenuItem(this);
             }
             if((direction == Gtk.DirectionType.LEFT)||(direction == Gtk.DirectionType.RIGHT)) {
-               this.actor.navigate_focus(this._activeSubMenuItem.actor, direction, true);
-               this._activeSubMenuItem = global.stage.key_focus._delegate;
-               if(this._activeSubMenuItem && this._activeSubMenuItem.menu) {
-                  this._activeSubMenuItem.menu.open(true);
+               this.actor.navigate_focus(this._activeMenuItem.actor, direction, true);
+               if (global.stage.key_focus)
+                   this._activeMenuItem = global.stage.key_focus._delegate;
+               if(this._activeMenuItem && this._activeMenuItem.menu) {
+                  this._activeMenuItem.menu.open(true);
+               } else {
+                  this.actor.grab_key_focus();
                }
-               this.actor.grab_key_focus();
                return true;
             } else if(direction == this._getGtkScapeDirectionType()) {
                close = true;
-            } else if(this._activeSubMenuItem && this._activeSubMenuItem.menu) {
-               let first = this._getFirstMenuItem(this._activeSubMenuItem.menu);
-               if(first)
-                  first.setActive(true);
-               return true;
             }
          }
       }
@@ -7875,10 +8052,12 @@ ConfigurableMenuApplet.prototype = {
    },
 
    _setMenuInPosition: function(menuItem) {
-      menuItem.reactOnActivation = this._floating;
+      menuItem.focusOnHover = this._floating;
+      menuItem.focusOnActivation = this._floating;
       if(this._floating) {
          if(menuItem.menu)
             menuItem.menu.setArrowSide(St.Side.LEFT);
+         menuItem.setArrowSide(St.Side.LEFT);
          menuItem._triangle.show();
          menuItem.actor.set_style_class_name('popup-menu-item');
          menuItem.actor.add_style_class_name('popup-submenu-menu-item');
@@ -7886,6 +8065,7 @@ ConfigurableMenuApplet.prototype = {
       } else {
          if(menuItem.menu)
             menuItem.menu.setArrowSide(this._arrowSide);
+         menuItem.setArrowSide(this._arrowSide);
          menuItem._triangle.hide();
          menuItem._icon.hide();
          menuItem.actor.set_style_class_name('popup-menu-item');
@@ -8020,11 +8200,14 @@ ConfigurableAppletMenu.prototype = {
    },
 
    activeCategoryActor: function(actor) {
+      this.rootGnomeCat.remove_style_class_name('selected');
       this.rootGnomeCat.remove_style_pseudo_class('active');
-      for(let i = 0; i < this.categories.length; i++)
+      for(let i = 0; i < this.categories.length; i++) {
+         this.categories[i].actor.remove_style_class_name('selected');
          this.categories[i].actor.remove_style_pseudo_class('active');
+      }
       if(actor) {
-         actor.add_style_pseudo_class('active');
+         actor.add_style_class_name('selected');
          this.activeActor = actor;
       } else {
          this.activeActor = null;
@@ -8201,7 +8384,7 @@ PopupMenuAbstractFactory.prototype = {
          let iconTheme = Gtk.IconTheme.get_default();
          let iconInfo = iconTheme.lookup_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK);
          if (iconInfo === null) {
-            global.logError("unable to lookup icon for '" + name + "'");
+            global.logError("Unable to lookup icon for '" + name + "'");
          } else {
             // create a gicon for the icon
             gicon = Gio.icon_new_for_string(iconInfo.get_filename());
@@ -8332,7 +8515,7 @@ PopupMenuAbstractFactory.prototype = {
          }
       }
       if(oldpos < 0) {
-         global.logError("tried to move child which wasn't in the list");
+         global.logError("Tried to move child which wasn't in the list");
          return;
       }
 
