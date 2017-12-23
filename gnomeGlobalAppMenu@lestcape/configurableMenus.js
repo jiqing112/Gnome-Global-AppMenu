@@ -3905,7 +3905,7 @@ ConfigurablePopupMenuBase.prototype = {
          }));
          menuItem._subMenuActiveChangeId = menu.connect('active-changed', Lang.bind(this, function(menu, submenuItem) {
             if (!menu.isInFloatingState()) {
-               if(this._activeMenuItem && this._activeMenuItem != submenuItem)
+               if(this._activeMenuItem && this._activeMenuItem.setActive && this._activeMenuItem != submenuItem)
                   this._activeMenuItem.setActive(false);
                this._activeMenuItem = submenuItem;
                this.emit('active-changed', submenuItem);
@@ -3947,13 +3947,14 @@ ConfigurablePopupMenuBase.prototype = {
       if(!menuItem._activeChangeI) {
          menuItem._activeChangeId = menuItem.connect('active-changed', Lang.bind(this, function(menuItem, active) {
             if(active && (this._activeMenuItem != menuItem)) {
-               if(this._activeMenuItem) {
+               if(this._activeMenuItem && this._activeMenuItem.setActive) {
                   this._activeMenuItem.setActive(false);
                }
                this._activeMenuItem = menuItem;
                this.emit('active-changed', menuItem);
             } else if(!active && this._activeMenuItem == menuItem) {
-               this._activeMenuItem.setActive(false);
+               if(this._activeMenuItem.setActive)
+                   this._activeMenuItem.setActive(false);
                this._activeMenuItem = null;
                this.emit('active-changed', null);
             }
@@ -4641,7 +4642,7 @@ ConfigurableMenu.prototype = {
       if(this.isOpen) {
          if(event.get_key_symbol() == Clutter.Escape) {
             if((this.launcher)&&(this.launcher.setActive)) {
-               if (this._activeMenuItem) 
+               if (this._activeMenuItem && this._activeMenuItem.setActive) 
                    this._activeMenuItem.setActive(false);
                this.launcher.active = false;//Forced to reactived it.
                this.launcher.setActive(true);
@@ -4657,13 +4658,15 @@ ConfigurableMenu.prototype = {
             }
          } else if((event.get_key_symbol() == this._getClutterScapeKey()) && this._isItemInMenuBorder(this, this._activeMenuItem) ) {
             if((this.launcher)&&(this.launcher.setActive)) {
-               this._activeMenuItem.setActive(false);
+               if(this._activeMenuItem.setActive)
+                   this._activeMenuItem.setActive(false);
                this.launcher.active = false;//Forced to reactived it.
                this.launcher.setActive(true);
                return true;
             } else {
                this.launcher.actor.grab_key_focus();
-               this._activeMenuItem.setActive(false);
+               if(this._activeMenuItem.setActive)
+                   this._activeMenuItem.setActive(false);
                this.close(true);
                return true;
             } 
@@ -4814,7 +4817,7 @@ ConfigurableMenu.prototype = {
          this.actor.hide();
       }
 
-      if(this._activeMenuItem)
+      if(this._activeMenuItem && this._activeMenuItem.setActive)
          this._activeMenuItem.setActive(false);
 
       this.isOpen = false;
@@ -5071,11 +5074,11 @@ ConfigurableMenu.prototype = {
          this.active = active;
          if(this.active) {
             let item = this._getFirstMenuItem(this);
-            if(item) {
+            if(item && item.setActive) {
                item.setActive(true);
                //this._activeMenuItem = item;
             } 
-         } else if(this._activeMenuItem) {
+         } else if(this._activeMenuItem && this._activeMenuItem.setActive) {
             this._activeMenuItem.setActive(false);
          }
       }
@@ -5512,7 +5515,7 @@ ConfigurablePopupMenuSection.prototype = {
                   return items[pos];
                }
             }
-         } else if(this._activeMenuItem) {
+         } else if(this._activeMenuItem && this._activeMenuItem.setActive) {
             this._activeMenuItem.setActive(false);
          }
       }
@@ -5744,7 +5747,7 @@ ArrayBoxLayout.prototype = {
                   return items[pos];
                }
             }
-         } else if(this._activeMenuItem) {
+         } else if(this._activeMenuItem && this._activeMenuItem.setActive) {
             this._activeMenuItem.setActive(false);
          }
       }
@@ -5911,7 +5914,7 @@ ConfigurableGridSection.prototype = {
    _connectItemSignals: function(menuItem) {
       menuItem._activeChangeId = menuItem.connect('active-changed', Lang.bind(this, function(menuItem, active) {
          if(active && this._activeMenuItem != menuItem) {
-            if(this._activeMenuItem)
+            if(this._activeMenuItem && this._activeMenuItem.setActive)
                this._activeMenuItem.setActive(false);
             this._activeMenuItem = menuItem;
             this.emit('active-changed', menuItem);
@@ -6404,7 +6407,7 @@ ConfigurableGridSection.prototype = {
                   return this._menuItems[pos];
                }
             }
-         } else if(this._activeMenuItem) {
+         } else if(this._activeMenuItem && this._activeMenuItem.setActive) {
             this._activeMenuItem.setActive(false);
          }
       }
@@ -6976,7 +6979,7 @@ ConfigurableGridSection.prototype = {
                   return this._menuItems[pos];
                }
             }
-         } else if(this._activeMenuItem) {
+         } else if(this._activeMenuItem && this._activeMenuItem.setActive) {
             this._activeMenuItem.setActive(false);
          }
       }
@@ -7825,7 +7828,7 @@ ConfigurableMenuApplet.prototype = {
          this.actor.hide();
          if(global.menuStackLength > 0)
              global.menuStackLength -= 1;
-         if (this._activeMenuItem) {
+         if (this._activeMenuItem && this._activeMenuItem.setActive) {
              this._activeMenuItem.setActive(false);
          }
          this._activeMenuItem = null;
@@ -7895,14 +7898,12 @@ ConfigurableMenuApplet.prototype = {
                 menuItem.actor.add_style_pseudo_class('active');
                 // FIXME: We don't want to forced the focus here. How to resolved it?
                 // Aparently it's a fact of give a litle time...
-                if (this._activeMenuItem && this._activeMenuItem.active) {
-                   Mainloop.idle_add(Lang.bind(this, function() {
+                Mainloop.idle_add(Lang.bind(this, function() {
+                   if (this._activeMenuItem && this._activeMenuItem.active) {
                       this._activeMenuItem.active = false;
                       this._activeMenuItem.setActive(true);
-                   }));
-                   //this._activeMenuItem.active = false;
-                   //this._activeMenuItem.setActive(true);
-                }
+                   }
+                }));
             } else {
                 menuItem.actor.remove_style_pseudo_class('active');
             } 

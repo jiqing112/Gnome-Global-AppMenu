@@ -172,11 +172,12 @@ SystemProperties.prototype = {
       let envMenuProxy = GLib.getenv('QT_QPA_PLATFORMTHEME');
       if(active && (!envMenuProxy || (envMenuProxy.indexOf("appmenu") == -1))) {
          GLib.setenv('QT_QPA_PLATFORMTHEME', "appmenu-qt5", true);
-         return false;
-      } else if(active && envMenuProxy && (envMenuProxy.indexOf("appmenu") != -1)) {
+         return true;
+      } else if(!active && envMenuProxy && (envMenuProxy.indexOf("appmenu") != -1)) {
          GLib.setenv('QT_QPA_PLATFORMTHEME', "qgnomeplatform", true);
+         return true;
       }
-      return true;
+      return false;
    },
 
    activeUnityMenuProxy: function(active) {
