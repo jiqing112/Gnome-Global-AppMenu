@@ -661,9 +661,11 @@ GtkMenuWatcher.prototype = {
    _init: function() {
       this._registeredWindows = [];
       this._isWatching = false;
+      this._appSysId = 0;
       this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
       this._tracker = Shell.WindowTracker.get_default();
+      this._appSys = Shell.AppSystem.get_default();
    },
 
    // Public functions
@@ -676,8 +678,41 @@ GtkMenuWatcher.prototype = {
          if(this._windowsChangedId == 0) {
             this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
          }
+         if(this._appSysId == 0) {
+            this._appSysId = this._appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
+         }
          this._isWatching = true;
       }
+   },
+
+   _onAppMenuNotify: function(appSys, targetAppSys) {
+      let isBusy = (targetAppSys != null &&
+                   (targetAppSys.get_state() == Shell.AppState.STARTING ||
+                    targetAppSys.get_busy()));
+      if (!isBusy) {
+         let windows = this._findWindowForApp(targetAppSys);
+         for(let pos in windows) {
+            let index = windows[pos];
+            let windData = this._registeredWindows[index];
+            if (windData.window && !windData.appMenu) {
+               this._tryToGetMenuClient(windData.window);
+            }
+         }
+      }
+   },
+
+   _findWindowForApp: function(targetAppSys) {
+      let windows = [];
+      let id = targetAppSys.get_id();
+      for (let i = 0; i < this._registeredWindows.length; i++) {
+         let currentWindow = this._registeredWindows[i].window;
+         if(currentWindow) {
+             let currentTracker = this._tracker.get_window_app(currentWindow);
+             if (currentTracker && (id == currentTracker.get_id()))
+                 windows.push(i);
+         }
+      }
+      return windows;
    },
 
    getMenuForWindow: function(window) {
@@ -865,8 +900,16 @@ GtkMenuWatcher.prototype = {
             fail: false
          };
          this._registeredWindows.push(windowData);
-         index = this._registeredWindows.length -1;
-         this._tryToGetMenuClient(window);
+         let isBusy = false;
+         if (appTracker) {
+            let appSys = this._appSys.lookup_app(appTracker.get_id());
+            isBusy = (appSys != null &&
+                     (appSys.get_state() == Shell.AppState.STARTING ||
+                      appSys.get_busy()));
+         }
+         if (!isBusy) { 
+             this._tryToGetMenuClient(window);
+         }
       }
    },
 
@@ -897,6 +940,10 @@ GtkMenuWatcher.prototype = {
          if(this._windowsChangedId > 0) {
             this._tracker.disconnect(this._windowsChangedId);
             this._windowsChangedId = 0;
+         }
+         if(this._appSysId > 0) {
+            this._appSys.disconnect(this._appSysId);
+            this._appSysId = 0;
          }
          for(let index in this._registeredWindows) {
             this._destroyMenu(this._registeredWindows[index].window);

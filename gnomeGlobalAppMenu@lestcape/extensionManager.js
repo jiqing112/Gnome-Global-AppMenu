@@ -22,6 +22,7 @@ const GLib = imports.gi.GLib;
 const Shell = imports.gi.Shell;
 const Lang = imports.lang;
 const Gettext = imports.gettext;
+const Mainloop = imports.mainloop;
 
 const Main = imports.ui.main;
 const Panel = imports.ui.panel;
@@ -798,27 +799,35 @@ MyApplet.prototype = {
       let newIcon = null;
       let newMenu = null;
       let app = null;
+      let dbusMenu = null;
       this.currentWindow = window;
       if(this.currentWindow) {
          app = this.indicatorDbus.getAppForWindow(this.currentWindow);
          if(app) {
             newIcon = this.indicatorDbus.getIconForWindow(this.currentWindow);
             newLabel = app.get_name();
-            let dbusMenu = this.indicatorDbus.getRootMenuForWindow(this.currentWindow);
+            dbusMenu = this.indicatorDbus.getRootMenuForWindow(this.currentWindow);
             if(dbusMenu) {
                newMenu = this.menuFactory.getShellMenu(dbusMenu);
-               if(!newMenu) {
-                  let menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
-                  newMenu = this.menuFactory.buildShellMenu(dbusMenu, this, this.orientation, menuManager);
-                  if(!newMenu.appletStagechangeId) {
-                     newMenu.appletStagechangeId = newMenu.connect('open-state-changed', Lang.bind(this, this._onMenuStateChanged));
-                  }
-               }
             }
          }
       }
-      this._tryToShow(newLabel, newIcon, newMenu);
-      this._tryToTrackAppMenu(app);
+      // FIXME: We want to know what is the correct timeout????
+      // When really the compositor is in an idle state
+      //let timeout = 1000;
+      //Mainloop.timeout_add(timeout, Lang.bind(this, function(dbusMenu, newLabel, newIcon, newMenu, app) {
+         if(dbusMenu && !newMenu) {
+            let menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
+            newMenu = this.menuFactory.buildShellMenu(dbusMenu, this, this.orientation, menuManager);
+            if(!newMenu.appletStagechangeId) {
+               newMenu.appletStagechangeId = newMenu.connect('open-state-changed', Lang.bind(this, this._onMenuStateChanged));
+            }
+         }
+         this._tryToShow(newLabel, newIcon, newMenu);
+         this._tryToTrackAppMenu(app);
+      //}, dbusMenu, newLabel, newIcon, newMenu, app));
+      //this._tryToShow(newLabel, newIcon, newMenu, app);
+      //this._tryToTrackAppMenu(app);
    },
 
    _onMenuStateChanged: function(menu, open) {
@@ -866,11 +875,11 @@ MyApplet.prototype = {
          }
       }
       this.gradient.setText(newLabel);
-      if(newIcon != this.gradient.getIcon()) {
+      /*if(newIcon != this.gradient.getIcon()) {
          if(this.gradient.getIcon())
-             this.gradient.getIcon().destroy();
+             this.gradient.getIcon().destroy();*/
          this.gradient.setIcon(newIcon);
-      }
+      //}
    },
 
    _closeMenu: function() {

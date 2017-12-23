@@ -8640,8 +8640,10 @@ MenuFactory.prototype = {
       }
       // The shell menu
       shellItem = this._createShellItem(factoryMenu, launcher, orientation, menuManager);
-      this._attachToMenu(shellItem, factoryMenu);
       this._menuManager.push(menuManager);
+      //Mainloop.timeout_add(1, Lang.bind(this, function(shellItem, factoryMenu) {
+          this._attachToMenu(shellItem, factoryMenu);
+      //}, shellItem, factoryMenu));
       return shellItem;
    },
 
