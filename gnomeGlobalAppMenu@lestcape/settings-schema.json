@@ -33,12 +33,6 @@
         "description": "Allow to synchronize the menus with others in the same panel (Experimental)",
         "tooltip": "Select if you want to synchronize the menus with others in the same panel."
     },
-    "autoscrollig-appmenu" : {
-        "type" : "checkbox",
-        "default" : false,
-        "description": "Enable the panel menu auto scrolling (Experimental)",
-        "tooltip": "Select if you want to enable the auto scrolling feature inside the panel menu when there is no space available."
-    },
     "separator-application-top" : {
         "type": "separator"
     },
@@ -135,17 +129,23 @@
         "description" : "Keyboard shortcut to open and close the menu",
         "default" : "Alt_L"
     },
+    "oversize-mode": {
+        "type": "combobox",
+        "description": "Apply this mode when the panel is oversized:",
+        "default": "1",
+        "tooltip": "Select the action to take when the panel menu oversize the available space.",
+        "options": {
+            "None": 1,
+            "Fake Menu": 2,
+            "Auto Scrolling": 3,
+            "Wrap Text": 4
+        }
+    },
     "display-in-panel" : {
         "type" : "checkbox",
         "default" : true,
         "description": "Display the main menu in the panel",
         "tooltip": "Select if you want to display the main menu in the panel."
-    },
-    "menu-labels-wrap" : {
-        "type" : "checkbox",
-        "default" : false,
-        "description": "Wrap the menu labels",
-        "tooltip": "Select if you want to wrapped the menu labels when there are not space."
     },
     "automatic-active-mainmenu" : {
         "type" : "checkbox",

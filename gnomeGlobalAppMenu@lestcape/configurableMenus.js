@@ -359,8 +359,7 @@ ScrollItemsBox.prototype = {
             let hScrollSignal = this.hScrollSignals[hScroll];
             if(((!hScrollSignal)||(hScrollSignal == 0))&&(setValue)) {
                this.hScrollSignals[hScroll] = hScroll.connect('motion-event', Lang.bind(this, this._onMotionEvent));
-            }
-            else if((hScrollSignal)&&(hScrollSignal > 0)&&(!setValue)) {
+            } else if((hScrollSignal)&&(hScrollSignal > 0)&&(!setValue)) {
                this.hScrollSignals[hScroll] = null;
                hScroll.disconnect(hScrollSignal);
             }
@@ -3000,31 +2999,27 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    setArrowSide: function(side) {
       if(this._arrowSide != side) {
          if(this.menu && this.menu._floating) {
+            if(this._triangle)
+               this.actor.remove_actor(this._triangle);
             switch (side) {
                case St.Side.TOP:
                case St.Side.BOTTOM:
                case St.Side.LEFT:
                   if(this._triangle) {
+                     this.actor.add(this._triangle, { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false });
                      if(this._triangle.rotation_angle_z != 0)
                         this._triangle.rotation_angle_z = 0;
-                     if(this._arrowSide == St.Side.RIGHT) {
-                        this.actor.remove_actor(this._triangle);
-                        this.actor.add(this._triangle, { x_align: St.Align.END, y_align: St.Align.MIDDLE, x_fill:false });
-                     }
                   }
                   break;
                case St.Side.RIGHT:
                   if(this._triangle) {
                      if(this._triangle.rotation_angle_z != 180)
                         this._triangle.rotation_angle_z = 180;
-                     if(this._arrowSide != St.Side.RIGHT) {
-                        this.actor.remove_actor(this._triangle);
-                        let childs = this.actor.get_children();
-                        if(childs.length > 0) {
-                           this.actor.insert_child_below(this._triangle, childs[childs.length-1]);
-                        } else {
-                           this.actor.add(this._triangle);
-                        }
+                     let childs = this.actor.get_children();
+                     if(childs.length > 0) {
+                        this.actor.insert_child_below(this._triangle, childs[childs.length-1]);
+                     } else {
+                        this.actor.add(this._triangle);
                      }
                   }
                   break;
@@ -3100,11 +3095,16 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
    _subMenuOpenStateChanged: function(menu, open) {
       if(open) {
          this.actor.add_style_pseudo_class('open');
-         if((!this._hide_expander)&&(this.menu && !this.menu._floating)) {
-             let rotationAngle = 90;
-             if(this.actor.get_text_direction() == Clutter.TextDirection.RTL)
-                rotationAngle = 270;
-             this._triangle.rotation_angle_z = rotationAngle;
+         if(this.menu && this._triangle) {
+            //if(this.actor.get_text_direction() == Clutter.TextDirection.RTL)
+            if ((this._arrowSide == St.Side.BOTTOM) || (this._arrowSide == St.Side.TOP)) {
+               let rotationAngle = 0;
+               if (this._arrowSide == St.Side.TOP)
+                  rotationAngle = 90;
+               if (this._arrowSide == St.Side.BOTTOM)
+                  rotationAngle = 270;
+               this._triangle.rotation_angle_z = rotationAngle;
+            }
          }
          this.setActive(true);
       } else {
@@ -3115,7 +3115,8 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          } else if (this.actor != global.stage.key_focus) {
              this.setActive(false);
          }
-         this._triangle.rotation_angle_z = 0;
+         if (this._triangle && ((this._arrowSide == St.Side.BOTTOM) || (this._arrowSide == St.Side.TOP)))
+            this._triangle.rotation_angle_z = 0;
       }
       this.emit('open-menu-state-changed', menu, open);
    },
@@ -4043,8 +4044,12 @@ ConfigurablePopupMenuBase.prototype = {
          // separator's adjacent siblings change visibility or position.
          // open-state-changed isn't exactly that, but doing it in more
          // precise ways would require a lot more bookkeeping.
-         menuItem._closingMenuId = this.connect('open-state-changed', Lang.bind(this, function() { this._updateSeparatorVisibility(menuItem); }));
-         menuItem._allocationId = this.box.connect('allocation-changed', Lang.bind(this, function() { this._updateSeparatorVisibility(menuItem); }));
+         menuItem._closingMenuId = this.connect('open-state-changed', Lang.bind(this, function() {
+            this._updateSeparatorVisibility(menuItem);
+         }));
+         menuItem._allocationId = this.box.connect('allocation-changed', Lang.bind(this, function() {
+            this._updateSeparatorVisibility(menuItem);
+         }));
       } else if(menuItem instanceof ConfigurablePopupBaseMenuItem)
          this._connectItemSignals(menuItem);
       else
@@ -4237,7 +4242,6 @@ ConfigurableMenu.prototype = {
          this._desaturateItemIcon = false;
          this.active = false;
          this.isChanging = false;
-
          this.launcher = null;
          this._openedSubMenu = null;
 
@@ -4309,7 +4313,7 @@ ConfigurableMenu.prototype = {
          this._scroll.add_actor(this.box);
 
          this._vectorBlocker = new VectorBoxBlocker();
-         this._vectorBlocker.connect('vector-released', Lang.bind(this, this._onVectorBoxReleased));
+         this._vectorId = this._vectorBlocker.connect('vector-released', Lang.bind(this, this._onVectorBoxReleased));
 
          // Init the launcher and the floating state.
          this.actor = this._boxPointer.actor;
@@ -4339,7 +4343,7 @@ ConfigurableMenu.prototype = {
    },
 
    _onVectorBoxReleased: function(vector, actor) {
-      if(actor && actor._delegate && !actor._delegate.active && this.actor._delegate.setActive) {
+      if(actor && actor._delegate && !actor._delegate.active && actor._delegate.setActive) {
          actor._delegate.setActive(true);
       }
    },
@@ -4785,10 +4789,7 @@ ConfigurableMenu.prototype = {
       } else {
          this.actor.show();
       }
-      if (this.box.vertical)
-          Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
-      else
-          Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
+      this.setMaxSize();
       this.emit('open-state-changed', true);
       this.isChanging = false;
    },
@@ -5300,62 +5301,64 @@ ConfigurableMenu.prototype = {
       this._boxPointer.setSourceAlignment(alignment);
    },
 
+   setAutoScrolling: function(autoScroll) {
+      this._scroll.set_auto_scrolling(autoScroll);
+   },
+
    // Setting the max-height won't do any good if the minimum height of the
    // menu is higher then the screen; it's useful if part of the menu is
    // scrollable so the minimum height is smaller than the natural height
-   setMaxHeight: function() {
-      if(this.actor && this.isInFloatingState()) {
-         let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-         let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-         let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
+   setMaxSize: function() {
+      if(this.actor) {
+         this.actor.style = '';
+         if(this.isInFloatingState()) {
+            let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+            let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            let horizontalMargins = this.actor.margin_top + this.actor.margin_bottom;
+            let verticalMargins = this.actor.margin_left + this.actor.margin_right;
 
-         // The workarea and margin dimensions are in physical pixels, but CSS
-         // measures are in logical pixels, so make sure to consider the scale
-         // factor when computing max-height
-         let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
-         this.actor.style = ('max-height: %spx;').format(maxHeight);
-
-         let topMenu = this;
-         if(!this._floating)
-            topMenu = this.getTopMenu();
-         if(topMenu) {
-            let [topMinHeight, topNaturalHeight] = topMenu.actor.get_preferred_height(-1);
-            let topThemeNode = topMenu.actor.get_theme_node();
+            // The workarea and margin dimensions are in physical pixels, but CSS
+            // measures are in logical pixels, so make sure to consider the scale
+            // factor when computing max-height
+            let maxHeight = Math.round((workArea.height - horizontalMargins) / scaleFactor);
+            let maxWidth = Math.round((workArea.width - verticalMargins) / scaleFactor);
+            this.actor.style = ('max-height: %spx; max-width: %spx;').format(maxHeight, maxWidth);
+            let [topMinHeight, topNaturalHeight] = this.actor.get_preferred_height(-1);
+            let [topMinWidth, topNaturalWidth] = this.actor.get_preferred_width(-1);
+            let topThemeNode = this.actor.get_theme_node();
             let topMaxHeight = topThemeNode.get_max_height();
-            let needsScrollbar = topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
-            if (needsScrollbar) {
-               this._scroll.vscrollbar_policy =
-                    needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
-            }
-         }
-      }
-   },
-
-   setMaxWidth: function() {
-      if(this.actor && this.isInFloatingState()) {
-         let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-         let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-         let verticalMargins = this.actor.margin_left + this.actor.margin_right;
-
-         // The workarea and margin dimensions are in physical pixels, but CSS
-         // measures are in logical pixels, so make sure to consider the scale
-         // factor when computing max-width
-         let maxWidth = Math.round((workArea.width - verticalMargins) / scaleFactor);
-         this.actor.style = ('max-width: %spx;').format(maxWidth);
-
-         let topMenu = this;
-         if(!this._floating)
-            topMenu = this.getTopMenu();
-         this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
-         if(topMenu) {
-            let [topMinWidth, topNaturalWidth] = topMenu.actor.get_preferred_width(-1);
-            let topThemeNode = topMenu.actor.get_theme_node();
             let topMaxWidth = topThemeNode.get_max_width();
-            let needsScrollbar = topMaxWidth >= 0 && topNaturalWidth >= topMaxWidth;
-            if (needsScrollbar) {
+            let needsVerticalScrollbar = topMaxHeight >= 0 && topNaturalHeight >= topMaxHeight;
+            let needsHorizontalScrollbar = topMaxWidth >= 0 && topNaturalWidth >= topMaxWidth;
+            this._scroll.vscrollbar_policy =
+               needsVerticalScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+            this._scroll.hscrollbar_policy =
+               needsHorizontalScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+         } else if (this.actor.mapped && this.actor.get_parent()) {
+            //this._scroll.get_hscroll_bar().get_adjustment().set_value(0);
+            this._scroll.get_hscroll_bar().visible = !this._scroll.auto_scrolling;
+            this._scroll.vscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+            this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+            Mainloop.idle_add(Lang.bind(this, function() {
+               let [topMinHeight, topNaturalHeight] = this.actor.get_preferred_height(-1);
+               let [topMinWidth, topNaturalWidth] = this.actor.get_preferred_width(-1);
+               let topThemeNode = this.actor.get_theme_node();
+               let topMaxHeight = topThemeNode.get_max_height();
+               let topMaxWidth = topThemeNode.get_max_width();
+               let needsVerticalScrollbar = (topMaxHeight >= 0 && (topNaturalHeight >= topMaxHeight)) ||
+                                             (topNaturalHeight >= this.actor.height);
+               let needsHorizontalScrollbar = (topMaxWidth >= 0 && (topNaturalWidth >= topMaxWidth)) ||
+                                               (topNaturalWidth > this.actor.width);
+               let maxHeight = this.actor.height;
+               let maxWidth = this.actor.width;
+               this._scroll.vscrollbar_policy =
+                  needsVerticalScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
                this._scroll.hscrollbar_policy =
-                    needsScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
-            }
+                  needsHorizontalScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+               //if(needsHorizontalScrollbar || needsVerticalScrollbar) {
+               //   this.actor.style = ('max-width: %spx; max-height: %spx;').format(maxWidth, maxHeight);
+               //}
+            }));
          }
       }
    },
@@ -5433,6 +5436,10 @@ ConfigurableMenu.prototype = {
    destroy: function() {
      if(this.actor) {
          if(this._vectorBlocker) {
+            if(this._vectorId > 0) {
+               this._vectorBlocker.disconnect(this._vectorId);
+               this._vectorId = 0;
+            }
             this._vectorBlocker.release();
             this._vectorBlocker = null;
          }
@@ -7559,6 +7566,14 @@ Signals.addSignalMethods(ConfigurableGridSection.prototype);
  * A class to hacked the Shell standar PopupSubMenuMenuItem
  * to be displayed over the Shell panel.
  */
+
+const OversizeMode = {
+   "NONE": 1,
+   "FAKE_MENU": 2,
+   "AUTO_SCROLLING": 3,
+   "WRAP_TEXT": 4,
+}
+
 function ConfigurableMenuApplet() {
    this._init.apply(this, arguments);
 }
@@ -7572,9 +7587,11 @@ ConfigurableMenuApplet.prototype = {
       this._inWrapMode = false;
       this._openOnHover = false;
       this._startCounter = 0;
-      this._autoScroll = false;
       this._association = false;
+      this._inMaxSize = false;
+      this._fakeMenu = null;
       this.panel = null;
+      this.oversizeMode = OversizeMode.NONE;
 
       this.launcher.actor.set_track_hover(this._floating);
       let parent = this.actor.get_parent();
@@ -7589,12 +7606,157 @@ ConfigurableMenuApplet.prototype = {
       this._menuManager.connect('close-menu', Lang.bind(this, this._onSubMenuClosed));
 
       this.actor.connect('key-press-event', Lang.bind(this, this._onKeyPressEvent));
+      this.actor.connect('allocation_changed', Lang.bind(this, this._onAllocationChanged));
 
       if(this.launcher._applet_tooltip) {
          this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
          this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
       }
-      this._scroll.set_auto_scrolling(true);
+   },
+
+   _onAllocationChanged: function() {
+      this.setMaxSize();
+   },
+
+   setOversizeMode: function(mode) {
+      if (this.oversizeMode != mode) {
+         this.oversizeMode = mode;
+         this._destroyFakeMenu();
+         this.setAutoScrolling(false);
+         this.setLabelWrapMode(false);
+         if (this.oversizeMode == OversizeMode.FAKE_MENU) {
+            this._fakeMenu = new ConfigurablePopupSubMenuMenuItem("𝌆", true, false, {});
+            this._fakeMenu.setFloatingSubMenu(true);
+            this.actor.allocate_preferred_size(Clutter.AllocationFlags.ALLOCATION_NONE);
+         } else if (this.oversizeMode == OversizeMode.AUTO_SCROLLING) {
+            this.setAutoScrolling(true);
+         } else if (this.oversizeMode == OversizeMode.WRAP_TEXT) {
+            this.setLabelWrapMode(true);
+         } else {
+            this._scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
+         }
+         this.setMaxSize();
+      }
+   },
+
+   getExcludeItemsForWidth: function(maxWidth) {
+      let result = [];
+      if(this._fakeMenu) {
+         let items = this.getMenuItems();
+         let fakeItems = this._fakeMenu.menu.getMenuItems();
+         let currentWidth = this._fakeMenu.actor.width;
+         //FIXME: Really the space betwen menu items depend of the theme.
+         let space = 4;
+         for(let pos in items) {
+            if(items[pos] != this._fakeMenu) {
+               if (currentWidth + items[pos].actor.width - space > maxWidth) {
+                  result.push(items[pos]);
+               }
+               currentWidth += items[pos].actor.width - space;
+            }
+         }
+         for(let pos in fakeItems) {
+            if (currentWidth + fakeItems[pos].label.width - space > maxWidth) {
+               result.push(fakeItems[pos]);
+            }
+            currentWidth += fakeItems[pos].label.width - space;
+         }
+      }
+      return result;
+   },
+
+   _destroyFakeMenu: function() {
+      if (this._fakeMenu) {
+         this._fakeMenu.menu.close();
+         let itemsInclude = this._fakeMenu.menu.getMenuItems();
+         if (itemsInclude.length > 0) {
+            for(let pos in itemsInclude) {
+               this._fakeMenu.menu.removeMenuItem(itemsInclude[pos]);
+               this.addMenuItem(itemsInclude[pos]);
+            }
+         }
+         this.removeMenuItem(this._fakeMenu);
+         this._fakeMenu.menu.destroy();
+         this._fakeMenu = null;
+      }
+   },
+
+   _setFakeMenuMaxSize: function() {
+      this.actor.style = '';
+      this._scroll.style = '';
+      if (this._fakeMenu && this.actor.mapped && this.actor.get_parent()) {
+         this._scroll.get_hscroll_bar().get_adjustment().set_value(0);
+         this._scroll.get_hscroll_bar().visible = false;
+         this._scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+         this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+         let [topMinWidth, topNaturalWidth] = this.actor.get_preferred_width(-1);
+         let topThemeNode = this.actor.get_theme_node();
+         let topMaxWidth = topThemeNode.get_max_width();
+         let needsHorizontalScrollbar = ((topNaturalWidth > this.actor.width) ||
+             ((topMaxWidth >= 0) && (topNaturalWidth >= topMaxWidth)));
+         let maxWidth = this.actor.width;
+         if (needsHorizontalScrollbar) {
+            if(!this._fakeMenu.actor.get_parent()) {
+               this.addMenuItem(this._fakeMenu);
+               this._fakeMenu._triangle.show();
+            }
+            let itemsExclude = this.getExcludeItemsForWidth(maxWidth);
+            let fakeItems = this._fakeMenu.menu.getMenuItems();
+            let itemsInclude = [];
+            for(let pos in fakeItems) {
+               if (itemsExclude.indexOf(fakeItems[pos]) == -1)
+                  itemsInclude.push(fakeItems[pos]);
+            }
+            if (itemsExclude.length > 0) {
+               for(let pos in itemsExclude) {
+                  let menuItem = itemsExclude[pos];
+                  this.removeMenuItem(menuItem);
+                  if(menuItem.menu)
+                     menuItem.menu.setArrowSide(St.Side.LEFT);
+                  menuItem.setArrowSide(St.Side.LEFT);
+                  menuItem.focusOnHover = true;
+                  menuItem.focusOnActivation = true;
+                  menuItem._triangle.show();
+                  menuItem.actor.set_style_class_name('popup-menu-item');
+                  menuItem.actor.add_style_class_name('popup-submenu-menu-item');
+                  menuItem.label.set_style_class_name('');
+                  if (fakeItems.indexOf(menuItem) == -1)
+                     this._fakeMenu.menu.addMenuItem(menuItem);
+               }
+            }
+            if (itemsInclude.length > 0) {
+               for(let pos in itemsInclude) {
+                  this.addMenuItem(itemsInclude[pos]);
+               }
+            }
+         }
+         if (this._fakeMenu.menu.getMenuItems().length == 0) {
+            this.removeMenuItem(this._fakeMenu);
+         }
+      }
+   },
+
+   setMaxSize: function() {
+      if(this.isInFloatingState()) {
+         ConfigurableMenu.prototype.setMaxSize.call(this);
+      } else if (this.oversizeMode == OversizeMode.FAKE_MENU) {
+         this._setFakeMenuMaxSize();
+      } else if (this.oversizeMode == OversizeMode.AUTO_SCROLLING) {
+         this.actor.style = '';
+         this._scroll.get_hscroll_bar().visible = !this._scroll.auto_scrolling;
+         this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+         this._scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+         Mainloop.idle_add(Lang.bind(this, function() {
+            let [topMinWidth, topNaturalWidth] = this.actor.get_preferred_width(-1);
+            let topThemeNode = this.actor.get_theme_node();
+            let topMaxWidth = topThemeNode.get_max_width();
+            let needsHorizontalScrollbar = (topMaxWidth >= 0 && (topNaturalWidth >= topMaxWidth)) ||
+                                            (topNaturalWidth > this.actor.width);
+            let maxWidth = this.actor.width;
+            this._scroll.hscrollbar_policy =
+               needsHorizontalScrollbar ? Gtk.PolicyType.AUTOMATIC : Gtk.PolicyType.NEVER;
+         }));
+      }
    },
 
    setFloatingState: function(floating) {
@@ -7724,28 +7886,6 @@ ConfigurableMenuApplet.prototype = {
       this.launcher._applet_tooltip.preventShow = false;
    },
 
-   setAutoScrolling: function(autoScroll) {
-      this._autoScroll = autoScroll;
-   },
-
-   setMaxWidth: function() {
-      this._scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
-      this._scroll.get_hscroll_bar().visible = true;
-      this.actor.style = '';
-      this._scroll.get_hscroll_bar().get_adjustment().set_value(0);
-      if(this._autoScroll) {
-         if(!this.isInFloatingState()) {
-            let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-            let verticalMargins = this.actor.margin_left + this.actor.margin_right;
-            this._scroll.get_hscroll_bar().visible = false;
-            this.actor.style = ('max-width: %spx;').format(this.actor.width);
-            this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
-         } else {
-            ConfigurableMenu.prototype.setMaxWidth.call(this);
-         }
-      }
-   },
-
    toggleSubmenu: function(animate) {
       if(this._activeMenuItem && this._activeMenuItem.menu && this._activeMenuItem.menu.isOpen)
          this.closeSubmenu(animate);
@@ -7810,11 +7950,8 @@ ConfigurableMenuApplet.prototype = {
          if(global.menuStackLength == undefined)
             global.menuStackLength = 0;
          global.menuStackLength += 1;
-         if (this.box.vertical)
-            Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
-         else
-            Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
          this.actor.show();
+         this.setMaxSize();
          this.isOpen = true;
          this.emit('open-state-changed', true);
       }
@@ -7923,24 +8060,24 @@ ConfigurableMenuApplet.prototype = {
       } else {
          ConfigurableMenu.prototype.addMenuItem.call(this, menuItem, params, position);
       }
-      if (this.box.vertical)
-         Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
-      else
-         Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
    },
 
    removeMenuItem: function(menuItem) {
       if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
-         if(menuItem._stateId != 0)
+         if(menuItem._stateId > 0) {
             menuItem.disconnect(menuItem._stateId);
-         menuItem.actor.disconnect(menuItem._pressId);
-         menuItem.actor.disconnect(menuItem._notifyHoverId);
+            menuItem._stateId = 0;
+         }
+         if(menuItem._pressId > 0) {
+            menuItem.actor.disconnect(menuItem._pressId);
+            menuItem._pressId = 0;
+         }
+         if(menuItem._notifyHoverId > 0) {
+            menuItem.actor.disconnect(menuItem._notifyHoverId);
+            menuItem._notifyHoverId = 0;
+         }
       }
       ConfigurableMenu.prototype.removeMenuItem.call(this, menuItem);
-      if (this.box.vertical)
-         Mainloop.idle_add(Lang.bind(this, this.setMaxHeight));
-      else
-         Mainloop.idle_add(Lang.bind(this, this.setMaxWidth));
    },
 
    _onMenuItemHoverChanged: function(actor) {
@@ -8086,6 +8223,7 @@ ConfigurableMenuApplet.prototype = {
 
    destroy: function() {
       if(this.actor) {
+         this._destroyFakeMenu();
          ConfigurableMenu.prototype.destroy.call(this);
          this.actor = null;
       }

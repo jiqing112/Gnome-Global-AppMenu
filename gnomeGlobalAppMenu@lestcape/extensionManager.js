@@ -60,14 +60,13 @@ MyMenuFactory.prototype = {
       this._openSubMenu = false;
       this._closeSubMenu = false;
       this._floatingMenu = false;
-      this._autoScrollig = false;
+      this._oversizeMode = ConfigurableMenus.OversizeMode.NONE;
       this._floatingSubMenu = true;
       this._alignSubMenu = false;
       this._showItemIcon = true;
       this._desaturateItemIcon = false;
       this._openOnHover = false;
       this._arrowSide = St.Side.BOTTOM;
-      this._wrapMode = true;
       this._effectType = "none";
       this._effectTime = 0.4;
       this._associate = false;
@@ -80,17 +79,6 @@ MyMenuFactory.prototype = {
             let shellMenu = this._menuLinkend[pos];
             if(shellMenu)
                shellMenu.setArrowSide(this._arrowSide);
-         }
-      }
-   },
-
-   setMainMenuWrapMode: function(wrapMode) {
-      if(this._wrapMode != wrapMode) {
-         this._wrapMode = wrapMode;
-         for(let pos in this._menuLinkend) {
-            let shellMenu = this._menuLinkend[pos];
-            if(shellMenu)
-               shellMenu.setLabelWrapMode(this._wrapMode);
          }
       }
    },
@@ -147,13 +135,13 @@ MyMenuFactory.prototype = {
       }
    },
 
-   setAutoScrolligAppMenu: function(autoScrollig) {
-      if(this._autoScrollig != autoScrollig) {
-         this._autoScrollig = autoScrollig;
+   setOversizeMode: function(mode) {
+      if(this._oversizeMode != mode) {
+         this._oversizeMode = mode;
          for(let pos in this._menuLinkend) {
             let shellMenu = this._menuLinkend[pos];
             if(shellMenu) {
-               shellMenu.setAutoScrolling(this._autoScrollig);
+               shellMenu.setOversizeMode(this._oversizeMode);
             }
          }
       }
@@ -251,7 +239,7 @@ MyMenuFactory.prototype = {
       //    throw new TypeError('Trying to instantiate a shell item with an invalid factory type');
       if(itemType == ConfigurableMenus.FactoryClassTypes.RootMenuClass) {
          shellItem.setFloatingState(this._floatingMenu);
-         shellItem.setAutoScrolling(this._autoScrollig);
+         shellItem.setOversizeMode(this._oversizeMode);
          shellItem.setOpenOnHover(this._openOnHover);
          shellItem.setAssociation(this._associate);
       } else if(itemType == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
@@ -408,14 +396,13 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-environment", "enableEnvironment", this._onEnableEnvironmentChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "replace-appmenu", "replaceAppMenu", this._onReplaceAppMenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "synchronize-panel", "associate", this._onAssociationChanged, null);
-      this.settings.bindProperty(Settings.BindingDirection.IN, "autoscrollig-appmenu", "autoScrolligAppMenu", this._onAutoScrolligAppMenuChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "oversize-mode", "oversizeMode", this._onOversizeModeChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "enable-jayantana", "enableJayantana", this._onEnableJayantanaChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-icon", "showAppIcon", this._onShowAppIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "desaturate-app-icon", "desaturateAppIcon", this._onDesaturateAppIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-name", "showAppName", this._onShowAppNameChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "text-gradient", "textGradient", this._onTextGradientChange, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "max-app-name-size", "maxAppNameSize", this._onMaxAppNameSizeChanged, null);
-      this.settings.bindProperty(Settings.BindingDirection.IN, "menu-labels-wrap", "menuLabelsWrap", this._onMenuLabelsWrapChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "automatic-active-mainmenu", "automaticActiveMainMenu", this._automaticActiveMainMenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "open-active-submenu", "openActiveSubmenu", this._onOpenActiveSubmenuChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "close-active-submenu", "closeActiveSubmenu", this._onCloseActiveSubmenuChanged, null);
@@ -445,7 +432,6 @@ MyApplet.prototype = {
       this._updateHudKeybinding();
       this._updateNumbreOfItems();
 
-      this._onMenuLabelsWrapChanged();
       this._onOpenActiveSubmenuChanged();
       this._onCloseActiveSubmenuChanged();
       this._onShowBoxPointerChanged();
@@ -455,7 +441,7 @@ MyApplet.prototype = {
       this._onOpenOnHoverChanged();
       this._onEffectTypeChanged();
       this._onEffectTimeChanged();
-      this._onAutoScrolligAppMenuChanged();
+      this._onOversizeModeChanged();
       this._onAssociationChanged();
       this._onReplaceAppMenuChanged();
    },
@@ -605,8 +591,8 @@ MyApplet.prototype = {
       }
    },
 
-   _onAutoScrolligAppMenuChanged: function() {
-      this.menuFactory.setAutoScrolligAppMenu(this.autoScrolligAppMenu);
+   _onOversizeModeChanged: function() {
+      this.menuFactory.setOversizeMode(this.oversizeMode);
    },
 
    _onEnableProviderChanged: function() {
@@ -685,10 +671,6 @@ MyApplet.prototype = {
 
    _onShowAppNameChanged: function() {
       this.gradient.showLabel(this.showAppName);
-   },
-
-   _onMenuLabelsWrapChanged: function() {
-      this.menuFactory.setMainMenuWrapMode(this.menuLabelsWrap);
    },
 
    _onTextGradientChange: function() {

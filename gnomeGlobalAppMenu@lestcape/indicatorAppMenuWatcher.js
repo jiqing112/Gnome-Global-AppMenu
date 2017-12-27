@@ -319,11 +319,12 @@ function X11RegisterMenuWatcher() {
 
 X11RegisterMenuWatcher.prototype = {
    _init: function() {
-      this._registeredWindows = { };
+      this._registeredWindows = {};
       this._ownName = null;
       this._ownNameId = null;
       this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
+      this._cancellable = new Gio.Cancellable;
       this._tracker = Shell.WindowTracker.get_default();
       this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DBusRegistrar, this);
    },
