@@ -1,11 +1,7 @@
 Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
 --------------
 
-**Discontinued:** https://github.com/lestcape/Gnome-Global-AppMenu/issues/63
---------------
-
 I don't want donations, I work only for users and not for companies or communities that receive money or donations.
-
 
 This is a fork of an old extension I made for Cinnamon. The initial extension doesn't support Cinnamon anymore, as all extensions were `forked by Clement`
 
@@ -39,6 +35,15 @@ Translators:
 - Ukrainian (uk): Alice Liddell (e-liss@tuta.io)
 --------------
 ![](https://raw.githubusercontent.com/lestcape/Gnome-Global-AppMenu/master/gnomeGlobalAppMenu%40lestcape/Capture.png)
+
+Was added initial support for Wayland.
+--------------
+The code to support Wayland can be found here: https://github.com/lestcape/unity-gtk-module It's just tested on Ubuntu 16.04 and probably will not work on any other places. The change will be merged with theimplementation of [@rilian-la-te](https://github.com/rilian-la-te/) of his vala-panel-appmenu (https://github.com/rilian-la-te/vala-panel-appmenu), as this package is distribute on most of linux distros. You are free to copy this implementation and port it to the place you want, but the gnome global menu will STOP to used the unity-gtk-module in favor of the fork of unity-gtk-module of @rilian-la-te, as this implementation it's more general and is supported in more linux distibutions.
+
+Known issues of the global menu on Wayland:
+--------------
+- The menu dosen't not work in the gnome-terminal application, as there are not support on gnome wayland for the gtk-shell-show-menubar property of the gtk settings when we use the XSettings binding.
+- The menu will not work for windows that are not a GtkApplicationWindow.
 
 Description
 --------------
