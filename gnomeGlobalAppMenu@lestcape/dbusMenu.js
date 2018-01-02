@@ -713,6 +713,9 @@ DBusClientGtk.prototype = {
       this._gtkMenubarMenus = null;
       this._windowPath = windowPath;
       this._appPath = appPath;
+
+      global.log("busName:" + busName +", busPath:"+ busPath +", windowPath:"+ windowPath +", appPath:"+ appPath);
+
       this._actionsIds = {};
       this._initMenu = [];
       for(let x = 0; x < 1024; x++)

@@ -19,6 +19,7 @@ const GLib = imports.gi.GLib;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
 const Gtk = imports.gi.Gtk;
+const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
 const Signals = imports.signals;
@@ -62,6 +63,15 @@ SystemProperties.prototype = {
       this._environmentCallback = null;
       this.xSetting = new Gio.Settings({ schema: 'org.gnome.settings-daemon.plugins.xsettings' });
       this._gtkSettings = Gtk.Settings.get_default();
+      /*this._showsMenuBarId = this._gtkSettings.connect('notify::gtk-shell-shows-menubar', Lang.bind(this, function() {
+         let values = this.xSetting.get_value('overrides').deep_unpack();
+         if('Gtk/ShellShowsMenubar' in values) {
+            let val = values['Gtk/ShellShowsMenubar'].deep_unpack();
+            if (val == 0) {
+               this.shellShowMenubar(true);
+            }
+         }
+      }));*/
    },
 
    shellShowAppmenu: function(show) {
@@ -240,18 +250,21 @@ SystemProperties.prototype = {
                values[xsetting] = GLib.Variant.new('i', 1);
                let returnValue = GLib.Variant.new('a{sv}', values);
                this.xSetting.set_value('overrides', returnValue);
+               Gio.Settings.sync ()
             }
          } else {
             values[xsetting] = GLib.Variant.new('i', 1);
             let returnValue = GLib.Variant.new('a{sv}', values);
             this.xSetting.set_value('overrides', returnValue);
+            Gio.Settings.sync ()
          }
       } else if(xsetting in values) {
-         let status = values[xsetting]
+         let status = values[xsetting];
          if(status != 0) {
             values[xsetting] = GLib.Variant.new('i', 0); 
             let returnValue = GLib.Variant.new('a{sv}', values);
             this.xSetting.set_value('overrides', returnValue);
+            Gio.Settings.sync ()
          }
       }
    },
@@ -620,8 +633,8 @@ X11RegisterMenuWatcher.prototype = {
             }
          }
       }
-      // Debugging for when people find bugs..
-      global.logError("X11Menu Whatcher: Could not find XID for window with title %s".format(wind.title));
+      // FIXME: Debugging for when people find bugs or not? In Waylan there are not souch thing like XID...
+      // global.logError("X11Menu Whatcher: Could not find XID for window with title %s".format(wind.title));
       return null;
    },
 
@@ -875,32 +888,44 @@ GtkMenuWatcher.prototype = {
       let senderDbus=null, isGtkApp = false;
       let appmenuPath = null, menubarPath=null, windowPath = null, appPath = null;
       let appTracker = this._tracker.get_window_app(window);
-      let index = this._findWindow(window);
-      if((index == -1) && (appTracker)&&(GTK_BLACKLIST.indexOf(appTracker.get_id()) == -1)) {
-         menubarPath = window.get_gtk_menubar_object_path();
-         appmenuPath = window.get_gtk_app_menu_object_path();
-         windowPath  = window.get_gtk_window_object_path();
-         appPath     = window.get_gtk_application_object_path();
-         senderDbus  = window.get_gtk_unique_bus_name();
-         isGtkApp    = (senderDbus != null);
-         try {
-            let pr = Object.getOwnPropertyNames(window);
-         } catch(e) {
-            global.log("Error: " + e);
+
+      if((appTracker)&&(GTK_BLACKLIST.indexOf(appTracker.get_id()) == -1)) {
+         let index = this._findWindow(window);
+         if ((index == -1) || (this._registeredWindows[index].sender == null)) {
+            menubarPath = window.get_gtk_menubar_object_path();
+            appmenuPath = window.get_gtk_app_menu_object_path();
+            windowPath  = window.get_gtk_window_object_path();
+            appPath     = window.get_gtk_application_object_path();
+            senderDbus  = window.get_gtk_unique_bus_name();
+            isGtkApp    = (senderDbus != null);
+
+            //Hack: For some reason (gnome?), the menubar path disapear, but we know where it's supposed that it will be if we have the appmenuPath.
+            //sender::1.75, menubarPath:/org/gnome/gedit/menus/menubar, appmenuPath:/org/gnome/gedit/menus/appmenu, windowPath:/org/gnome/gedit/window/1, appPath:/org/gnome/gedit
+            //sender::1.73, menubarPath:/org/Nemo/menus/menubar, appmenuPath:null, windowPath:/org/Nemo/window/1, appPath:/org/Nemo
+            //sender::1.68, menubarPath:null, appmenuPath:/org/gnome/Terminal/menus/appmenu, windowPath:/org/gnome/Terminal/window/3, appPath:/org/gnome/Terminal
+            if ((menubarPath == null) && (appmenuPath != null)) {
+               menubarPath = appmenuPath.replace("appmenu", "menubar");
+               if (menubarPath == appmenuPath) //Is not there.
+                  menubarPath = null;
+            }
+
+            global.log("sender:" + senderDbus + ", menubarPath:" + menubarPath + ", appmenuPath:" + appmenuPath + ", windowPath:" + windowPath + ", appPath:" + appPath);
+            let windowData = {};
+            if (index != -1)
+               windowData = this._registeredWindows[index];
+            windowData["window"] = window;
+            windowData["menubarObjectPath"] = menubarPath;
+            windowData["appmenuObjectPath"] = appmenuPath;
+            windowData["windowObjectPath"] = windowPath;
+            windowData["appObjectPath"] = appPath;
+            windowData["sender"] = senderDbus;
+            windowData["isGtk"] = isGtkApp;
+            windowData["icon"] = null;
+            windowData["appMenu"] = null;
+            windowData["fail"] = false;
+            if (index == -1)
+               this._registeredWindows.push(windowData);
          }
-         let windowData = {
-            window: window,
-            menubarObjectPath: menubarPath,
-            appmenuObjectPath: appmenuPath,
-            windowObjectPath: windowPath,
-            appObjectPath: appPath,
-            sender: senderDbus,
-            isGtk: isGtkApp,
-            icon: null,
-            appMenu: null,
-            fail: false
-         };
-         this._registeredWindows.push(windowData);
          let isBusy = false;
          if (appTracker) {
             let appSys = this._appSys.lookup_app(appTracker.get_id());
