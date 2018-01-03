@@ -2648,6 +2648,27 @@ ConfigurablePopupMenuItem.prototype = {
    setVisible: function(visible) {
       this.actor.visible = visible;
    },
+
+   setLabelMarkupStyle: function(styles, modifiers, from, to) {
+      let text = this.label.get_text(text);
+      let bMod = "", eMod = "", stylesStr = "";
+      let total = modifiers.length;
+      for(let pos = 0; pos < total; pos++) {
+         bMod += "<" + modifiers[pos] + ">";
+         eMod += "</" + modifiers[total - pos - 1] + ">";
+      }
+      for(let sty in styles) {
+         stylesStr += sty + "='" + styles[sty] + "' ";
+      }
+      this.label.clutter_text.set_use_markup(true);
+      this.label.clutter_text.set_markup(
+         text.substr(0, from) +
+         "<span "+stylesStr+" >" + bMod +
+         text.substr(from, to - from) +
+         eMod + "</span>" +
+         text.substr(to, text.length - to)
+      );
+   },
 };
 
 function ConfigurableBasicPopupMenuItem() {
@@ -7589,6 +7610,9 @@ ConfigurableMenuApplet.prototype = {
       this._startCounter = 0;
       this._association = false;
       this._inMaxSize = false;
+      this._shorcutUnderline = false;
+      this._shorcutColor = null;
+      this._shorcut = null;
       this._fakeMenu = null;
       this.panel = null;
       this.oversizeMode = OversizeMode.NONE;
@@ -7611,6 +7635,109 @@ ConfigurableMenuApplet.prototype = {
       if(this.launcher._applet_tooltip) {
          this.actor.connect('enter-event', Lang.bind(this, this._onEnterEvent));
          this.actor.connect('leave-event', Lang.bind(this, this._onLeaveEvent));
+      }
+   },
+
+   setUseShortcuts: function(shorcuts) {
+      if(this._shorcut != shorcuts) {
+         if(!shorcuts) {
+            this._removeShortcuts();
+         } else {
+            this._createShortcuts();
+         }
+         this._shorcut = shorcuts;
+      }
+   },
+
+   setShortcutColor: function(shortcutColor) {
+      this._shorcutColor = shortcutColor;
+   },
+
+   setUnderlineShortcut: function(underlineShortcut) {
+      this._shorcutUnderline = underlineShortcut;
+   },
+
+   _removeShortcuts: function() {
+      if (this.launcher && this.launcher.keybindingManager) {
+         let keybindingManager = this.launcher.keybindingManager;
+         let items = this.getMenuItems();
+         for(let pos in items) {
+            if(items[pos]._shortCutName1) {
+               keybindingManager.removeHotKey(items[pos]._shortCutName1);
+               items[pos]._shortCutName1 = null;
+            }
+            if(items[pos]._shortCutName2) {
+               keybindingManager.removeHotKey(items[pos]._shortCutName2);
+               items[pos]._shortCutName2 = null;
+            }
+         }
+      }
+   },
+
+   _createShortcuts: function() {
+      if (this.launcher && this.launcher.keybindingManager) {
+         let keybindingManager = this.launcher.keybindingManager;
+         this._removeShortcuts();
+         let usedLetters = [];
+         let items = this.getMenuItems();
+         for(let pos in items) {
+            if ((items[pos] != this._fakeMenu) && (this._shorcut)) {
+               let text = items[pos].label.get_text();
+               let selectedIndex = [];
+               for(let index = 0; index < text.length; index++) {
+                  let c = text[index].toLowerCase();
+                  if ((usedLetters.indexOf(c) == -1) && (/^[a-zA-Z]*$/.test(c))) {
+                     selectedIndex.push(index);
+                  }
+               }
+               for(let selPos in selectedIndex) {
+                  let index = selectedIndex[selPos];
+                  let accels = this._shorcut.split("::");
+                  let added1 = false;
+                  let added2 = false;
+                  if((accels.length > 0) && (accels[0] != null) && (accels[0].trim() !== "")) {
+                     accels[0] = "<" + accels[0].replace("_L", "").replace("_R", "") + ">";
+                     added1 = keybindingManager.addHotKey(
+                        "global-menu-key-" + text[index].toLowerCase(),
+                        accels[0] + text[index].toLowerCase(),
+                        Lang.bind(this, function(display, screen, event, kb, actionP, item) {
+                           if(item.menu && !Main.overview.visible) {
+                              item.menu.toggle(true);
+                           }
+                        }, items[pos])
+                     );
+                     if (added1)
+                         items[pos]._shortCutName1 = "global-menu-key-" + text[index].toLowerCase();
+                  }
+                  if((accels.length > 1) && (accels[1] != null) && (accels[1].trim() !== "")) {
+                     accels[1] = "<" + accels[1].replace("_L", "").replace("_R", "") + ">";
+                     added2 = keybindingManager.addHotKey(
+                        "global-menu-key-" + text[index].toLowerCase(),
+                        accels[1] + text[index].toLowerCase(),
+                        Lang.bind(this, function(display, screen, event, kb, actionP, item) {
+                           if(item.menu && !Main.overview.visible) {
+                              item.menu.toggle(true);
+                           }
+                        }, items[pos])
+                     );
+                     if (added2)
+                         items[pos]._shortCutName2 = "global-menu-key-" + text[index].toLowerCase();
+                  }
+                  if (added1 || added2) {
+                     items[pos].letter = text[index];
+                     let properties = ["b"];
+                     let styles = {};
+                     if (this._shorcutUnderline)
+                        properties.push("u");
+                     if (this._shorcutColor)
+                         styles["color"] = this._shorcutColor;
+                     items[pos].setLabelMarkupStyle(styles, properties , index, index+1);
+                     usedLetters.push(text[index].toLowerCase());
+                     break;
+                  }
+               }
+            }
+         }
       }
    },
 
@@ -7952,6 +8079,8 @@ ConfigurableMenuApplet.prototype = {
          global.menuStackLength += 1;
          this.actor.show();
          this.setMaxSize();
+         if(this._shorcut)
+            this._createShortcuts();
          this.isOpen = true;
          this.emit('open-state-changed', true);
       }
@@ -7959,6 +8088,8 @@ ConfigurableMenuApplet.prototype = {
    },
 
    close: function(animate, forced) {
+      if(this._shorcut)
+         this._removeShortcuts();
       if(this._floating) {
          ConfigurableMenu.prototype.close.call(this, false);
       } else if((forced)&&(this.isOpen) && this.actor) {
@@ -7969,6 +8100,7 @@ ConfigurableMenuApplet.prototype = {
              this._activeMenuItem.setActive(false);
          }
          this._activeMenuItem = null;
+
          this.isOpen = false;
          this._updatePanelVisibility();
          this.emit('open-state-changed', false);
@@ -8057,6 +8189,8 @@ ConfigurableMenuApplet.prototype = {
             this.addChildMenu(menuItem.menu);
          menuItem._pressId = menuItem.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
          menuItem._notifyHoverId = menuItem.actor.connect('notify::hover', Lang.bind(this, this._onMenuItemHoverChanged));
+
+         this._createShortcuts();
       } else {
          ConfigurableMenu.prototype.addMenuItem.call(this, menuItem, params, position);
       }

@@ -65,6 +65,9 @@ MyMenuFactory.prototype = {
       this._alignSubMenu = false;
       this._showItemIcon = true;
       this._desaturateItemIcon = false;
+      this._shortcutModifier = null;
+      this._shortcutColor = null;
+      this._underlineShortcut = false;
       this._openOnHover = false;
       this._arrowSide = St.Side.BOTTOM;
       this._effectType = "none";
@@ -101,6 +104,39 @@ MyMenuFactory.prototype = {
             let shellMenu = this._menuLinkend[pos];
             if(shellMenu)
                shellMenu.setAssociation(this._associate);
+         }
+      }
+   },
+
+   setUseShortcuts: function(shortcuts) {
+      if(this._shortcutModifier != shortcuts) {
+         this._shortcutModifier = shortcuts;
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
+            if(shellMenu)
+               shellMenu.setUseShortcuts(this._shortcutModifier);
+         }
+      }
+   },
+
+   setShortcutColor: function(shortcutColor) {
+      if(this._shortcutColor != shortcutColor) {
+         this._shortcutColor = shortcutColor;
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
+            if(shellMenu)
+               shellMenu.setShortcutColor(this._shortcutColor);
+         }
+      }
+   },
+
+   setUnderlineShortcut: function(underlineShortcut) {
+      if(this._underlineShortcut != underlineShortcut) {
+         this._underlineShortcut = underlineShortcut;
+         for(let pos in this._menuLinkend) {
+            let shellMenu = this._menuLinkend[pos];
+            if(shellMenu)
+               shellMenu.setUnderlineShortcut(this._underlineShortcut);
          }
       }
    },
@@ -242,6 +278,8 @@ MyMenuFactory.prototype = {
          shellItem.setOversizeMode(this._oversizeMode);
          shellItem.setOpenOnHover(this._openOnHover);
          shellItem.setAssociation(this._associate);
+         shellItem.setUseShortcuts(this._shortcutModifier);
+         shellItem.setShortcutColor(this._shortcutColor);
       } else if(itemType == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
          shellItem.menu.setFloatingState(this._floatingSubMenu);
       }
@@ -280,11 +318,14 @@ MyApplet.prototype = {
          this.desaturateItemIcon = false;
          this.openOnHover = false;
          this._keybindingTimeOut = 0;
+         this.allowShortcutColor = false;
+         this.shortcutColor = null;
+         this.shortcutModifier = null;
+         this.underlineShortcut = false;
          this.effectType = "none";
          this.effectTime = 0.4;
          this.replaceAppMenu = false;
          this.associate = true;//Playing
-
          this.appmenu = null;
          this.targetApp = null;
          this.settings = null;
@@ -419,6 +460,13 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "effect", "effectType", this._onEffectTypeChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "effect-time", "effectTime", this._onEffectTimeChanged, null);
 
+      this.settings.bindProperty(Settings.BindingDirection.IN, "allow-shortcut-colors", "allowShortcutColor", this._onShortcutColorChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "shortcut-color", "shortcutColor", this._onShortcutColorChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "underline-shortcut", "underlineShortcut", this._onUnderlineShortcutChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.BIDIRECTIONAL, "shortcut-modifier", "shortcutModifier", this._onShortcutModifierChanged, null);
+
+
+
       this._onEnableProviderChanged();
       this._onEnableEnvironmentChanged();
       this._onEnableJayantanaChanged();
@@ -444,6 +492,9 @@ MyApplet.prototype = {
       this._onOversizeModeChanged();
       this._onAssociationChanged();
       this._onReplaceAppMenuChanged();
+      this._onShortcutModifierChanged();
+      this._onShortcutColorChanged();
+      this._onUnderlineShortcutChanged();
    },
 
    _initEnvironment: function() {
@@ -710,6 +761,47 @@ MyApplet.prototype = {
 
    _onDesaturateItemIconChanged: function() {
       this.menuFactory.desaturateItemIcon(this.desaturateItemIcon);
+   },
+
+   _onShortcutColorChanged: function() {
+      if (this.allowShortcutColor) {
+         let startIndex = this.shortcutColor.indexOf("(");
+         let colorString = this.shortcutColor.substring(startIndex+1, this.shortcutColor.length - 1);
+         let colorList = colorString.split(",");
+         let colorHex = "#";
+         for(let pos in colorList) {
+            let hex = parseInt(colorList[pos]).toString(16);
+            colorHex += hex.length == 1 ? "0" + hex : hex;
+         }
+         this.menuFactory.setShortcutColor(colorHex);
+      } else {
+         this.menuFactory.setShortcutColor(null);
+      }
+   },
+
+   _onUnderlineShortcutChanged: function() {
+      this.menuFactory.setUnderlineShortcut(this.underlineShortcut);
+   },
+
+   _onShortcutModifierChanged: function() {
+      let accels = this.shortcutModifier.split("::");
+      let key1 = null, key2 = null;
+      let mods1 = null, mods2 = null;
+      if((accels.length > 0) && (accels[0] != null) && (accels[0] != 0)) {
+         [key1, mods1] = Gtk.accelerator_parse(accels[0]);
+      }
+      if((accels.length > 1) && (accels[1] != null) && (accels[1] != 0)) {
+         [key2, mods2] = Gtk.accelerator_parse(accels[1]);
+      }
+      if(((mods1 != null) && (mods1 != 0)) || ((key1 != null) && (key1 != 0) && !this.keybindingManager.key_is_modifier(key1))) {
+         Main.notify(_("Only can be selected a unique modifier acelerator, not a convination or also not if include a key."));
+         this.shortcutModifier = "";
+      } else if(((mods2 != null) && (mods2 != 0)) || ((key2 != null) && (key2 != 0) && !this.keybindingManager.key_is_modifier(key2))) {
+         Main.notify(_("Only can be selected a unique modifier acelerator, not a convination or also not if include a key."));
+         this.shortcutModifier = "";
+      } else {
+         this.menuFactory.setUseShortcuts(this.shortcutModifier);
+      }
    },
 
    setAppMenu: function(menu) {

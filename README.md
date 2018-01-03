@@ -38,7 +38,7 @@ Translators:
 
 Was added initial support for Wayland.
 --------------
-The code to support Wayland can be found here: https://github.com/lestcape/unity-gtk-module It's just tested on Ubuntu 16.04 and probably will not work on any other places. The change will be merged with theimplementation of [@rilian-la-te](https://github.com/rilian-la-te/) of his vala-panel-appmenu (https://github.com/rilian-la-te/vala-panel-appmenu), as this package is distribute on most of linux distros. You are free to copy this implementation and port it to the place you want, but the gnome global menu will STOP to used the unity-gtk-module in favor of the fork of unity-gtk-module of @rilian-la-te, as this implementation it's more general and is supported in more linux distibutions.
+The code to support Wayland can be found here: https://github.com/lestcape/unity-gtk-module It's just tested on Ubuntu 16.04 and probably will not work on any other places. The change will be merged with the implementation of [@rilian-la-te](https://github.com/rilian-la-te/) of his vala-panel-appmenu (https://github.com/rilian-la-te/vala-panel-appmenu), as this package is distribute on most of linux distros. You are free to copy this implementation and port it to the place you want, but the gnome global menu will STOP to used the unity-gtk-module in favor of the fork of unity-gtk-module of @rilian-la-te, as this implementation it's more general and is supported in more linux distibutions.
 
 Known issues of the global menu on Wayland:
 --------------

@@ -8,6 +8,7 @@ const Clutter = imports.gi.Clutter;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
+const Gdk = imports.gi.Gdk;
 const Meta = imports.gi.Meta;
 const Shell = imports.gi.Shell;
 
@@ -233,6 +234,40 @@ KeybindingManager.prototype = {
             delete this.bindings[name];
         }
     },
+
+    key_is_modifier: function(keyval) {
+      switch (keyval) {
+         case Gdk.KEY_Shift_L:
+         case Gdk.KEY_Shift_R:
+         case Gdk.KEY_Control_L:
+         case Gdk.KEY_Control_R:
+         case Gdk.KEY_Caps_Lock:
+         case Gdk.KEY_Shift_Lock:
+         case Gdk.KEY_Meta_L:
+         case Gdk.KEY_Meta_R:
+         case Gdk.KEY_Alt_L:
+         case Gdk.KEY_Alt_R:
+         case Gdk.KEY_Super_L:
+         case Gdk.KEY_Super_R:
+         case Gdk.KEY_Hyper_L:
+         case Gdk.KEY_Hyper_R:
+         case Gdk.KEY_ISO_Lock:
+         case Gdk.KEY_ISO_Level2_Latch:
+         case Gdk.KEY_ISO_Level3_Shift:
+         case Gdk.KEY_ISO_Level3_Latch:
+         case Gdk.KEY_ISO_Level3_Lock:
+         case Gdk.KEY_ISO_Level5_Shift:
+         case Gdk.KEY_ISO_Level5_Latch:
+         case Gdk.KEY_ISO_Level5_Lock:
+         case Gdk.KEY_ISO_Group_Shift:
+         case Gdk.KEY_ISO_Group_Latch:
+         case Gdk.KEY_ISO_Group_Lock:
+           return true;
+         default:
+           return false;
+      }
+      return  false;
+   },
 
     destroy: function() {
         if(this.updateId) {

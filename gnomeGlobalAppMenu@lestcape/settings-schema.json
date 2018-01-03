@@ -127,7 +127,7 @@
     "global-overlay-key" : {
         "type" : "keybinding",
         "description" : "Keyboard shortcut to open and close the menu",
-        "default" : "Alt_L"
+        "default" : "<Super>g"
     },
     "oversize-mode": {
         "type": "combobox",
@@ -160,6 +160,33 @@
         "default": false,
         "description": "Open the menu when I move my mouse over it",
         "tooltip": "Enable opening the menu when the mouse enters the applet."
+    },
+    "shortcut-modifier" : {
+        "type" : "keybinding",
+        "description" : "Modifier shortcut to open and close the menu of the items",
+        "default" : "<Alt>"
+    },
+    "underline-shortcut": {
+        "type": "checkbox",
+        "default": false,
+        "indent": true,
+        "description": "Underline the selected shortcut characters",
+        "tooltip": "Allow to underline the selected shortcut characters."
+    },
+    "allow-shortcut-colors": {
+        "type": "checkbox",
+        "default": false,
+        "indent": true,
+        "description": "Allow to set a color for the selected shortcut characters",
+        "tooltip": "Allow to set a color for the selected shortcut characters."
+    },
+    "shortcut-color": {
+        "type": "colorchooser",
+        "default": "rgb(0,0,0)",
+        "indent": true,
+        "dependency": "allow-shortcut-colors",
+        "description": "Set the shortcut color",
+        "tooltip": "Set a color to realce the character shortcut"
     },
     "separator-submenu-top" : {
         "type": "separator"
