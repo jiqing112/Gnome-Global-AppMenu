@@ -2650,7 +2650,7 @@ ConfigurablePopupMenuItem.prototype = {
    },
 
    setLabelMarkupStyle: function(styles, modifiers, from, to) {
-      let text = this.label.get_text(text);
+      let text = this.label.get_text();
       let bMod = "", eMod = "", stylesStr = "";
       let total = modifiers.length;
       for(let pos = 0; pos < total; pos++) {
