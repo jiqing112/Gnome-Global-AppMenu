@@ -710,6 +710,9 @@ DBusClientGtk.prototype = {
 
    _init: function(busName, busPath, windowPath, appPath) {
       DBusClient.prototype._init.call(this, busName, busPath);
+      this._proxyUnityAction = null;
+      this._proxyWindowAction = null;
+      this._proxyAppAction = null;
       this._gtkMenubarMenus = null;
       this._windowPath = windowPath;
       this._appPath = appPath;

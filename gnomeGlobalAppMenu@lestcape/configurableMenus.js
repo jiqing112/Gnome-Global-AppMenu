@@ -65,6 +65,7 @@ const ScrollBox = new Lang.Class({
     _init: function(params) {
         this.parent(params);
         this._timeOutScroll = null;
+        this.auto_scrolling = false;
     },
 
     _doScrolling: function() {
@@ -2575,7 +2576,7 @@ GradientLabelMenuItem.prototype = {
             let familyDesc = font.get_family().split(", ");
             cr.selectFontFace(familyDesc[0], PANGO_STYLES[font.get_style()], weight);
             cr.setFontSize(fontSize);
-            cr.moveTo(this.margin, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE) - 1);
+            cr.moveTo(this.margin, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE) + this.margin);
 
             if(this._textDegradation) {
                let shadowPattern = new Cairo.LinearGradient(0, 0, width, height);
@@ -2588,7 +2589,7 @@ GradientLabelMenuItem.prototype = {
             cr.fill();
 
             cr.setFontSize(fontSize);
-            cr.moveTo(this.margin + 1, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE));
+            cr.moveTo(this.margin + 1, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE + this.margin + 1));
 
             if(this._textDegradation) {
                let realPattern = new Cairo.LinearGradient(0, 0, width, height);
@@ -2660,14 +2661,16 @@ ConfigurablePopupMenuItem.prototype = {
       for(let sty in styles) {
          stylesStr += sty + "='" + styles[sty] + "' ";
       }
-      this.label.clutter_text.set_use_markup(true);
-      this.label.clutter_text.set_markup(
-         text.substr(0, from) +
-         "<span "+stylesStr+" >" + bMod +
-         text.substr(from, to - from) +
-         eMod + "</span>" +
-         text.substr(to, text.length - to)
-      );
+      stylesStr = stylesStr.substr(0, stylesStr.length - 1);
+      if(!this.label.clutter_text.get_use_markup()) {
+          this.label.clutter_text.set_use_markup(true);
+      }
+      let markup = text.substr(0, from) +
+          "<span "+stylesStr+">" + bMod +
+          text.substr(from, to - from) +
+          eMod + "</span>" +
+          text.substr(to, text.length - to);
+      this.label.clutter_text.set_markup(markup);
    },
 };
 
@@ -3473,8 +3476,8 @@ ConfigurableMenuManager.prototype = {
       if(focus) {
          if(this._activeMenuContains(focus))
             return;
-         if(this._menuStack.length > 0)
-            return;
+         //if(this._menuStack.length > 0)
+         //   return;
          if(focus._delegate && focus._delegate.menu &&
             this._findMenu(focus._delegate.menu) != -1)
             return;
@@ -4248,7 +4251,9 @@ ConfigurableMenu.prototype = {
    __proto__: ConfigurablePopupMenuBase.prototype,
 
    _init: function(launcher, arrowAlignment, orientation, floating) {
-      ConfigurablePopupMenuBase.prototype._init.call (this, (launcher ? launcher.actor: null), 'popup-menu-content');
+      ConfigurablePopupMenuBase.prototype._init.call (this, (
+             launcher && launcher.hasOwnProperty("actor") ? launcher.actor: null
+      ), 'popup-menu-content');
       try {
          this._arrowAlignment = arrowAlignment;
          this._arrowSide = orientation;
@@ -5271,10 +5276,11 @@ ConfigurableMenu.prototype = {
       this.launcher = launcher;
       if(this.launcher) {
          this.sourceActor = this.launcher.actor;
-         if(this._floating)
+         if(this._floating && this.launcher.hasOwnProperty("actor")) {
             this._boxPointer.setPosition(this.launcher.actor, this._arrowAlignment);
-         else
+         } else {
             this._boxPointer.clearPosition();
+         }
          this._updateTopMenu();
       }
    },
@@ -7640,21 +7646,27 @@ ConfigurableMenuApplet.prototype = {
 
    setUseShortcuts: function(shorcuts) {
       if(this._shorcut != shorcuts) {
-         if(!shorcuts) {
-            this._removeShortcuts();
-         } else {
-            this._createShortcuts();
-         }
          this._shorcut = shorcuts;
+         if(this._shorcut) {
+            this._createShortcuts();
+         } else {
+            this._removeShortcuts();
+         }
       }
    },
 
    setShortcutColor: function(shortcutColor) {
       this._shorcutColor = shortcutColor;
+      if(this._shorcut) {
+          this._createShortcuts();
+      }
    },
 
    setUnderlineShortcut: function(underlineShortcut) {
       this._shorcutUnderline = underlineShortcut;
+      if(this._shorcut) {
+          this._createShortcuts();
+      }
    },
 
    _removeShortcuts: function() {
@@ -7706,8 +7718,9 @@ ConfigurableMenuApplet.prototype = {
                            }
                         }, items[pos])
                      );
-                     if (added1)
+                     if (added1) {
                          items[pos]._shortCutName1 = "global-menu-key-" + text[index].toLowerCase();
+                     }
                   }
                   if((accels.length > 1) && (accels[1] != null) && (accels[1].trim() !== "")) {
                      accels[1] = "<" + accels[1].replace("_L", "").replace("_R", "") + ">";
@@ -7720,17 +7733,20 @@ ConfigurableMenuApplet.prototype = {
                            }
                         }, items[pos])
                      );
-                     if (added2)
+                     if (added2) {
                          items[pos]._shortCutName2 = "global-menu-key-" + text[index].toLowerCase();
+                     }
                   }
                   if (added1 || added2) {
-                     items[pos].letter = text[index];
+                     //items[pos].letter = text[index];
                      let properties = ["b"];
                      let styles = {};
-                     if (this._shorcutUnderline)
-                        properties.push("u");
-                     if (this._shorcutColor)
+                     if (this._shorcutUnderline) {
+                         properties.push("u");
+                     }
+                     if (this._shorcutColor) {
                          styles["color"] = this._shorcutColor;
+                     }
                      items[pos].setLabelMarkupStyle(styles, properties , index, index+1);
                      usedLetters.push(text[index].toLowerCase());
                      break;
@@ -7906,8 +7922,9 @@ ConfigurableMenuApplet.prototype = {
             this._setIconVisible(menuItem);
             menuItem.focusOnHover = this._floating;
             menuItem.focusOnActivation = this._floating;
-            if(menuItem.menu)
+            if(menuItem.menu && menuItem.menu.hasOwnProperty("fixCorner")) {
                menuItem.menu.fixToCorner(menuItem.menu.fixCorner);
+            }
          }
       }
    },
@@ -8088,8 +8105,9 @@ ConfigurableMenuApplet.prototype = {
    },
 
    close: function(animate, forced) {
-      if(this._shorcut)
+      if(this._shorcut) {
          this._removeShortcuts();
+      }
       if(this._floating) {
          ConfigurableMenu.prototype.close.call(this, false);
       } else if((forced)&&(this.isOpen) && this.actor) {
@@ -8108,10 +8126,11 @@ ConfigurableMenuApplet.prototype = {
    },
 
    forcedToggle: function() {
-      if(this.isOpen)
+      if(this.isOpen) {
           this.close(false, true);
-      else
+      } else {
           this.open(false);
+      }
    },
 
    setArrowSide: function(side) {
@@ -8198,15 +8217,15 @@ ConfigurableMenuApplet.prototype = {
 
    removeMenuItem: function(menuItem) {
       if(menuItem instanceof ConfigurablePopupSubMenuMenuItem) {
-         if(menuItem._stateId > 0) {
+         if(menuItem.hasOwnProperty("_stateId") && (menuItem._stateId > 0)) {
             menuItem.disconnect(menuItem._stateId);
             menuItem._stateId = 0;
          }
-         if(menuItem._pressId > 0) {
+         if(menuItem.hasOwnProperty("_pressId") && (menuItem._pressId > 0)) {
             menuItem.actor.disconnect(menuItem._pressId);
             menuItem._pressId = 0;
          }
-         if(menuItem._notifyHoverId > 0) {
+         if(menuItem.hasOwnProperty("_notifyHoverId") && (menuItem._notifyHoverId > 0)) {
             menuItem.actor.disconnect(menuItem._notifyHoverId);
             menuItem._notifyHoverId = 0;
          }
@@ -8961,8 +8980,8 @@ MenuFactory.prototype = {
    },
 
    _setShellItem: function(factoryItem, shellItem, handlers) {
-      if(shellItem.factoryItem != factoryItem) {
-         if(shellItem.factoryItem) {
+      if(!shellItem.hasOwnProperty("factoryItem") || (shellItem.factoryItem != factoryItem)) {
+         if(shellItem.hasOwnProperty("factoryItem")) {
             global.log("Attempt to override a shellItem factory, so we automatically destroy our original shellItem.");
          }
          shellItem.factoryItem = factoryItem;

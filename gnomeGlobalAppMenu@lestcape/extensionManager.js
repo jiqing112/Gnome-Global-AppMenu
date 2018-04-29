@@ -280,6 +280,7 @@ MyMenuFactory.prototype = {
          shellItem.setAssociation(this._associate);
          shellItem.setUseShortcuts(this._shortcutModifier);
          shellItem.setShortcutColor(this._shortcutColor);
+         shellItem.setUnderlineShortcut(this._underlineShortcut);
       } else if(itemType == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
          shellItem.menu.setFloatingState(this._floatingSubMenu);
       }

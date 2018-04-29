@@ -568,7 +568,7 @@ X11RegisterMenuWatcher.prototype = {
                global.log("X11Menu Whatcher: Incompatible dbusmenu version %s".format(version));
                return callback(false);
             }
-         }, null
+         }
       );
    },
 
@@ -781,7 +781,7 @@ GtkMenuWatcher.prototype = {
                global.log("GtkMenu Watcher: Incompatible dbusmenu version %s".format(version));
                return callback(false);
             }
-         }, null
+         }
       );
    },
 

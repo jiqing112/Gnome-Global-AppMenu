@@ -546,7 +546,7 @@ const SettingsBox = new GObject.Class({
         list_box.set_selection_mode(Gtk.SelectionMode.NONE);
         let row = new Gtk.ListBoxRow();
         row.add(widget);
-        if (widget.Name === 'ClassicGnome.Switch') { // instanceof didn't work here
+        if (widget.name === 'ClassicGnome.Switch') { // instanceof didn't work here
             list_box.connect("row-activated", Lang.bind(widget, widget.clicked));
         }
         list_box.add(row);
@@ -565,7 +565,7 @@ const SettingsBox = new GObject.Class({
         list_box.set_selection_mode(Gtk.SelectionMode.NONE);
         let row = new Gtk.ListBoxRow();
         row.add(widget);
-        if (widget.Name === 'ClassicGnome.Switch') { // instanceof didn't work here
+        if (widget.name === 'ClassicGnome.Switch') { // instanceof didn't work here
             list_box.connect("row-activated", Lang.bind(widget, widget.clicked));
         }
         list_box.add(row);
