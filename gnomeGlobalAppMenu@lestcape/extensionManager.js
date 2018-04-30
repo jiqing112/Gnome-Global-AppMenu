@@ -408,7 +408,7 @@ MyApplet.prototype = {
                                                                         Lang.bind(this, this._onAppMenuNotify));
              }
          } else {
-             Main.notify(_("You need restart your computer, to active the unity-gtk-module"));
+             Main.notify(_("You need restart your computer, to active the %s backend").format(this._system.getBackend()));
          }
       }
    },
@@ -499,13 +499,13 @@ MyApplet.prototype = {
    },
 
    _initEnvironment: function() {
-      let isReady = this._system.activeUnityGtkModule(true);
+      let isReady = this._system.activeBackendGtkModule(true);
       if(isReady) {
          this._system.activeJAyantanaModule(this.enableJayantana);
          //this._system.shellShowAppmenu(true); Is controlled
          this._system.shellShowMenubar(true);
          this._system.activeQtPlatform(true);
-         this._system.activeUnityMenuProxy(true);
+         this._system.activeBackendMenuProxy(true);
          return true;
       }
       return false;
@@ -582,7 +582,7 @@ MyApplet.prototype = {
       //this._system.shellShowAppmenu(false);
       this._system.shellShowMenubar(false);
       this._system.activeQtPlatform(false);
-      this._system.activeUnityMenuProxy(false);
+      this._system.activeBackendMenuProxy(false);
       this._system.activeJAyantanaModule(false);
       // FIXME: Is possible that we need to add an option to the settings
       // to be more easy to the user uninstall the applet in a propertly way.
@@ -590,7 +590,7 @@ MyApplet.prototype = {
       // disable the module and the root path. If user want to install again
       // the extension he will need to do all steps again.
       if(complete) {
-          this._system.activeUnityGtkModule(false);
+          this._system.activeBackendGtkModule(false);
           if(this._system.isEnvironmentSet()) {
              this._system.setEnvironmentVar(false, null);
           }

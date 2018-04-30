@@ -72,6 +72,35 @@ SystemProperties.prototype = {
             }
          }
       }));*/
+      this.backend = this._getPreferendBackend();
+   },
+
+   // We now have a unity-gtk-module and the appmenu-gtk-module fork.
+   // As the first seen to be discontinued and more like an specific desktop
+   // implementation we will always prefer the appmenu-gtk-module fork.
+   _getPreferendBackend: function() {
+       let prefered = "appmenu-gtk-module";
+       let file = Gio.file_new_for_path(Gtk.rc_get_module_dir());
+       file = file.get_parent().get_parent().get_child('modules');
+       let moduleFile = file.get_child('libappmenu-gtk-module.so');
+       if (!moduleFile.query_exists(null)) {
+           moduleFile = file.get_child('libunity-gtk-module.so');
+           if (moduleFile.query_exists(null)) {
+               prefered = "unity-gtk-module";
+           }
+       }
+       return prefered;
+   },
+
+   getBackend: function() {
+       return this.backend;
+   },
+
+   getBackendMenuProxy: function() {
+       if (this.backend = "unity-gtk-module") {
+           return "UBUNTU_MENUPROXY";
+       }
+       return "UBUNTU_MENUPROXY"; ///"appmenu-gtk-module";
    },
 
    shellShowAppmenu: function(show) {
@@ -109,43 +138,43 @@ SystemProperties.prototype = {
       }
    },
 
-   activeUnityGtkModule: function(active) {
+   activeBackendGtkModule: function(active) {
       let isReady = false;
       let envGtk = this._getEnvGtkModules();
       let xSettingGtk = this._getXSettingGtkModules();
       if(active) {
          if(envGtk) {
-            if(envGtk.indexOf("unity-gtk-module") == -1) {
-               envGtk.push("unity-gtk-module");
+            if(envGtk.indexOf(this.backend) == -1) {
+               envGtk.push(this.backend);
                this._setEnvGtkModules(envGtk);
             } else {
                isReady = true;
             }
          } else  {
-            envGtk = ["unity-gtk-module"];
+            envGtk = [this.backend];
             this._setEnvGtkModules(envGtk);
          }
          if(xSettingGtk) {
-            if(xSettingGtk.indexOf("unity-gtk-module") == -1) {
-               xSettingGtk.push("unity-gtk-module");
+            if(xSettingGtk.indexOf(this.backend) == -1) {
+               xSettingGtk.push(this.backend);
                this._setXSettingGtkModules(xSettingGtk);
             } else {
                isReady = true;
             }
          } else  {
-            xSettingGtk = ["unity-gtk-module"];
+            xSettingGtk = [this.backend];
             this._setXSettingGtkModules(xSettingGtk);
          }
          if(!this._gtkSettings.gtk_modules) {
-             this._gtkSettings.gtk_modules = "unity-gtk-module";
-         } else if(this._gtkSettings.gtk_modules.indexOf("unity-gtk-module") == -1) {
-            this._gtkSettings.gtk_modules += ":unity-gtk-module";
+             this._gtkSettings.gtk_modules = this.backend;
+         } else if(this._gtkSettings.gtk_modules.indexOf(this.backend) == -1) {
+            this._gtkSettings.gtk_modules += ":" + this.backend;
          } else {
             isReady = true;
          }
       } else {
          if(envGtk) {
-            let pos = envGtk.indexOf("unity-gtk-module");
+            let pos = envGtk.indexOf(this.backend);
             if(pos != -1) {
                envGtk.splice(pos, 1);
                this._setEnvGtkModules(envGtk);
@@ -154,7 +183,7 @@ SystemProperties.prototype = {
             }
          }
          if(xSettingGtk) {
-            let pos = xSettingGtk.indexOf("unity-gtk-module");
+            let pos = xSettingGtk.indexOf(this.backend);
             if(pos != -1) {
                xSettingGtk.splice(pos, 1);
                this._setXSettingGtkModules(xSettingGtk);
@@ -166,7 +195,7 @@ SystemProperties.prototype = {
          }
          if(this._gtkSettings.gtk_modules) {
             let modules = this._gtkSettings.gtk_modules.split(":");
-            let index = modules.indexOf("unity-gtk-module");
+            let index = modules.indexOf(this.backend);
             if(index != -1) {
                 modules.splice(index, 1);
                 this._gtkSettings.gtk_modules = modules.join(":");
@@ -190,13 +219,14 @@ SystemProperties.prototype = {
       return false;
    },
 
-   activeUnityMenuProxy: function(active) {
-      let envMenuProxy = GLib.getenv('UBUNTU_MENUPROXY');
+   activeBackendMenuProxy: function(active) {
+      let menuProxy = this.getBackendMenuProxy();
+      let envMenuProxy = GLib.getenv(menuProxy);
       if(active && (envMenuProxy != "1")) {
-         GLib.setenv('UBUNTU_MENUPROXY', "1", true);
+         GLib.setenv(menuProxy, "1", true);
          return false;
       } else if(!active && envMenuProxy == "1") {
-         GLib.setenv('UBUNTU_MENUPROXY', "0", true);
+         GLib.setenv(menuProxy, "0", true);
       }
       return true;
    },
