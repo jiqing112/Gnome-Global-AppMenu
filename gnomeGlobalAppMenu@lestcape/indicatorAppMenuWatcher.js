@@ -509,13 +509,14 @@ X11RegisterMenuWatcher.prototype = {
       this._dbusImpl.emit_signal('WindowRegistered', GLib.Variant.new('(uso)', [xid, sender, menubarObjectPath]));
       global.log("X11Menu Whatcher: RegisterWindow %d %s %s".format(xid, sender, menubarObjectPath));
       // Return a value Firefox and Thunderbird are waiting for it.
-      invocation.return_value(new GLib.Variant('()', []));  
+      invocation.return_value(new GLib.Variant('()', []));
    },
 
    UnregisterWindowAsync: function(params, invocation) {
       let [xid] = params;
       this._destroyMenu(xid);
       this._emitWindowUnregistered(xid);
+      invocation.return_value(new GLib.Variant('()', []));
    },
 
    _emitWindowUnregistered: function(xid) {
@@ -613,8 +614,6 @@ X11RegisterMenuWatcher.prototype = {
          var menubarPath = this._registeredWindows[xid].menubarObjectPath;
          if(sender && menubarPath) {
             this._validateMenu(sender, menubarPath, Lang.bind(this, function(result, name, menubarPath) {
-               //let result = true;
-               //let name = sender;
                if(result) {
                   if(!this._registeredWindows[xid].appMenu) {
                      global.log("X11Menu Whatcher: Creating menu on %s, %s".format(sender, menubarPath));
@@ -1008,16 +1007,12 @@ GtkMenuWatcher.prototype = {
             isGtkApp    = (senderDbus != null);
 
             //Hack: For some reason (gnome?), the menubar path disapear, but we know where it's supposed that it will be if we have the appmenuPath.
-            //sender::1.75, menubarPath:/org/gnome/gedit/menus/menubar, appmenuPath:/org/gnome/gedit/menus/appmenu, windowPath:/org/gnome/gedit/window/1, appPath:/org/gnome/gedit
-            //sender::1.73, menubarPath:/org/Nemo/menus/menubar, appmenuPath:null, windowPath:/org/Nemo/window/1, appPath:/org/Nemo
-            //sender::1.68, menubarPath:null, appmenuPath:/org/gnome/Terminal/menus/appmenu, windowPath:/org/gnome/Terminal/window/3, appPath:/org/gnome/Terminal
             if ((menubarPath == null) && (appmenuPath != null)) {
                menubarPath = appmenuPath.replace("appmenu", "menubar");
                if (menubarPath == appmenuPath) //Is not there.
                   menubarPath = null;
             }
-
-            global.log("sender:" + senderDbus + ", menubarPath:" + menubarPath + ", appmenuPath:" + appmenuPath + ", windowPath:" + windowPath + ", appPath:" + appPath);
+            //global.log("sender:" + senderDbus + ", menubarPath:" + menubarPath + ", appmenuPath:" + appmenuPath + ", windowPath:" + windowPath + ", appPath:" + appPath);
             let windowData = {};
             if (index != -1)
                windowData = this._registeredWindows[index];
