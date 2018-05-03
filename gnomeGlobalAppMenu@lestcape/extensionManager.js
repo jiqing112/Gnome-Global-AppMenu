@@ -785,23 +785,25 @@ MyApplet.prototype = {
    },
 
    _onShortcutModifierChanged: function() {
-      let accels = this.shortcutModifier.split("::");
-      let key1 = null, key2 = null;
-      let mods1 = null, mods2 = null;
-      if((accels.length > 0) && (accels[0] != null) && (accels[0] != 0)) {
-         [key1, mods1] = Gtk.accelerator_parse(accels[0]);
-      }
-      if((accels.length > 1) && (accels[1] != null) && (accels[1] != 0)) {
-         [key2, mods2] = Gtk.accelerator_parse(accels[1]);
-      }
-      if(((mods1 != null) && (mods1 != 0)) || ((key1 != null) && (key1 != 0) && !this.keybindingManager.key_is_modifier(key1))) {
-         Main.notify(_("Only can be selected a unique modifier acelerator, not a convination or also not if include a key."));
-         this.shortcutModifier = "";
-      } else if(((mods2 != null) && (mods2 != 0)) || ((key2 != null) && (key2 != 0) && !this.keybindingManager.key_is_modifier(key2))) {
-         Main.notify(_("Only can be selected a unique modifier acelerator, not a convination or also not if include a key."));
-         this.shortcutModifier = "";
-      } else {
-         this.menuFactory.setUseShortcuts(this.shortcutModifier);
+      if (this.shortcutModifier && (this.shortcutModifier !== undefined)) {
+         let accels = this.shortcutModifier.split("::");
+         let key1 = null, key2 = null;
+         let mods1 = null, mods2 = null;
+         if((accels.length > 0) && (accels[0] != null) && (accels[0] != 0)) {
+            [key1, mods1] = Gtk.accelerator_parse(accels[0]);
+         }
+         if((accels.length > 1) && (accels[1] != null) && (accels[1] != 0)) {
+            [key2, mods2] = Gtk.accelerator_parse(accels[1]);
+         }
+         if(((mods1 != null) && (mods1 != 0)) || ((key1 != null) && (key1 != 0) && !this.keybindingManager.key_is_modifier(key1))) {
+            Main.notify(_("Only can be selected a unique modifier acelerator, not a convination or also not if include a key."));
+            this.shortcutModifier = "";
+         } else if(((mods2 != null) && (mods2 != 0)) || ((key2 != null) && (key2 != 0) && !this.keybindingManager.key_is_modifier(key2))) {
+            Main.notify(_("Only can be selected a unique modifier acelerator, not a convination or also not if include a key."));
+            this.shortcutModifier = "";
+         } else {
+            this.menuFactory.setUseShortcuts(this.shortcutModifier);
+         }
       }
    },
 

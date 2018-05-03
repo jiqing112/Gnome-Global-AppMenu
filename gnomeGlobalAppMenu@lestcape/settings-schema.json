@@ -102,7 +102,7 @@
     "hud-overlay-key" : {
         "type" : "keybinding",
         "description" : "Keyboard shortcut to open and close the hud menu",
-        "default" : "<Super>h"
+        "default" : "<Super>u"
     },
     "num-items": {
         "type": "spinbutton",
@@ -164,7 +164,7 @@
     "shortcut-modifier" : {
         "type" : "keybinding",
         "description" : "Modifier shortcut to open and close the menu of the items",
-        "default" : "<Alt>"
+        "default" : "Alt_L"
     },
     "underline-shortcut": {
         "type": "checkbox",
