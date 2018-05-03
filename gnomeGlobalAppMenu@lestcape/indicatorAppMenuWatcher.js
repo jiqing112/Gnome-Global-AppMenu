@@ -116,7 +116,7 @@ SystemProperties.prototype = {
       if (modules) {
          let moduleFile = modules.get_child('libappmenu-gtk-module.so');
          if (!moduleFile.query_exists(null)) {
-            moduleFile = file.get_child('libunity-gtk-module.so');
+            moduleFile = modules.get_child('libunity-gtk-module.so');
             if (moduleFile.query_exists(null)) {
                prefered = "unity-gtk-module";
             }
