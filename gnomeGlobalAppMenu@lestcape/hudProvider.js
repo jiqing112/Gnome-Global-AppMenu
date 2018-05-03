@@ -110,14 +110,14 @@ const HudSearchProvider = new Lang.Class({
                 }
                 if(sr._keyFocusIn && (this._focusId == 0))
                     this._focusId = this.display.connect('key-focus-in', Lang.bind(sr, sr._keyFocusIn));
-                if(!sr._content.contains(this.display.actor))
+                if(this.display.actor && !sr._content.contains(this.display.actor))
                     sr._content.add(this.display.actor);
             } else {
                 try {
                     if(this._focusId != 0)
                         this.display.disconnect(this._focusId);
                 } catch(e) {} // Do nothing, this mean there a loock screen.
-                if(sr._content.contains(this.display.actor))
+                if(this.display.actor && sr._content && sr._content.contains(this.display.actor))
                     sr._content.remove_actor(this.display.actor);
                 if(this.display) {
                     this.display.destroy();
@@ -393,6 +393,13 @@ const HudListSearchResults = new Lang.Class({
         if (this._content.get_n_children() > 0)
             return this._content.get_child_at_index(0)._delegate;
         return null;
+    },
+
+    destroy: function() {
+        if (this.actor) {
+            this.parent();
+            this.actor = null;
+        }
     }
 });
 Signals.addSignalMethods(HudListSearchResults.prototype);

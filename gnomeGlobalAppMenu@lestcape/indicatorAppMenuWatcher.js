@@ -20,7 +20,9 @@ const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
 const Gtk = imports.gi.Gtk;
 const GObject = imports.gi.GObject;
+const GIRepository = imports.gi.GIRepository;
 
+const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const Signals = imports.signals;
 
@@ -75,21 +77,52 @@ SystemProperties.prototype = {
       this.backend = this._getPreferendBackend();
    },
 
+   _getGtkModulesDir: function() {
+      let repo = GIRepository.Repository.get_default();
+      let gtkPath = repo.get_typelib_path("Gtk");
+      if (gtkPath && gtkPath.indexOf(".typelib") != -1) {
+         let file = Gio.file_new_for_path(gtkPath);
+         file = file.get_parent().get_parent().get_child('gtk-3.0').get_child('modules');
+         if (file.query_exists(null))
+            return file;
+         // Well if our aproach fail try to get it using ldconfig
+         let cmd = "ldconfig -p";// grep libgtk-3.so.0
+         let [ok, standard_output, standard_error, exit_status] =
+            GLib.spawn_command_line_sync(cmd);
+         if(ok && (exit_status == 0)) {
+            let list = standard_output.toString().split("\n");
+            for (let pos in list) {
+               if (list[pos].indexOf("/libgtk-3.so.0") != -1) {
+                  let start = list[pos].indexOf("=>");
+                  let end = list[pos].indexOf("/libgtk-3.so.0");
+                  let s = list[pos].substring(start + 3, end);
+                  file = Gio.file_new_for_path(s);
+                  file = file.get_child('gtk-3.0').get_child('modules');
+                  if (file.query_exists(null))
+                     return file;
+               }
+            }
+         }
+      }
+      return null;
+   },
+
    // We now have a unity-gtk-module and the appmenu-gtk-module fork.
    // As the first seen to be discontinued and more like an specific desktop
    // implementation we will always prefer the appmenu-gtk-module fork.
    _getPreferendBackend: function() {
-       let prefered = "appmenu-gtk-module";
-       let file = Gio.file_new_for_path(Gtk.rc_get_module_dir());
-       file = file.get_parent().get_parent().get_child('modules');
-       let moduleFile = file.get_child('libappmenu-gtk-module.so');
-       if (!moduleFile.query_exists(null)) {
-           moduleFile = file.get_child('libunity-gtk-module.so');
-           if (moduleFile.query_exists(null)) {
+      let prefered = "appmenu-gtk-module";
+      let modules = this._getGtkModulesDir();
+      if (modules) {
+         let moduleFile = modules.get_child('libappmenu-gtk-module.so');
+         if (!moduleFile.query_exists(null)) {
+            moduleFile = file.get_child('libunity-gtk-module.so');
+            if (moduleFile.query_exists(null)) {
                prefered = "unity-gtk-module";
-           }
-       }
-       return prefered;
+            }
+         }
+      }
+      return prefered;
    },
 
    getBackend: function() {
@@ -97,7 +130,7 @@ SystemProperties.prototype = {
    },
 
    getBackendMenuProxy: function() {
-       if (this.backend = "unity-gtk-module") {
+       if (this.backend == "unity-gtk-module") {
            return "UBUNTU_MENUPROXY";
        }
        return "UBUNTU_MENUPROXY"; ///"appmenu-gtk-module";
@@ -365,10 +398,12 @@ X11RegisterMenuWatcher.prototype = {
       this._registeredWindows = {};
       this._ownName = null;
       this._ownNameId = null;
+      this._appSysId = 0;
       this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
       this._cancellable = new Gio.Cancellable;
       this._tracker = Shell.WindowTracker.get_default();
+      this._appSys = Shell.AppSystem.get_default();
       this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DBusRegistrar, this);
    },
 
@@ -402,7 +437,40 @@ X11RegisterMenuWatcher.prototype = {
          if(this._windowsChangedId == 0) {
             this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
          }
+         if(this._appSysId == 0) {
+            this._appSysId = this._appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
+         }
       }
+   },
+
+   _onAppMenuNotify: function(appSys, targetAppSys) {
+      let isBusy = (targetAppSys != null &&
+                   (targetAppSys.get_state() == Shell.AppState.STARTING ||
+                    targetAppSys.get_busy()));
+      if (!isBusy) {
+         let windows = this._findWindowForApp(targetAppSys);
+         for(let pos in windows) {
+            let xid = windows[pos];
+            let windData = this._registeredWindows[xid];
+            if (windData.window && !windData.appMenu) {
+               this._tryToGetMenuClient(xid);
+            }
+         }
+      }
+   },
+
+   _findWindowForApp: function(targetAppSys) {
+      let windows = [];
+      let id = targetAppSys.get_id();
+      for(let xid in this._registeredWindows) {
+         let currentWindow = this._registeredWindows[xid].window;
+         if(currentWindow) {
+             let currentTracker = this._tracker.get_window_app(currentWindow);
+             if (currentTracker && (id == currentTracker.get_id()))
+                 windows.push(xid);
+         }
+      }
+      return windows;
    },
 
    isWatching: function() {
@@ -482,6 +550,9 @@ X11RegisterMenuWatcher.prototype = {
       for (let pos in current) {
           let xid = this._guessWindowXId(current[pos].meta_window);
           if(xid) {
+             if(xid in this._registeredWindows) {
+                this._registeredWindows[xid].window = current[pos].meta_window;
+             }
              metaWindows.push(xid);
           }
       }
@@ -494,12 +565,9 @@ X11RegisterMenuWatcher.prototype = {
 
    _unregisterWindows: function(xid) {
       if(xid in this._registeredWindows) {
-         //this._emitWindowUnregistered(xid);
-         //this._destroyMenu(xid);
-         //delete this._registeredWindows[xid];
-         if(this.isWatching()) {
-            this.emit('client-menu-changed', null);
-         }
+         this._destroyMenu(xid);
+         this._emitWindowUnregistered(xid);
+         delete this._registeredWindows[xid];
       }
    },
 
@@ -528,13 +596,12 @@ X11RegisterMenuWatcher.prototype = {
 
    _destroyMenu: function(xid) {
       if((xid) && (xid in this._registeredWindows)) {
-         let appMenu = this._registeredWindows[xid].appMenu;
-         this._registeredWindows[xid].appMenu = null;
-         if(appMenu) {
-            appMenu.destroy();
-         }
          if(this.isWatching()) {
             this.emit('client-menu-changed', null);
+         }
+         if(this._registeredWindows[xid].appMenu) {
+            this._registeredWindows[xid].appMenu.destroy();
+            this._registeredWindows[xid].appMenu = null;
          }
       }
    },
@@ -546,6 +613,8 @@ X11RegisterMenuWatcher.prototype = {
          var menubarPath = this._registeredWindows[xid].menubarObjectPath;
          if(sender && menubarPath) {
             this._validateMenu(sender, menubarPath, Lang.bind(this, function(result, name, menubarPath) {
+               //let result = true;
+               //let name = sender;
                if(result) {
                   if(!this._registeredWindows[xid].appMenu) {
                      global.log("X11Menu Whatcher: Creating menu on %s, %s".format(sender, menubarPath));
@@ -570,9 +639,9 @@ X11RegisterMenuWatcher.prototype = {
          if((this._registeredWindows[xid].menubarObjectPath) &&
             (this._registeredWindows[xid].sender)) {
             // FIXME JAyantana is slow, we need to wait for it a little.
-            //GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
-            //}));
+            }));
          } else {
             this._registeredWindows[xid].fail = true;
          }
@@ -602,16 +671,48 @@ X11RegisterMenuWatcher.prototype = {
       );
    },
 
+   _isXIdBusy: function(xid) {
+       let isBusy = true;
+       if (xid in this._registeredWindows) {
+         let window = this._registeredWindows[xid].window;
+         if (window) {
+            let appTracker = this._tracker.get_window_app(window);
+            if (appTracker) {
+               let appSys = this._appSys.lookup_app(appTracker.get_id());
+               isBusy = (appSys != null &&
+                        (appSys.get_state() == Shell.AppState.STARTING ||
+                         appSys.get_busy()));
+            }
+
+         }
+      }
+      return isBusy;
+   },
+
    _registerWindowXId: function(xid, menubarPath, senderDbus) {
       if(!(xid in this._registeredWindows)) {
          this._registeredWindows[xid] = {
             menubarObjectPath: menubarPath,
             sender: senderDbus,
+            window: null,
             appMenu: null,
             fail: false
          };
-         this._tryToGetMenuClient(xid);
+      } else {
+         this._destroyMenu(xid);
+         this._registeredWindows[xid].menubarObjectPath = menubarPath;
+         this._registeredWindows[xid].sender = senderDbus;
+         this._registeredWindows[xid].window = null;
+         this._registeredWindows[xid].appMenu = null;
+         this._registeredWindows[xid].fail = false;
       }
+      Mainloop.timeout_add(200, Lang.bind(this, function() {
+         this._updateWindowList();
+         let isBusy = this._isXIdBusy(xid);
+         if (!isBusy) {
+             this._tryToGetMenuClient(xid);
+         }
+      }));
    },
 
    // NOTE: we prefer to use the window's XID but this is not stored
@@ -792,29 +893,6 @@ GtkMenuWatcher.prototype = {
       return -1;
    },
 
-   _validateMenu: function(bus, path, callback) {
-      Gio.DBus.session.call(
-         bus, path, "org.freedesktop.DBus.Properties", "Get",
-         GLib.Variant.new("(ss)", ["com.canonical.dbusmenu", "Version"]),
-         GLib.VariantType.new("(v)"), Gio.DBusCallFlags.NONE, -1, null, function(conn, result) {
-            try {
-               var val = conn.call_finish(result);
-            } catch (e) {
-               global.log("GtkMenu Watcher: Invalid menu. %s".format(e));
-               return callback(false);
-            }
-            var version = val.deep_unpack()[0].deep_unpack();
-            // FIXME: what do we implement?
-            if(version >= 2) {
-               return callback(true, bus, path);
-            } else {
-               global.log("GtkMenu Watcher: Incompatible dbusmenu version %s".format(version));
-               return callback(false);
-            }
-         }
-      );
-   },
-
    // Async because we may need to check the presence of a menubar object as well as the creation is async.
    _getMenuClient: function(window, callback) {
       let index = this._findWindow(window);
@@ -956,7 +1034,7 @@ GtkMenuWatcher.prototype = {
             if (index == -1)
                this._registeredWindows.push(windowData);
          }
-         let isBusy = false;
+         let isBusy = true;
          if (appTracker) {
             let appSys = this._appSys.lookup_app(appTracker.get_id());
             isBusy = (appSys != null &&
@@ -974,7 +1052,7 @@ GtkMenuWatcher.prototype = {
       if((index != -1) && (!this._registeredWindows[index].appMenu)) {
          if((this._registeredWindows[index].menubarObjectPath) &&
             (this._registeredWindows[index].sender)) {
-            // FIXME JAyantana is slow, we need to wait for it a little.
+            // FIXME Some app can be slow, we need to wait for it a little.
             GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                this._getMenuClient(window, Lang.bind(this, this._onMenuClientReady));
             }));
