@@ -153,7 +153,6 @@ Application.prototype = {
                }
             }
             if(command) {
-                print("Hola mundo " + prgPath);
                 let sucess = this._spawn_sync(command);
                 if(!sucess)
                    throw new Error(_("Could not acquire root privileges"));
@@ -175,12 +174,14 @@ Application.prototype = {
          throw new Error(_("Could not find current file"));
 
       let path = match[1];
+
       // The new gjs ES6 implementation now report also the column of the error.
       // If the column is present extract it.
       let index = path.lastIndexOf(":");
       if (index != -1) {
           path = path.substring(0, index);
       }
+
       let file = Gio.File.new_for_path(path);
       return file;
    },
