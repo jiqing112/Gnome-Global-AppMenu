@@ -443,6 +443,35 @@ X11RegisterMenuWatcher.prototype = {
       }
    },
 
+   getType: function() {
+      return "X11RegisterMenuWatcher";
+   },
+
+   renderMetadata: function() {
+      let result = "";
+      for (let xid in this._registeredWindows) {
+          if (this._registeredWindows[xid].appMenu) {
+              result += xid + "::" + this.getType() + "," + this._registeredWindows[xid].appMenu.renderMetadata() + "\n";
+          }
+      }
+      result = result.substring(0, result.length - 1);
+      return result;
+   },
+
+   createFromArray: function(xid, arr) {
+      if ((arr.length == 3) && (arr[0] === "X11RegisterMenuWatcher")) {
+         let senderDbus = arr[1];
+         let menubarPath = arr[2];
+         this._registeredWindows[xid] = {
+            sender: senderDbus,
+            menubarObjectPath: menubarPath,
+            window: null,
+            appMenu: new DBusMenu.DBusClient(senderDbus, menubarPath),
+            fail: false
+         };
+      }
+   },
+
    _onAppMenuNotify: function(appSys, targetAppSys) {
       let isBusy = (targetAppSys != null &&
                    (targetAppSys.get_state() == Shell.AppState.STARTING ||
@@ -490,10 +519,7 @@ X11RegisterMenuWatcher.prototype = {
       if(xid && (xid in this._registeredWindows)) {
          let appmenu = this._registeredWindows[xid].appMenu;
          if(appmenu) {
-            if(appmenu.isbuggyClient())
-               appmenu.fakeSendAboutToShow(appmenu.getRootId());
-            else
-               appmenu.sendEvent(appmenu.getRootId(), "opened", null, 0);
+            appmenu.fakeSendAboutToShow(appmenu.getRootId());
             return true;
          }
       }
@@ -581,6 +607,7 @@ X11RegisterMenuWatcher.prototype = {
             'destroy'        : Lang.bind(this, this._onMenuDestroy, xid)
          });
          if(this.isWatching()) {
+            this.emit('providers-changed', this._registeredWindows[xid].appMenu);
             this.emit('client-menu-changed', this._registeredWindows[xid].appMenu);
          }
       }
@@ -610,17 +637,14 @@ X11RegisterMenuWatcher.prototype = {
    // Async because we may need to check the presence of a menubar object as well as the creation is async.
    _getMenuClient: function(xid, callback) {
       if(xid in this._registeredWindows) {
-         var sender = this._registeredWindows[xid].sender;
-         var menubarPath = this._registeredWindows[xid].menubarObjectPath;
-         if(sender && menubarPath) {
+         let sender = this._registeredWindows[xid].sender;
+         let menubarPath = this._registeredWindows[xid].menubarObjectPath;
+         let appMenu = this._registeredWindows[xid].appMenu;
+         if(sender && menubarPath && !appMenu) {
             this._validateMenu(sender, menubarPath, Lang.bind(this, function(result, name, menubarPath) {
                if(result) {
-                  if(!this._registeredWindows[xid].appMenu) {
-                     global.log("X11Menu Whatcher: Creating menu on %s, %s".format(sender, menubarPath));
-                     callback(xid, new DBusMenu.DBusClient(name, menubarPath));
-                  } else {
-                     callback(xid, null);
-                  }
+                  global.log("X11Menu Whatcher: Creating menu on %s, %s".format(sender, menubarPath));
+                  callback(xid, new DBusMenu.DBusClient(name, menubarPath));
                } else {
                   callback(xid, null);
                }
@@ -829,6 +853,30 @@ GtkMenuWatcher.prototype = {
       }
    },
 
+   getType: function() {
+      return "GtkMenuWatcher";
+   },
+
+   renderMetadata: function() {
+      let result = "";
+      for (let id in this._registeredWindows) {
+          if (this._registeredWindows[id].appMenu) {
+              result += id + "::" + this._registeredWindows[id].appMenu.renderMetadata() + "\n";
+          }
+      }
+      result = result.substring(0, result.length - 1);
+      return result;
+   },
+
+   createFromArray: function(id, arr) {
+      /*if ((arr.length == 5) && (arr[0] === "GtkMenuWatcher")) {
+         let senderDbus = arr[1];
+         let menubarPath = arr[2];
+         let windowPath = arr[3];
+         let appPath = arr[4];
+      }*/
+   },
+
    _onAppMenuNotify: function(appSys, targetAppSys) {
       let isBusy = (targetAppSys != null &&
                    (targetAppSys.get_state() == Shell.AppState.STARTING ||
@@ -872,12 +920,11 @@ GtkMenuWatcher.prototype = {
       if(index != -1) {
          let appmenu = this._registeredWindows[index].appMenu;
          if(appmenu) {
-            if(appmenu.isbuggyClient())
-               appmenu.fakeSendAboutToShow(appmenu.getRootId());
-            else
-               appmenu.sendEvent(appmenu.getRootId(), "opened", null, 0);
+            appmenu.fakeSendAboutToShow(appmenu.getRootId());
+            return true;
          }
       }
+      return false;
    },
 
    isWatching: function() {
@@ -901,18 +948,10 @@ GtkMenuWatcher.prototype = {
          var windowPath = this._registeredWindows[index].windowObjectPath;
          var appPath = this._registeredWindows[index].appObjectPath;
          var isGtk = this._registeredWindows[index].isGtk;
-         if(sender && menubarPath && window && (window.get_window_type() != Meta.WindowType.DESKTOP)) {
-            if(!isGtk) {
-               let appMenu = this._x11Client.getMenuForWindow(window);
-               callback(window, appMenu);
-            } else {
-               if(!this._registeredWindows[index].appMenu) {
-                  global.log("GtkMenu Watcher: Creating menu on %s, %s".format(sender, menubarPath));
-                  callback(window, new DBusMenu.DBusClientGtk(sender, menubarPath, windowPath, appPath));
-               } else {
-                  callback(window, null);
-               }
-            }
+         var appMenu = this._registeredWindows[index].appMenu;
+         if(isGtk && sender && menubarPath && window && !appMenu && (window.get_window_type() != Meta.WindowType.DESKTOP)) {
+            global.log("GtkMenu Watcher: Creating menu on %s, %s".format(sender, menubarPath));
+            callback(window, new DBusMenu.DBusClientGtk(sender, menubarPath, windowPath, appPath));
          } else {
             callback(window, null);
          }
@@ -925,12 +964,15 @@ GtkMenuWatcher.prototype = {
       let index = this._findWindow(window);
       if(this.isWatching() && (client != null) && (index != -1)) {
          this._registeredWindows[index].appMenu = client;
-         let root = client.getRoot();
+         let root = client.getRoot();//Problem with gtk....
          root.connectAndRemoveOnDestroy({
             'childs-empty'   : Lang.bind(this, this._onMenuEmpty, window),
             'destroy'        : Lang.bind(this, this._onMenuDestroy, window)
          });
-         this.emit('client-menu-changed', this._registeredWindows[index].appMenu);
+         if(this.isWatching()) {
+            this.emit('providers-changed', this._registeredWindows[index].appMenu);
+            this.emit('client-menu-changed', this._registeredWindows[index].appMenu);
+         }
       }
    },
 
@@ -1108,6 +1150,34 @@ IndicatorAppMenuWatcher.prototype = {
       ];
       for(let i = 0; i < this.providers.length; i++) {
          this.providers[i].connect('client-menu-changed', Lang.bind(this, this._onMenuChange));
+         this.providers[i].connect('providers-changed', Lang.bind(this, this._onProvidersChange));
+      }
+   },
+
+   _onProvidersChange: function(provider, appmenu) {
+      this.emit('providers-changed', provider, appmenu);
+   },
+
+   renderMetadata: function() {
+      let result = "";
+      for(let i = 0; i < this.providers.length; i++) {
+         result += this.providers[i].renderMetadata();
+      }
+      return result;
+   },
+
+   fromString: function(data) {
+      let providers = data.split("\n");
+      for(let pos in providers) {
+         let [id, data] = providers[pos].split("::");
+         let info = data.split(",");
+         if (info.length > 0) {
+            for(let i = 0; i < this.providers.length; i++) {
+               if(this.providers[i].getType() === info[0]) {
+                   this.providers[i].createFromArray(id, info);
+               }
+            }
+         }
       }
    },
 

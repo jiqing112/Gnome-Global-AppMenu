@@ -198,6 +198,7 @@ DbusMenuItem.prototype = {
    // Will steal the properties object
    _init: function(id, childrenIds, properties, client) {
       ConfigurableMenus.PopupMenuAbstractFactory.prototype._init.call(this, id, childrenIds, this._createParameters(id, properties, client));
+      this._dbusClientGcTag = null;
    },
 
    updatePropertiesAsVariant: function(properties) {
@@ -390,7 +391,6 @@ DBusClient.prototype = {
    _init: function(busName, busPath) {
       this._busName = busName;
       this._busPath = busPath;
-      this._idLayoutUpdate = 0;
       this._shellMenu = null;
       // Will be set to true if a layout update is requested while one is already in progress
       // then the handler that completes the layout update will request another update
@@ -404,9 +404,15 @@ DBusClient.prototype = {
 
       this._items = {};
       this._items[initItemId] = new DbusMenuItem(initItemId, [],
-         { 'children-display': GLib.Variant.new_string('rootmenu'), 'visible': GLib.Variant.new_boolean(false) }, this);
+         { 'children-display': GLib.Variant.new_string('rootmenu'),
+           'visible': GLib.Variant.new_boolean(false)
+         }, this);
 
       this._startMainProxy();
+   },
+
+   renderMetadata: function() {
+      return this._busName + "," + this._busPath;
    },
 
    getShellMenu: function() {
@@ -418,7 +424,7 @@ DBusClient.prototype = {
    },
 
    getRoot: function() {
-      if(this._items)
+      if(this._items && (this.getRootId() in this._items))
          return this._items[this.getRootId()];
       return null;
    },
@@ -439,22 +445,11 @@ DBusClient.prototype = {
       return null;
    },
 
-  /* sendEvent: function(id, event, params, timestamp) {
-      this._reportEvent(id, event, params, timestamp);
-      if(event == ConfigurableMenus.FactoryEventTypes.opened) {
-         this._sendAboutToShow(id);
-         this.fakeSendAboutToShow(id);
-      }
-   },*/
-
    sendEvent: function(id, event, params, timestamp) {
-      this._reportEvent(id, event, params, timestamp);
-      if(event == ConfigurableMenus.FactoryEventTypes.opened) {
-         if(!this._buggyClient)
-            this._sendAboutToShow(id);
+      if(event != ConfigurableMenus.FactoryEventTypes.opened) {
+         this._reportEvent(id, event, params, timestamp);
+      } else {
          this.fakeSendAboutToShow(id);
-      } else if(this._buggyClient && (event == ConfigurableMenus.FactoryEventTypes.closed)) {
-         this._sendAboutToShow(id);
       }
    },
 
@@ -464,7 +459,7 @@ DBusClient.prototype = {
 
    // We don't need to cache and burst-send that since it will not happen that frequently
    _sendAboutToShow: function(id) {
-      if(this._proxyMenu) {
+      if(this._proxyMenu && !this._buggyClient) {
          this._proxyMenu.AboutToShowRemote(id, Lang.bind(this, function(result, error) {
             if(error)
                global.log("while calling AboutToShow: " + error);
@@ -479,13 +474,13 @@ DBusClient.prototype = {
    // items of the current submenu, but will not need update the child of a child, so we need to stop this not calling
    // directly sendEvent.
    fakeSendAboutToShow: function(lastId) {
-      if(this._items) {
+      if(this._items && (lastId in this._items)) {
          let listId = this._items[lastId].getChildrenIds();
          let id;
          for(let pos in listId) {
             id = listId[pos];
             if(this._items[id].getFactoryType() == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
-               this._reportEvent(id, "opened", null, 0);
+               this._reportEvent(id, ConfigurableMenus.FactoryEventTypes.opened, null, 0);
                this._sendAboutToShow(id);
             }
          }
@@ -507,12 +502,11 @@ DBusClient.prototype = {
    },
 
    _requestLayoutUpdate: function() {
-      if(this._idLayoutUpdate != 0)
-         this._idLayoutUpdate = 0;
-      if(this._flagLayoutUpdateInProgress)
+      if(this._flagLayoutUpdateInProgress) {
          this._flagLayoutUpdateRequired = true;
-      else
+      } else {
          this._beginLayoutUpdate();
+      }
    },
 
    _requestProperties: function(id) {
@@ -662,11 +656,8 @@ DBusClient.prototype = {
    },
 
    _onLayoutUpdated: function(proxy, sender, items) {
-      if(this._idLayoutUpdate == 0) {
-         this._idLayoutUpdate = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE,
-            Lang.bind(this, this._requestLayoutUpdate));
-         //this._requestLayoutUpdate();
-      }
+       GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE,
+          Lang.bind(this, this._requestLayoutUpdate));
    },
 
    _onPropertiesUpdated: function(proxy, name, [changed, removed]) {
@@ -717,12 +708,17 @@ DBusClientGtk.prototype = {
       this._windowPath = windowPath;
       this._appPath = appPath;
 
-      global.log("busName:" + busName +", busPath:"+ busPath +", windowPath:"+ windowPath +", appPath:"+ appPath);
+      //global.log("busName:" + busName +", busPath:"+ busPath +", windowPath:"+ windowPath +", appPath:"+ appPath);
 
       this._actionsIds = {};
       this._initMenu = [];
       for(let x = 0; x < 1024; x++)
          this._initMenu.push(x);
+   },
+
+   renderMetadata: function() {
+      return "";
+      //this._busName + "," + this._busPath + "," + this._windowPath + "," + this._appPath;
    },
 
    getRootId: function() {
@@ -733,11 +729,30 @@ DBusClientGtk.prototype = {
       this._reportEvent(id, event, params, timestamp)
       if(event == ConfigurableMenus.FactoryEventTypes.opened) {
          this._sendAboutToShow(id);
-         // FakeSendAboutToShow is not requiered by gtkdbus menu,
-         // all structure is always retrived, so is more slow if
-         // call that.
          //this.fakeSendAboutToShow(id);
       }
+   },
+
+   _sendAboutToShow: function(id) {
+      GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE,
+         Lang.bind(this, this._requestLayoutUpdate));
+   },
+
+   fakeSendAboutToShow: function(lastId) {
+      /*if(this._items && (lastId in this._items)) {
+         this._reportEvent(lastId, ConfigurableMenus.FactoryEventTypes.opened, null, 0);
+         let listId = this._items[lastId].getChildrenIds();
+         let id;
+         for(let pos in listId) {
+            id = listId[pos];
+            if(this._items[id].getFactoryType() == ConfigurableMenus.FactoryClassTypes.MenuSectionMenuItemClass) {
+               this.fakeSendAboutToShow(id);
+            }
+         }
+      }*/
+      // FakeSendAboutToShow is not requiered by gtkdbus menu,
+      // all structure is always retrived, so is more slow if
+      // call that.
    },
 
    _startMainProxy: function() {
@@ -899,12 +914,11 @@ DBusClientGtk.prototype = {
    },
 
    _requestLayoutUpdate: function() {
-      if(this._idLayoutUpdate != 0)
-         this._idLayoutUpdate = 0;
-      if(this._flagLayoutUpdateInProgress)
+      if(this._flagLayoutUpdateInProgress) {
          this._flagLayoutUpdateRequired = true;
-      else
+      } else {
          this._beginLayoutUpdate();
+      }
    },
 
    // FIXME Call End over the Cinnamon restart, will crash some Gtk applications.
@@ -943,12 +957,12 @@ DBusClientGtk.prototype = {
          for(let pos in menuData) {
             let [menuPos, sectionPos, sectionItems] = menuData[pos];
             if(!realInit) {
-               if((sectionItems.length > 0)&&("label" in sectionItems[0])) {
+               if((sectionItems.length > 0) && ("label" in sectionItems[0])) {
                   this._gtkMenubarMenus[initId] = sectionItems;
                   realInit = true;
                }
             } else {
-               this._gtkMenubarMenus["" + menuPos + sectionPos] = sectionItems;
+               this._gtkMenubarMenus["" + menuPos +""+ sectionPos] = sectionItems;
             }
          }
          this._doLayoutUpdate(initId, { "children-display": GLib.Variant.new_string("rootmenu"), 'visible': GLib.Variant.new_boolean(false) } );
@@ -961,10 +975,11 @@ DBusClientGtk.prototype = {
          this._createActionsIds();
       }
 
-      if(this._flagLayoutUpdateRequired)
+      if(this._flagLayoutUpdateRequired) {
          this._beginLayoutUpdate();
-      else
+      } else {
          this._flagLayoutUpdateInProgress = false;
+      }
    },
 
    _doLayoutUpdate: function(id, properties) {
@@ -978,14 +993,14 @@ DBusClientGtk.prototype = {
                menuSection["type"] = GLib.Variant.new_string("standard");
                if(":section" in menuSection) {
                   newPos = menuSection[":section"].deep_unpack();
-                  idSub = "" + newPos[0] + newPos[1];
+                  idSub = "" + newPos[0] +""+ newPos[1];
                   childrenIds.push(idSub);
                   menuSection["children-display"] = GLib.Variant.new_string("section");
                   this._doLayoutUpdate(idSub, menuSection);
                }
                else if(":submenu" in menuSection) {
                   newPos = menuSection[":submenu"].deep_unpack();
-                  idSub = "" + newPos[0] + newPos[1];
+                  idSub = "" + newPos[0] +""+ newPos[1];
                   childrenIds.push(idSub);
                   menuSection["children-display"] = GLib.Variant.new_string("submenu");
                   this._doLayoutUpdate(idSub, menuSection);
@@ -1016,7 +1031,7 @@ DBusClientGtk.prototype = {
                // Try to recycle an old child
                let oldChild = -1;
                for(let j = 0; j < oldChildrenIds.length; ++j) {
-                  if(oldChildrenIds[j] == childrenIds[i]) {
+                  if(oldChildrenIds[j] === childrenIds[i]) {
                      oldChild = oldChildrenIds.splice(j, 1)[0];
                      break;
                   }
@@ -1036,7 +1051,7 @@ DBusClientGtk.prototype = {
                this._items[id].removeChild(childId); 
             }, this);
          } else if(this._items) {
-            // We don't, so let's create us
+            // We don't, so let's create us 
             this._items[id] = new DbusMenuItem(id, childrenIds, properties, this);
             //this._requestProperties(id);
          }
@@ -1063,11 +1078,6 @@ DBusClientGtk.prototype = {
       }
    },
 
-   _sendAboutToShow: function(id) {
-      this._idLayoutUpdate = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE,
-         Lang.bind(this, this._requestLayoutUpdate));
-   },
-
    _findProxyForActionType: function(actionId) {
       if(actionId.indexOf("unity") == 0) {
          return this._proxyUnityAction;
@@ -1080,10 +1090,8 @@ DBusClientGtk.prototype = {
    },
 
    _onLayoutUpdated: function() {
-      if(this._idLayoutUpdate == 0) {
-         this._idLayoutUpdate = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE,
+      GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE,
             Lang.bind(this, this._requestLayoutUpdate));
-      }
    },
 
    _onActionsUpdated: function(proxy, sender, data, type) {
@@ -1101,7 +1109,6 @@ DBusClientGtk.prototype = {
       // Listen for updated layouts and actions
       if(this._proxyMenu)
          this._proxyMenu.connectSignal("Changed", Lang.bind(this, this._onLayoutUpdated));
-
       if(this._busPath)
          this._proxyUnityAction = new ActionsGtkClientProxy(Gio.DBus.session, this._busName, this._busPath,
             Lang.bind(this, this._clientActionReady, "unity"));

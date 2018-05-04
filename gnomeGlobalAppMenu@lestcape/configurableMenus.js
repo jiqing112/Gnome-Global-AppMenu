@@ -8601,7 +8601,6 @@ PopupMenuAbstractFactory.prototype = {
           paramType: "", //this is a variant
           type: FactoryClassTypes.MenuItemClass
       });
-
       this._label = params.label;
       this._accel = params.accel;
       this._sensitive = params.sensitive;
