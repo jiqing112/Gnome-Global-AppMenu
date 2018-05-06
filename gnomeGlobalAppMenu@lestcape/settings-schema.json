@@ -269,5 +269,9 @@
         "tooltip": "Select if you want to desaturate icons in the menu items.",
         "indent": true,
         "dependency": "show-item-icon"
+    },
+    "dbusmenu-providers" : {
+        "type": "generic",
+        "default": ""
     }
 }

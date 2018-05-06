@@ -411,13 +411,15 @@ X11RegisterMenuWatcher.prototype = {
    _acquiredName: function(connection, name) {
       this._ownName = name;
       global.log("X11Menu Whatcher: Acquired name %s".format(WATCHER_INTERFACE));
+      
    },
 
    _lostName: function(connection, name) {
-      if(this._ownName)
+      if(this._ownName) {
          global.log("X11Menu Whatcher: Lost name %s".format(WATCHER_INTERFACE));
-      else
+      } else {
          global.log("X11Menu Whatcher: Failed to acquire %s".format(WATCHER_INTERFACE));
+      }
       this._ownName = null;
    },
 
@@ -430,16 +432,16 @@ X11RegisterMenuWatcher.prototype = {
             Lang.bind(this, this._acquiredName),
             Lang.bind(this, this._lostName)
          );
-         this._updateWindowList();
+         if(this._appSysId == 0) {
+            this._appSysId = this._appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
+         }
          if(this._windowsCreatedId == 0) {
-            this._windowsCreatedId = global.display.connect('window-created', Lang.bind(this, this._updateWindowList));
+             this._windowsCreatedId = global.display.connect('window-created', Lang.bind(this, this._updateWindowList));
          }
          if(this._windowsChangedId == 0) {
             this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
          }
-         if(this._appSysId == 0) {
-            this._appSysId = this._appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
-         }
+         this._updateWindowList();
       }
    },
 
@@ -451,24 +453,17 @@ X11RegisterMenuWatcher.prototype = {
       let result = "";
       for (let xid in this._registeredWindows) {
           if (this._registeredWindows[xid].appMenu) {
-              result += xid + "::" + this.getType() + "," + this._registeredWindows[xid].appMenu.renderMetadata() + "\n";
+              result += xid + "-" + this.getType() + "," + this._registeredWindows[xid].appMenu.renderMetadata() + ";";
           }
       }
-      result = result.substring(0, result.length - 1);
       return result;
    },
 
    createFromArray: function(xid, arr) {
-      if ((arr.length == 3) && (arr[0] === "X11RegisterMenuWatcher")) {
+      if ((arr.length == 3) && (arr[0] === this.getType())) {
          let senderDbus = arr[1];
          let menubarPath = arr[2];
-         this._registeredWindows[xid] = {
-            sender: senderDbus,
-            menubarObjectPath: menubarPath,
-            window: null,
-            appMenu: new DBusMenu.DBusClient(senderDbus, menubarPath),
-            fail: false
-         };
+         this._registerWindowXId(xid, menubarPath, senderDbus);
       }
    },
 
@@ -540,15 +535,17 @@ X11RegisterMenuWatcher.prototype = {
 
    UnregisterWindowAsync: function(params, invocation) {
       let [xid] = params;
-      this._destroyMenu(xid);
-      this._emitWindowUnregistered(xid);
+      if (xid && (xid in this._registeredWindows) && this.isWatching()) {
+         this._destroyMenu(xid);
+         this._emitWindowUnregistered(xid);
+      }
       invocation.return_value(new GLib.Variant('()', []));
    },
 
    _emitWindowUnregistered: function(xid) {
-      if((xid) && (xid in this._registeredWindows) && this.isWatching()) {
-          this._dbusImpl.emit_signal('WindowUnregistered', GLib.Variant.new('(u)', [xid]));
-          global.log("X11Menu Whatcher: UnregisterWindow %d".format(xid));
+      if((xid) && this.isWatching()) {
+         this._dbusImpl.emit_signal('WindowUnregistered', GLib.Variant.new('(u)', [xid]));
+         global.log("X11Menu Whatcher: UnregisterWindow %d".format(xid));
       }
    },
 
@@ -583,9 +580,11 @@ X11RegisterMenuWatcher.prototype = {
              metaWindows.push(xid);
           }
       }
-      for (let xid in this._registeredWindows) {
-         if(metaWindows.indexOf(xid) == -1) {
-            this._unregisterWindows(xid);
+      if (this.isWatching()) {
+         for (let xid in this._registeredWindows) {
+            if(metaWindows.indexOf(xid) == -1) {
+               this._unregisterWindows(xid);
+            }
          }
       }
    },
@@ -593,8 +592,8 @@ X11RegisterMenuWatcher.prototype = {
    _unregisterWindows: function(xid) {
       if(xid in this._registeredWindows) {
          this._destroyMenu(xid);
-         this._emitWindowUnregistered(xid);
          delete this._registeredWindows[xid];
+         this._emitWindowUnregistered(xid);
       }
    },
 
@@ -607,7 +606,7 @@ X11RegisterMenuWatcher.prototype = {
             'destroy'        : Lang.bind(this, this._onMenuDestroy, xid)
          });
          if(this.isWatching()) {
-            this.emit('providers-changed', this._registeredWindows[xid].appMenu);
+            this.emit('providers-changed');
             this.emit('client-menu-changed', this._registeredWindows[xid].appMenu);
          }
       }
@@ -712,19 +711,59 @@ X11RegisterMenuWatcher.prototype = {
       return isBusy;
    },
 
+   _busNameAppeared: function(proxy, bus_name, nameOwner, xid) {
+      global.log("X11Menu Whatcher: Bus Name Appeared: " + bus_name + " from xid " + xid);
+   },
+
+   _busNameVanished: function(proxy, bus_name, xid) {
+      global.log("X11Menu Whatcher: Bus Name Vanished: " + bus_name + " from xid " + xid);
+      this.emit('providers-changed');
+   },
+
+   _isDbusPresent: function(xid, sender, busPath) {
+      let connection = Gio.bus_get_sync(Gio.BusType.SESSION, null);
+      if (connection) {
+         let ret = connection.call_sync(
+            "org.freedesktop.DBus", "/org/freedesktop/DBus",
+            "org.freedesktop.DBus", "ListNames", null,
+            GLib.VariantType.new("(as)"), Gio.DBusCallFlags.NONE,
+            -1, null
+         ).deep_unpack();
+         if (ret && ret[0]) {
+            return true; //((ret[0].indexOf(sender) > -1) && (ret[0].indexOf(busPath) > -1));
+         }
+      }
+      return false;
+   },
+
+   _nameUnwatchXid: function(xid) {
+      if((xid in this._registeredWindows) && this._registeredWindows[xid].nameWatcherId) {
+         Gio.DBus.session.unwatch_name(this._registeredWindows[xid].nameWatcherId);
+         this._registeredWindows[xid].nameWatcherId = null;
+      }
+   },
+
    _registerWindowXId: function(xid, menubarPath, senderDbus) {
+      let nameWatcherId = Gio.DBus.session.watch_name(
+          senderDbus, Gio.BusNameWatcherFlags.NONE,
+          Lang.bind(this, this._busNameAppeared, xid),
+          Lang.bind(this, this._busNameVanished, xid)
+      );
       if(!(xid in this._registeredWindows)) {
          this._registeredWindows[xid] = {
-            menubarObjectPath: menubarPath,
             sender: senderDbus,
+            menubarObjectPath: menubarPath,
+            nameWatcherId: nameWatcherId,
             window: null,
             appMenu: null,
             fail: false
          };
       } else {
          this._destroyMenu(xid);
-         this._registeredWindows[xid].menubarObjectPath = menubarPath;
+         this._nameUnwatchXid(xid);
          this._registeredWindows[xid].sender = senderDbus;
+         this._registeredWindows[xid].menubarObjectPath = menubarPath;
+         this._registeredWindows[xid].nameWatcherId = nameWatcherId;
          this._registeredWindows[xid].window = null;
          this._registeredWindows[xid].appMenu = null;
          this._registeredWindows[xid].fail = false;
@@ -804,8 +843,12 @@ X11RegisterMenuWatcher.prototype = {
             this._tracker.disconnect(this._windowsChangedId);
             this._windowsChangedId = 0;
          }
+         if(this._appSysId > 0) {
+            this._appSys.disconnect(this._appSysId);
+            this._appSysId = 0;
+         }
          for(let xid in this._registeredWindows) {
-            let register = this._registeredWindows[xid];
+            this._nameUnwatchXid(xid);
             this._destroyMenu(xid);
             this._emitWindowUnregistered(xid);
          }
@@ -861,19 +904,25 @@ GtkMenuWatcher.prototype = {
       let result = "";
       for (let id in this._registeredWindows) {
           if (this._registeredWindows[id].appMenu) {
-              result += id + "::" + this._registeredWindows[id].appMenu.renderMetadata() + "\n";
+              result += id + "-" + this.getType() + "," + this._registeredWindows[id].appMenu.renderMetadata() + ";";
           }
       }
-      result = result.substring(0, result.length - 1);
       return result;
    },
 
    createFromArray: function(id, arr) {
-      /*if ((arr.length == 5) && (arr[0] === "GtkMenuWatcher")) {
+      /*if ((arr.length == 5) && (arr[0] === this.getType())) {
          let senderDbus = arr[1];
          let menubarPath = arr[2];
          let windowPath = arr[3];
          let appPath = arr[4];
+         this._registeredWindows[id] = {
+            sender: senderDbus,
+            menubarObjectPath: menubarPath,
+            window: null,
+            appMenu: new DBusMenu.DBusClient(senderDbus, menubarPath),
+            fail: false
+         };
       }*/
    },
 
@@ -970,7 +1019,7 @@ GtkMenuWatcher.prototype = {
             'destroy'        : Lang.bind(this, this._onMenuDestroy, window)
          });
          if(this.isWatching()) {
-            this.emit('providers-changed', this._registeredWindows[index].appMenu);
+            this.emit('providers-changed');
             this.emit('client-menu-changed', this._registeredWindows[index].appMenu);
          }
       }
@@ -1003,13 +1052,8 @@ GtkMenuWatcher.prototype = {
       let current = global.get_window_actors();
       let metaWindows = new Array();
       for (let index in current) {
-         try {
-            let pr = Object.getOwnPropertyNames(current[index]);
-         } catch(e) {
-            global.log("Error: " + e);
-         }
-          this._registerWindow(current[index].meta_window);
-          metaWindows.push(current[index].meta_window);
+         this._registerWindow(current[index].meta_window);
+         metaWindows.push(current[index].meta_window);
       }
       for (let index in this._registeredWindows) {
          if(metaWindows.indexOf(this._registeredWindows[index].window) == -1) {
@@ -1047,14 +1091,12 @@ GtkMenuWatcher.prototype = {
             appPath     = window.get_gtk_application_object_path();
             senderDbus  = window.get_gtk_unique_bus_name();
             isGtkApp    = (senderDbus != null);
-
             //Hack: For some reason (gnome?), the menubar path disapear, but we know where it's supposed that it will be if we have the appmenuPath.
             if ((menubarPath == null) && (appmenuPath != null)) {
                menubarPath = appmenuPath.replace("appmenu", "menubar");
                if (menubarPath == appmenuPath) //Is not there.
                   menubarPath = null;
             }
-            //global.log("sender:" + senderDbus + ", menubarPath:" + menubarPath + ", appmenuPath:" + appmenuPath + ", windowPath:" + windowPath + ", appPath:" + appPath);
             let windowData = {};
             if (index != -1)
                windowData = this._registeredWindows[index];
@@ -1154,8 +1196,8 @@ IndicatorAppMenuWatcher.prototype = {
       }
    },
 
-   _onProvidersChange: function(provider, appmenu) {
-      this.emit('providers-changed', provider, appmenu);
+   _onProvidersChange: function(provider) {
+      this.emit('providers-changed', provider);
    },
 
    renderMetadata: function() {
@@ -1166,15 +1208,17 @@ IndicatorAppMenuWatcher.prototype = {
       return result;
    },
 
-   fromString: function(data) {
-      let providers = data.split("\n");
+   loadFromString: function(data) {
+      let providers = data.split(";");
       for(let pos in providers) {
-         let [id, data] = providers[pos].split("::");
-         let info = data.split(",");
-         if (info.length > 0) {
-            for(let i = 0; i < this.providers.length; i++) {
-               if(this.providers[i].getType() === info[0]) {
-                   this.providers[i].createFromArray(id, info);
+         let [id, attrib] = providers[pos].split("-");
+         if (attrib && attrib.length > 0) {
+            let info = attrib.split(",");
+            if (info.length > 0) {
+               for(let i = 0; i < this.providers.length; i++) {
+                  if(this.providers[i].getType() === info[0]) {
+                     this.providers[i].createFromArray(id, info);
+                  }
                }
             }
          }

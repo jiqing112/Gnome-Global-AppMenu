@@ -717,8 +717,8 @@ DBusClientGtk.prototype = {
    },
 
    renderMetadata: function() {
-      return "";
-      //this._busName + "," + this._busPath + "," + this._windowPath + "," + this._appPath;
+      //return "";
+      return this._busName + "," + this._busPath + "," + this._windowPath + "," + this._appPath;
    },
 
    getRootId: function() {

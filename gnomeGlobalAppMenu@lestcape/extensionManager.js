@@ -322,6 +322,7 @@ MyApplet.prototype = {
          this.allowShortcutColor = false;
          this.shortcutColor = null;
          this.shortcutModifier = null;
+         this.dbusmenuProviders = "";
          this.underlineShortcut = false;
          this.effectType = "none";
          this.effectTime = 0.4;
@@ -355,6 +356,7 @@ MyApplet.prototype = {
          this._cleanAppmenu();
          this.indicatorDbus = null;
          this._indicatorId = 0;
+         this._providerId = 0;
          this._showsAppMenuId = 0;
          this._overviewHidingId = 0;
          this._overviewShowingId = 0;
@@ -381,8 +383,15 @@ MyApplet.prototype = {
          this._isReady = this._initEnvironment();
          if(this._isReady) {
              this.indicatorDbus.watch();
+             if (this.dbusmenuProviders) {
+                 this.indicatorDbus.loadFromString(this.dbusmenuProviders);
+             }
              this.hubProvider.setIndicator(this.indicatorDbus, this.currentWindow);
              this.hudMenuSearch.setIndicator(this.indicatorDbus, this.currentWindow);
+             if(this._providerId == 0) {
+                 this._providerId = this.indicatorDbus.connect('providers-changed', Lang.bind(this, this._onProvidersChanged));
+                 this._onProvidersChanged(this.indicatorDbus);
+             }
              if(this._indicatorId == 0) {
                  this._indicatorId = this.indicatorDbus.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
                  this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
@@ -465,8 +474,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "shortcut-color", "shortcutColor", this._onShortcutColorChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "underline-shortcut", "underlineShortcut", this._onUnderlineShortcutChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.BIDIRECTIONAL, "shortcut-modifier", "shortcutModifier", this._onShortcutModifierChanged, null);
-
-
+      this.settings.bindProperty(Settings.BindingDirection.IN, "dbusmenu-providers", "dbusmenuProviders", null, null);
 
       this._onEnableProviderChanged();
       this._onEnableEnvironmentChanged();
@@ -607,7 +615,9 @@ MyApplet.prototype = {
             let index = children.indexOf(Main.panel.statusArea.appMenu.container);
             if(index != -1) {
                Main.panel.statusArea.appMenu.menu = null;
-               Main.panel.statusArea.appMenu.destroy();
+               if(Main.panel.statusArea.appMenu.actor) {
+                  Main.panel.statusArea.appMenu.destroy();
+               }
                //Main.panel.statusArea['appMenu'] = null;
                // Fake appmenu, to avoid the gnome shell behavior.
                Main.panel.statusArea['appMenu'] = new St.Bin();
@@ -623,7 +633,7 @@ MyApplet.prototype = {
             Main.panel._leftBox.insert_child_at_index(this.actor, children.length);
          }
       } else {
-         if (Main.panel.statusArea.appMenu && (Main.panel.statusArea.appMenu instanceof St.Bin)) {
+         if(Main.panel.statusArea.appMenu && (Main.panel.statusArea.appMenu instanceof St.Bin)) {
             Main.panel.statusArea.appMenu.destroy();
             let nChildren = Main.panel._leftBox.get_n_children();
             Main.panel.statusArea['appMenu'] = new Panel.AppMenuButton(Main.panel);
@@ -871,6 +881,11 @@ MyApplet.prototype = {
       this.setAppMenu(menu);
    },
 
+   _onProvidersChanged: function(indicator, provider) {
+       let render = indicator.renderMetadata();
+       this.dbusmenuProviders = render;
+   },
+
    _onAppmenuChanged: function(indicator, window) {
       let newLabel = null;
       let newIcon = null;
@@ -1047,6 +1062,10 @@ MyApplet.prototype = {
          if(this._indicatorId != 0) {
              this.indicatorDbus.disconnect(this._indicatorId);
              this._indicatorId = 0;
+         }
+         if(this._providerId != 0) {
+             this.indicatorDbus.disconnect(this._providerId);
+             this._providerId = 0;
          }
          this.indicatorDbus.destroy();
          this.indicatorDbus = null;

@@ -173,10 +173,11 @@ const HudSearchProvider = new Lang.Class({
         let results = [];
         if(this.indicator && this.appData && this.appData["dbusMenu"]) {
             let items = this.appData["dbusMenu"].getItems();
+            let menuItemClass = ConfigurableMenus.FactoryClassTypes.MenuItemClass;
             for(let id in items) {
                 let item = items[id];
-                let sResult = this._searchFor(item, terms);
-                if((item.getFactoryType() == ConfigurableMenus.FactoryClassTypes.MenuItemClass) && (sResult > 0)) {
+                if((item.getFactoryType() == menuItemClass) &&
+                   (this._searchFor(item, terms) > 0)) {
                     results.push(id);
                 }
             }
@@ -189,7 +190,9 @@ const HudSearchProvider = new Lang.Class({
     },
 
     createResultObject: function (resultMeta) {
-        if(this.indicator && this.appData && this.appData["dbusMenu"]) {
+        if(this.indicator && this.appData &&
+          ("dbusMenu" in this.appData) &&
+          (resultMeta['id'] in this.appData["dbusMenu"])) {
            return this.appData["dbusMenu"][resultMeta['id']];
         }
         return null;
