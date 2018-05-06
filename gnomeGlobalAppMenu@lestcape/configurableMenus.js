@@ -493,6 +493,7 @@ BoxPointer.prototype = {
     _init: function(arrowSide, binProperties) {
         this._arrowSide = arrowSide;
         this._arrowOrigin = 0;
+        this._sourceActorId = 0;
         this.actor = new St.Bin({ x_fill: true,
                                   y_fill: true });
         this._container = new Shell.GenericContainer();
@@ -793,8 +794,17 @@ BoxPointer.prototype = {
         // We need to show it now to force an allocation,
         // so that we can query the correct size.
         this.actor.show();
-
+        if (this._sourceActor && (this._sourceActorId > 0)) {
+            this._sourceActor.disconnect(this._sourceActorId);
+            this._sourceActorId = 0;
+        }
         this._sourceActor = sourceActor;
+        if (this._sourceActor) {
+           this._sourceActorId = this._sourceActor.connect("destroy", Lang.bind(this, function() {
+              this._sourceActor = null;
+              this._sourceActorId = 0;
+           }));
+        }
         this._arrowAlignment = alignment;
 
         this._reposition(sourceActor, alignment);
@@ -814,6 +824,10 @@ BoxPointer.prototype = {
     },
 
     clearPosition: function() {
+        if (this._sourceActor && (this._sourceActorId > 0)) {
+            this._sourceActor.disconnect(this._sourceActorId);
+            this._sourceActorId = 0;
+        }
         this._sourceActor = null;
         this._xPosition = 0;
         this._yPosition = 0;
@@ -1029,7 +1043,17 @@ ConfigurablePointer.prototype = {
       // We need to show it now to force an allocation,
       // so that we can query the correct size.
       //this.actor.show();
+      if (this._sourceActor && (this._sourceActorId > 0)) {
+         this._sourceActor.disconnect(this._sourceActorId);
+         this._sourceActorId = 0;
+      }
       this._sourceActor = sourceActor;
+      if (this._sourceActor) {
+         this._sourceActorId = this._sourceActor.connect("destroy", Lang.bind(this, function() {
+            this._sourceActor = null;
+            this._sourceActorId = 0;
+         }));
+      }
       this._arrowAlignment = alignment;
       if(this.actor.mapped && this._sourceActor && this._sourceActor.mapped) {
          this._reposition(this._sourceActor, this._arrowAlignment);
@@ -1242,10 +1266,10 @@ ConfigurablePointer.prototype = {
    },
 
    _reposition: function(sourceActor, alignment) {
-       if(!sourceActor)
-          sourceActor = this._sourceActor;
-       if(!alignment)
-          alignment = this._arrowAlignment;
+      if(!sourceActor)
+         sourceActor = this._sourceActor;
+      if(!alignment)
+         alignment = this._arrowAlignment;
       if(!sourceActor) Main.notify("Error")
       // Position correctly relative to the sourceActor
       let themeNode = sourceActor.get_theme_node();
@@ -1272,18 +1296,18 @@ ConfigurablePointer.prototype = {
       let maxPHV = 0;
 
       switch (this._arrowSide) {
-      case St.Side.TOP:
-          resY = sourceAllocation.y2 + gap;
-          break;
-      case St.Side.BOTTOM:
-          resY = sourceAllocation.y1 - natHeight - gap;
-          break;
-      case St.Side.LEFT:
-          resX = sourceAllocation.x2 + gap;
-          break;
-      case St.Side.RIGHT:
-          resX = sourceAllocation.x1 - natWidth - gap;
-          break;
+         case St.Side.TOP:
+            resY = sourceAllocation.y2 + gap;
+            break;
+         case St.Side.BOTTOM:
+            resY = sourceAllocation.y1 - natHeight - gap;
+            break;
+         case St.Side.LEFT:
+            resX = sourceAllocation.x2 + gap;
+            break;
+         case St.Side.RIGHT:
+            resX = sourceAllocation.x1 - natWidth - gap;
+            break;
       }
 
       // Now align and position the pointing axis, making sure
@@ -1354,7 +1378,6 @@ ConfigurablePointer.prototype = {
             break;
       }
       this.bin.allocate(childBox, flags);
-
       if(this._sourceActor && this._sourceActor.mapped)
          this._reposition(this._sourceActor, this._arrowAlignment);
    },
@@ -3819,7 +3842,12 @@ function ConfigurablePopupMenuBase() {
 ConfigurablePopupMenuBase.prototype = {
    _init: function(sourceActor, styleClass) {
       this.sourceActor = sourceActor;
-
+      if (this.sourceActor) {
+         this._sourceActorId = this.sourceActor.connect("destroy", Lang.bind(this, function() {
+            this.sourceActor = null;
+            this._sourceActorId = 0;
+         }));
+      }
       if(styleClass !== undefined) {
          this.box = new St.BoxLayout({ style_class: styleClass, vertical: true });
       } else {
@@ -5282,7 +5310,17 @@ ConfigurableMenu.prototype = {
    setLauncher: function(launcher) {
       this.launcher = launcher;
       if(this.launcher) {
+         if (this.sourceActor && (this._sourceActorId > 0)) {
+            this.sourceActor.disconnect(this._sourceActorId);
+            this._sourceActorId = 0;
+         }
          this.sourceActor = this.launcher.actor;
+         if (this.sourceActor) {
+            this._sourceActorId = this.sourceActor.connect("destroy", Lang.bind(this, function() {
+               this.sourceActor = null;
+               this.sourceActorId = 0;
+            }));
+         }
          if(this._floating && this.launcher.hasOwnProperty("actor")) {
             this._boxPointer.setPosition(this.launcher.actor, this._arrowAlignment);
          } else {
@@ -7700,7 +7738,7 @@ ConfigurableMenuApplet.prototype = {
          let usedLetters = [];
          let items = this.getMenuItems();
          for(let pos in items) {
-            if ((items[pos] != this._fakeMenu) && (this._shorcut)) {
+            if ((items[pos] != this._fakeMenu) && (this._shorcut) && (items[pos].label)) {
                let text = items[pos].label.get_text();
                let selectedIndex = [];
                for(let index = 0; index < text.length; index++) {
