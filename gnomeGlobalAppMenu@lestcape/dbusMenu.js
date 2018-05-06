@@ -446,41 +446,45 @@ DBusClient.prototype = {
    },
 
    sendEvent: function(id, event, params, timestamp) {
-      if(event != ConfigurableMenus.FactoryEventTypes.opened) {
-         this._reportEvent(id, event, params, timestamp);
-      } else {
+      if(event === ConfigurableMenus.FactoryEventTypes.opened) {
          this.fakeSendAboutToShow(id);
+      } else if(event === ConfigurableMenus.FactoryEventTypes.closed) {
+      } else {
+         this._reportEvent(id, event, params, timestamp);
       }
    },
 
-   isbuggyClient: function() {
+   isBuggyClient: function() {
       return this._buggyClient;
    },
 
    // We don't need to cache and burst-send that since it will not happen that frequently
    _sendAboutToShow: function(id) {
-      if(this._proxyMenu && !this._buggyClient) {
+      if(this._proxyMenu) {
          this._proxyMenu.AboutToShowRemote(id, Lang.bind(this, function(result, error) {
-            if(error)
+            if(error) {
                global.log("while calling AboutToShow: " + error);
-            else if(result && result[0])
+            } else if(result && result[0]) {
                this._requestLayoutUpdate();
+            }
          }));
       }
    },
 
-   // FIXME: Fake about to show for firefox and others: https://bugs.launchpad.net/plasma-widget-menubar/+bug/878165
-   // We can fix the firefox delay when loading the menu with something like this, requesting AboutToShow for all submenu
-   // items of the current submenu, but will not need update the child of a child, so we need to stop this not calling
-   // directly sendEvent.
    fakeSendAboutToShow: function(lastId) {
-      if(this._items && (lastId in this._items)) {
+      if(this._items && (lastId in this._items) && 
+         (this._items[lastId].getFactoryType() === ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) ||
+         (this._items[lastId].getFactoryType() === ConfigurableMenus.FactoryClassTypes.RootMenuClass)) {
          let listId = this._items[lastId].getChildrenIds();
+         this._reportEvent(lastId, ConfigurableMenus.FactoryEventTypes.opened, null, 0);
+         if(lastId === this.getRootId()) {
+            this._sendAboutToShow(lastId);
+         }
          let id;
          for(let pos in listId) {
             id = listId[pos];
-            if(this._items[id].getFactoryType() == ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
-               this._reportEvent(id, ConfigurableMenus.FactoryEventTypes.opened, null, 0);
+            if(this._items[id].getFactoryType() === ConfigurableMenus.FactoryClassTypes.SubMenuMenuItemClass) {
+               this.fakeSendAboutToShow(id);
                this._sendAboutToShow(id);
             }
          }

@@ -687,6 +687,7 @@ MyApplet.prototype = {
       this.keybindingManager.addHotKey("global-overlay-key", this.overlayKey, Lang.bind(this, function() {
          if(this.menu && !Main.overview.visible) {
             this.menu.toggleSubmenu(true);
+            this._updateMenuForWindow(true);
          }
       }));
    },
@@ -958,12 +959,33 @@ MyApplet.prototype = {
       } 
    },
 
+   _updateMenuForWindow: function(idle) {
+      if (idle === true) {
+         Mainloop.idle_add(Lang.bind(this, function() {
+            if(this.currentWindow) {
+               if(this.indicatorDbus && (this.currentWindow != this.sendWindow)) {
+                  this.indicatorDbus.updateMenuForWindow(this.currentWindow);
+                  this.sendWindow = this.currentWindow;
+               }
+            }
+         }));
+      } else {
+         if(this.currentWindow) {
+            if(this.indicatorDbus && (this.currentWindow != this.sendWindow)) {
+               this.indicatorDbus.updateMenuForWindow(this.currentWindow);
+               this.sendWindow = this.currentWindow;
+            }
+         }
+      }
+   },
+
    _changeAppmenu: function(newLabel, newIcon, newMenu) {
       if(newMenu != this.menu) {
          this._closeMenu();
          this.menu = newMenu;
          if(this.menu && this.automaticActiveMainMenu && !this.menu.isInFloatingState()) {
             this.menu.open();
+            this._updateMenuForWindow(true);
          }
       }
       this.gradient.setText(newLabel);
@@ -1012,14 +1034,9 @@ MyApplet.prototype = {
    },
 
    _onAppletEnterEvent: function() {
-      if(this.currentWindow) {
-         if(this.indicatorDbus && (this.currentWindow != this.sendWindow)) {
-            this.indicatorDbus.updateMenuForWindow(this.currentWindow);
-            this.sendWindow = this.currentWindow;
-         }
-      }
       if((this.menu)&&(this.openOnHover)) {
          this.menu.open(true);
+         this._updateMenuForWindow(true);
       }
    },
 
@@ -1127,6 +1144,7 @@ MyApplet.prototype = {
    on_applet_clicked: function(event) {
       if((this.menu) && (event.get_button() == 1)) {
          this.menu.forcedToggle();
+         this._updateMenuForWindow(true);
          //if (Main.overview.shouldToggleByCornerOrButton())
          //    Main.overview.toggle();
          return true;
