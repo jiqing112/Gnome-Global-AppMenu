@@ -477,7 +477,7 @@ DBusClient.prototype = {
          (this._items[lastId].getFactoryType() === ConfigurableMenus.FactoryClassTypes.RootMenuClass)) {
          let listId = this._items[lastId].getChildrenIds();
          this._reportEvent(lastId, ConfigurableMenus.FactoryEventTypes.opened, null, 0);
-         if(lastId === this.getRootId()) {
+         if((lastId === this.getRootId()) || (listId.length == 0)) {
             this._sendAboutToShow(lastId);
          }
          let id;
