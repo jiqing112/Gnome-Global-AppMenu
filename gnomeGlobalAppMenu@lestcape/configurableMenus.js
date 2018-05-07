@@ -2599,7 +2599,7 @@ GradientLabelMenuItem.prototype = {
             let familyDesc = font.get_family().split(", ");
             cr.selectFontFace(familyDesc[0], PANGO_STYLES[font.get_style()], weight);
             cr.setFontSize(fontSize);
-            cr.moveTo(this.margin, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE) + this.margin);
+            cr.moveTo(this.margin, height - parseInt(metrics.get_descent()/Pango.SCALE) - parseInt(this.margin/2) + 1);
 
             if(this._textDegradation) {
                let shadowPattern = new Cairo.LinearGradient(0, 0, width, height);
@@ -2612,7 +2612,7 @@ GradientLabelMenuItem.prototype = {
             cr.fill();
 
             cr.setFontSize(fontSize);
-            cr.moveTo(this.margin + 1, parseInt(height/2) + parseInt(metrics.get_descent()/Pango.SCALE + this.margin + 1));
+            cr.moveTo(this.margin + 1, height - parseInt(metrics.get_descent()/Pango.SCALE) - parseInt(this.margin/2));
 
             if(this._textDegradation) {
                let realPattern = new Cairo.LinearGradient(0, 0, width, height);
