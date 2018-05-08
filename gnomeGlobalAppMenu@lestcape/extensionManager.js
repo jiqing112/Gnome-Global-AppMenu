@@ -394,7 +394,7 @@ MyApplet.prototype = {
              }
              if(this._indicatorId == 0) {
                  this._indicatorId = this.indicatorDbus.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
-                 this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
+                 //this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
              }
              if(this._showsAppMenuId == 0) {
                  this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
@@ -1059,7 +1059,7 @@ MyApplet.prototype = {
       this.keybindingManager.inihibit = false;
       this._onReplaceAppMenuChanged();
       this._onShowAppMenuChanged();
-      this._onAppmenuChanged(this.indicatorDbus, (this.currentWindow || global.display.focus_window));
+      this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
    },
 
    on_applet_removed_from_panel: function(deleteConfig) {

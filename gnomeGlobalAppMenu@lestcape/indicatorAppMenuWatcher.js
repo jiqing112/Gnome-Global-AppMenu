@@ -1179,8 +1179,6 @@ IndicatorAppMenuWatcher.prototype = {
    _init: function(mode, iconSize) {
       this._mode = mode;
       this._iconSize = iconSize;
-
-      this.focusWindow = null;
       this._windowsChangedId = 0;
       this._focusWindowId = 0;
       this._buggyClientId = 0;
@@ -1226,8 +1224,9 @@ IndicatorAppMenuWatcher.prototype = {
    },
 
    _onMenuChange: function(client, menu) {
-      if(!this.focusWindow || (menu == client.getMenuForWindow(this.focusWindow))) {
-          this.emit('appmenu-changed', this.focusWindow, menu);
+      let window = this.getFocusWindow();
+      if(window && (menu == client.getMenuForWindow(window))) {
+          this.emit('appmenu-changed', window, menu);
       }
    },
 
@@ -1283,16 +1282,25 @@ IndicatorAppMenuWatcher.prototype = {
       this._iconSize = iconSize;
    },
 
-   _onWindowChanged: function() {
+   getFocusWindow:function() {
       let window = global.display.focus_window;
-      if(this.isWatching()) {
-         if(window && (window.get_window_type() != Meta.WindowType.DESKTOP)) {
-            this.focusWindow = window;
-            let menu = this.getMenuForWindow(this.focusWindow);
-            this.emit('appmenu-changed', this.focusWindow, menu);
-         } else if(!global.stage.key_focus) {
-            this.emit('appmenu-changed', null, null);
+      if(window && (window.get_window_type() != Meta.WindowType.DESKTOP)) {
+         return window;
+      }
+      return null;
+   },
+
+   _onWindowChanged: function() {
+      let window = this.getFocusWindow();
+      if(window) {
+         if(this.isWatching()) {
+            let menu = this.getMenuForWindow(window);
+            this.emit('appmenu-changed', window, menu);
+         } else {
+            this.emit('appmenu-changed', window, null);
          }
+      } else if(!global.stage.key_focus) {
+         this.emit('appmenu-changed', null, null);
       }
    },
 

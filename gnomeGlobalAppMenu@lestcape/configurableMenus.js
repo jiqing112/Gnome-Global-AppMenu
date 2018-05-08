@@ -4225,7 +4225,8 @@ ConfigurablePopupMenuBase.prototype = {
    },
 
    getMenuItems: function() {
-      return this.box.get_children().map(function(actor) {
+      let childs = this.box.get_children();
+      return childs.map(function(actor) {
          return actor._delegate;
       }).filter(function(item) {
          return item instanceof ConfigurablePopupBaseMenuItem ||
