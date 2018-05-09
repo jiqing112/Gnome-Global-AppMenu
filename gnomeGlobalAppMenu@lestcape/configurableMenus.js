@@ -5284,9 +5284,9 @@ ConfigurableMenu.prototype = {
    },
 
    setFloatingState: function(floating) {
-      this.close();
-      this.actor.hide();
       if(this._floating != floating) {
+         this.close();
+         this.actor.hide();
          this._floating = floating;
          let parent = this.actor.get_parent();
          if(parent)
