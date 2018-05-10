@@ -8262,7 +8262,7 @@ ConfigurableMenuApplet.prototype = {
          ConfigurableMenu.prototype.addMenuItem.call(this, menuItem, params, position);
       }
       Mainloop.idle_add(Lang.bind(this, function() {
-         if(this._shorcut)
+         if(this._shorcut && this.actor)
             this._createShortcuts();
       }));
    },
@@ -8991,7 +8991,7 @@ MenuFactory.prototype = {
    },
 
    // handlers = { "signal": handler }
-   _connectAndSaveId: function(target, handlers , idArray) {
+   _connectAndSaveId: function(target, handlers, idArray) {
       idArray = typeof idArray != 'undefined' ? idArray : [];
       for(let signal in handlers) {
          idArray.push(target.connect(signal, handlers[signal]));
@@ -9012,31 +9012,67 @@ MenuFactory.prototype = {
    _attachToMenu: function(shellItem, factoryItem) {
       // Cleanup: remove existing childs (just in case)
       shellItem.destroyAllMenuItems();
-
-      // Fill the menu for the first time
-      factoryItem.getChildren().forEach(function(child) {
-         shellItem.addMenuItem(this._createItem(child));
-      }, this);
-
-      this._setShellItem(factoryItem, shellItem, {
-         //'type-changed':   Lang.bind(this, this._onTypeChanged, shellItem),
-         'child-added'   : Lang.bind(this, this._onChildAdded, shellItem),
-         'child-removed' : Lang.bind(this, this._onChildRemoved, shellItem),
-         'child-moved'   : Lang.bind(this, this._onChildMoved, shellItem)
-      });
       this._factoryLinkend.push(factoryItem);
       this._menuLinkend.push(shellItem);
-      factoryItem.connectAndRemoveOnDestroy({
-         'destroy' : Lang.bind(this, this._onDestroyMainMenu)
-      });
+      this._createItem(factoryItem, shellItem);
+   },
+
+   _createItem: function(factoryItem, shellItem) {
+      if (factoryItem.hasOwnProperty("shellItem") && factoryItem.shellItem) {
+          shellItem = factoryItem.shellItem;
+      }
+      if (!shellItem || shellItem === undefined) {
+         shellItem = this._createShellItem(factoryItem);
+      }
+      if(!shellItem.hasOwnProperty("factoryItem") || (shellItem.factoryItem != factoryItem)) {
+         shellItem.factoryItem = factoryItem;
+         factoryItem.shellItem = shellItem;
+
+         // Initially create children on idle, to not stop Shell mainloop?
+         //Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
+         this._createChildrens(shellItem);
+
+         // Now, connect various events
+         this._setShellItem(factoryItem, shellItem, {
+            'type-changed':       Lang.bind(this, this._onTypeChanged, shellItem),
+            'child-added':        Lang.bind(this, this._onChildAdded, shellItem),
+            'child-removed':      Lang.bind(this, this._onChildRemoved, shellItem),
+            'child-moved':        Lang.bind(this, this._onChildMoved, shellItem)
+         });
+      }
+      return shellItem;
+   },
+
+   _createChildrens: function(shellItem) {
+      if(shellItem && shellItem.factoryItem) {
+         let factoryItem = shellItem.factoryItem;
+         if(shellItem instanceof ConfigurablePopupSubMenuMenuItem) {
+            let children = factoryItem.getChildren();
+            if(children) {
+               for(let i = 0; i < children.length; ++i) {
+                  let chItem = this._createItem(children[i]);
+                  shellItem.menu.addMenuItem(chItem);
+               }
+            }
+         } else if((shellItem instanceof ConfigurablePopupMenuSection) ||
+                   (shellItem instanceof ConfigurableMenu)) {
+            let children = factoryItem.getChildren();
+            if(children) {
+               for(let i = 0; i < children.length; ++i) {
+                  let chItem = this._createItem(children[i]);
+                  shellItem.addMenuItem(chItem);
+               }
+            }
+         }
+      }
    },
 
    _setShellItem: function(factoryItem, shellItem, handlers) {
-      if(!shellItem.hasOwnProperty("factoryItem") || (shellItem.factoryItem != factoryItem)) {
-         if(shellItem.hasOwnProperty("factoryItem")) {
-            global.log("Attempt to override a shellItem factory, so we automatically destroy our original shellItem.");
-         }
-         shellItem.factoryItem = factoryItem;
+      //if(!shellItem.hasOwnProperty("factoryItem") || (shellItem.factoryItem != factoryItem)) {
+        // if(shellItem.hasOwnProperty("factoryItem")) {
+        //    global.log("Attempt to override a shellItem factory, so we automatically destroy our original shellItem.");
+        // }
+         //shellItem.factoryItem = factoryItem;
          shellItem._internalSignalsHandlers = this._connectAndSaveId(factoryItem, handlers);
          shellItem._shellItemSignalsHandlers = this._connectAndSaveId(shellItem, {
             'activate':  Lang.bind(factoryItem, factoryItem._onActivate),
@@ -9070,8 +9106,7 @@ MenuFactory.prototype = {
              'update-sensitive': Lang.bind(this, this._updateSensitive, shellItem),
              'destroy':          Lang.bind(this, this._onFactoryItemDestroyed, shellItem),
          }, shellItem._internalSignalsHandlers);
-      }
-
+     // }
    },
 
    // We try to not crash Shell if a shellItem will be destroyed,
@@ -9095,7 +9130,15 @@ MenuFactory.prototype = {
    },
 
    _onFactoryItemDestroyed: function(factoryItem, shellItem) {
-      if(shellItem && shellItem._externalSignalsHandlers) {
+      // If is the root remove it first,
+      let index = this._factoryLinkend.indexOf(factoryItem);
+      if(index != -1) {
+         this._factoryLinkend.splice(index, 1);
+         this._menuLinkend.splice(index, 1);
+         this._menuManager.splice(index, 1);
+      }
+      // Then destroy the shell item
+      if(shellItem && shellItem.factoryItem == factoryItem) {
          // Emit the destroy first, to allow know to external lisener,
          // then, disconnect the lisener handler.
          this._destroyShellItem(shellItem);
@@ -9188,15 +9231,6 @@ MenuFactory.prototype = {
       }
    },
 
-   _onDestroyMainMenu: function(factoryItem) {
-      let index = this._factoryLinkend.indexOf(factoryItem);
-      if(index != -1) {
-         this._factoryLinkend.splice(index, 1);
-         this._menuLinkend.splice(index, 1);
-         this._menuManager.splice(index, 1);
-      }
-   },
-
    _setOrnamentPolyfill: function(ornamentType, state) {
       if(ornamentType == OrnamentType.CHECK) {
          this.actor.set_accessible_role(Atk.Role.CHECK_MENU_ITEM);
@@ -9256,45 +9290,6 @@ MenuFactory.prototype = {
       dotBox.y2 = dotBox.y1 + naturalHeight;
 
       shellItem._ornament.allocate(dotBox, flags);
-   },
-
-   _createItem: function(factoryItem) {
-      let shellItem = this._createShellItem(factoryItem);
-      // Now, connect various events
-      this._setShellItem(factoryItem, shellItem, {
-         'type-changed':       Lang.bind(this, this._onTypeChanged, shellItem),
-         'child-added':        Lang.bind(this, this._onChildAdded, shellItem),
-         'child-removed':      Lang.bind(this, this._onChildRemoved, shellItem),
-         'child-moved':        Lang.bind(this, this._onChildMoved, shellItem)
-      });
-      // Initially create children on idle, to not stop Shell mainloop?
-      //Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
-      this._createChildrens(shellItem);
-      return shellItem;
-   },
-
-   _createChildrens: function(shellItem) {
-      if(shellItem && shellItem.factoryItem) {
-         let factoryItem = shellItem.factoryItem;
-         if(shellItem instanceof ConfigurablePopupSubMenuMenuItem) {
-            let children = factoryItem.getChildren();
-            if(children) {
-               for(let i = 0; i < children.length; ++i) {
-                  let chItem = this._createItem(children[i]);
-                  shellItem.menu.addMenuItem(chItem);
-               }
-            }
-         } else if((shellItem instanceof ConfigurablePopupMenuSection) ||
-                   (shellItem instanceof ConfigurableMenu)) {
-            let children = factoryItem.getChildren();
-            if(children) {
-               for(let i = 0; i < children.length; ++i) {
-                  let chItem = this._createItem(children[i]);
-                  shellItem.addMenuItem(chItem);
-               }
-            }
-         }
-      }
    },
 
    _onChildAdded: function(factoryItem, child, position, shellItem) {
