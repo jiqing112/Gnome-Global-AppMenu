@@ -7833,7 +7833,7 @@ ConfigurableMenuApplet.prototype = {
       if(this._fakeMenu) {
          let items = this.getMenuItems();
          let fakeItems = this._fakeMenu.menu.getMenuItems();
-         let currentWidth = this._fakeMenu.actor.width;
+         let currentWidth = this._fakeMenu.actor.width + 20;//margin
          //FIXME: Really the space betwen menu items depend of the theme.
          let space = 4;
          for(let pos in items) {
@@ -9029,8 +9029,8 @@ MenuFactory.prototype = {
          factoryItem.shellItem = shellItem;
 
          // Initially create children on idle, to not stop Shell mainloop?
-         //Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
-         this._createChildrens(shellItem);
+         Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
+         //this._createChildrens(shellItem);
 
          // Now, connect various events
          this._setShellItem(factoryItem, shellItem, {
@@ -9050,8 +9050,10 @@ MenuFactory.prototype = {
             let children = factoryItem.getChildren();
             if(children) {
                for(let i = 0; i < children.length; ++i) {
-                  let chItem = this._createItem(children[i]);
-                  shellItem.menu.addMenuItem(chItem);
+                  if (!children[i].shellItem) {
+                     let chItem = this._createItem(children[i]);
+                     shellItem.menu.addMenuItem(chItem);
+                  }
                }
             }
          } else if((shellItem instanceof ConfigurablePopupMenuSection) ||
@@ -9059,8 +9061,10 @@ MenuFactory.prototype = {
             let children = factoryItem.getChildren();
             if(children) {
                for(let i = 0; i < children.length; ++i) {
-                  let chItem = this._createItem(children[i]);
-                  shellItem.addMenuItem(chItem);
+                  if (!children[i].shellItem) {
+                     let chItem = this._createItem(children[i]);
+                     shellItem.addMenuItem(chItem);
+                  }
                }
             }
          }
@@ -9154,6 +9158,8 @@ MenuFactory.prototype = {
          this._disconnectSignals(shellItem, shellItem._shellItemSignalsHandlers);
          shellItem._shellItemSignalsHandlers = null;
       }
+      if (shellItem.factoryItem)
+         shellItem.factoryItem.shellItem = null;
       shellItem.factoryItem = null;
    },
 
