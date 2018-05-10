@@ -327,6 +327,7 @@ MyApplet.prototype = {
          this.effectType = "none";
          this.effectTime = 0.4;
          this.replaceAppMenu = false;
+         this.showWindowTitle = false;
          this.associate = true;//Playing
          this.appmenu = null;
          this.targetApp = null;
@@ -452,6 +453,7 @@ MyApplet.prototype = {
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-icon", "showAppIcon", this._onShowAppIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "desaturate-app-icon", "desaturateAppIcon", this._onDesaturateAppIconChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "show-app-name", "showAppName", this._onShowAppNameChanged, null);
+      this.settings.bindProperty(Settings.BindingDirection.IN, "used-window-title", "showWindowTitle", this._onShowWindowTitleChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "text-gradient", "textGradient", this._onTextGradientChange, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "max-app-name-size", "maxAppNameSize", this._onMaxAppNameSizeChanged, null);
       this.settings.bindProperty(Settings.BindingDirection.IN, "automatic-active-mainmenu", "automaticActiveMainMenu", this._automaticActiveMainMenuChanged, null);
@@ -483,6 +485,7 @@ MyApplet.prototype = {
       this._onShowAppIconChanged();
       this._onDesaturateAppIconChanged();
       this._onShowAppNameChanged();
+      this._onShowWindowTitleChanged();
       this._onTextGradientChange();
       this._onMaxAppNameSizeChanged();
       this._updateKeybinding();
@@ -736,6 +739,21 @@ MyApplet.prototype = {
       this.gradient.showLabel(this.showAppName);
    },
 
+   _onShowWindowTitleChanged: function() {
+      if(this.currentWindow) {
+         let newLabel = null;
+         if(this.showWindowTitle) {
+            newLabel = this.currentWindow.get_title();
+         } else {
+            let app = this.indicatorDbus.getAppForWindow(this.currentWindow);
+            newLabel = app.get_name();
+         }
+         if(newLabel) {
+            this.gradient.setText(newLabel);
+         }
+      }
+   },
+
    _onTextGradientChange: function() {
       this.gradient.setTextDegradation(this.textGradient);
    },
@@ -898,7 +916,11 @@ MyApplet.prototype = {
          app = this.indicatorDbus.getAppForWindow(this.currentWindow);
          if(app) {
             newIcon = this.indicatorDbus.getIconForWindow(this.currentWindow);
-            newLabel = app.get_name();
+            if(this.showWindowTitle) {
+               newLabel = this.currentWindow.get_title();
+            } else {
+               newLabel = app.get_name();
+            }
             dbusMenu = this.indicatorDbus.getRootMenuForWindow(this.currentWindow);
             if(dbusMenu) {
                newMenu = this.menuFactory.getShellMenu(dbusMenu);

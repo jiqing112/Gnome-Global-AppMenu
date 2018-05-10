@@ -63,6 +63,12 @@
         "description": "Show the application name in the panel",
         "tooltip": "Select if you want to show the application name in the panel."
     },
+    "used-window-title" : {
+        "type" : "checkbox",
+        "default" : false,
+        "description": "Show the window title instead of the application name in the panel",
+        "tooltip": "Select if you want to show the window title instead of the application name in the panel."
+    },
     "text-gradient" : {
         "type" : "checkbox",
         "default" : true,
