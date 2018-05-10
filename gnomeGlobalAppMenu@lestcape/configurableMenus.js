@@ -9299,7 +9299,7 @@ MenuFactory.prototype = {
    },
 
    _onChildAdded: function(factoryItem, child, position, shellItem) {
-      if(shellItem && (shellItem.factoryItem == factoryItem)) {
+      if(shellItem && shellItem.actor && (shellItem.factoryItem == factoryItem)) {
          if(shellItem instanceof ConfigurablePopupSubMenuMenuItem) {
             shellItem.menu.addMenuItem(this._createItem(child), null, position);
          } else if((shellItem instanceof ConfigurablePopupMenuSection) ||
