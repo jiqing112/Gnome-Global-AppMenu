@@ -305,6 +305,7 @@ MyApplet.prototype = {
          this.set_applet_tooltip(_("Gnome Global Application Menu"));
 
          this.currentWindow = null;
+         this.currentWindowId = 0;
          this.sendWindow = null;
          this.showAppIcon = true;
          this.showAppName = true;
@@ -739,6 +740,13 @@ MyApplet.prototype = {
       this.gradient.showLabel(this.showAppName);
    },
 
+   _onCurrentWindowTitleChange: function() {
+      if(this.currentWindow && this.showWindowTitle) {
+         let newLabel = this.currentWindow.get_title();
+         this.gradient.setText(newLabel);
+      }
+   },
+
    _onShowWindowTitleChanged: function() {
       if(this.currentWindow) {
          let newLabel = null;
@@ -911,8 +919,13 @@ MyApplet.prototype = {
       let newMenu = null;
       let app = null;
       let dbusMenu = null;
+      if (this.currentWindow && (this.currentWindowId > 0)) {
+         this.currentWindow.disconnect(this.currentWindowId);
+      }
+      this.currentWindowId = 0;
       this.currentWindow = window;
       if(this.currentWindow) {
+         this.currentWindowId = this.currentWindow.connect('notify::title', Lang.bind(this, this._onCurrentWindowTitleChange));
          app = this.indicatorDbus.getAppForWindow(this.currentWindow);
          if(app) {
             newIcon = this.indicatorDbus.getIconForWindow(this.currentWindow);
@@ -1112,6 +1125,10 @@ MyApplet.prototype = {
       this._finalizeEnvironment(Main.sessionMode.allowExtensions);
       this.hubProvider.destroy();
       this.hudMenuSearch.destroy();
+      if (this.currentWindow && (this.currentWindowId != 0)) {
+         this.currentWindow.disconnect(this.currentWindowId);
+         this.currentWindowId = 0;
+      }
       if(this._updateId != 0) {
          Main.sessionMode.disconnect(this._updateId);
          this._updateId = 0;
