@@ -752,7 +752,15 @@ MyApplet.prototype = {
          let newLabel = null;
          if(this.showWindowTitle) {
             newLabel = this.currentWindow.get_title();
+            if(this.currentWindowId == 0) {
+               this.currentWindowId = this.currentWindow.connect('notify::title',
+                  Lang.bind(this, this._onCurrentWindowTitleChange));
+            }
          } else {
+            if(this.currentWindowId != 0) {
+               this.currentWindow.disconnect(this.currentWindowId);
+               this.currentWindowId = 0;
+            }
             let app = this.indicatorDbus.getAppForWindow(this.currentWindow);
             newLabel = app.get_name();
          }
@@ -925,7 +933,9 @@ MyApplet.prototype = {
       this.currentWindowId = 0;
       this.currentWindow = window;
       if(this.currentWindow) {
-         this.currentWindowId = this.currentWindow.connect('notify::title', Lang.bind(this, this._onCurrentWindowTitleChange));
+         if(this.showWindowTitle) {
+             this.currentWindowId = this.currentWindow.connect('notify::title', Lang.bind(this, this._onCurrentWindowTitleChange));
+         }
          app = this.indicatorDbus.getAppForWindow(this.currentWindow);
          if(app) {
             newIcon = this.indicatorDbus.getIconForWindow(this.currentWindow);
