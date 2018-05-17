@@ -2104,7 +2104,7 @@ ConfigurablePopupBaseMenuItem.prototype = {
    },
 
    setSensitive: function(sensitive) {
-      if((this._sensitive != sensitive) && this.actor.reactive && this._activatable) {
+      if((this._sensitive != sensitive) && this._activatable) {
           this._sensitive = sensitive;
           this.actor.reactive = sensitive;
           this.actor.can_focus = sensitive;
