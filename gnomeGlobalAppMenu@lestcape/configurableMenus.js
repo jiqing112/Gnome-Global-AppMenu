@@ -2594,8 +2594,10 @@ GradientLabelMenuItem.prototype = {
                startColor = Clutter.Color.from_string("#505050")[1];
             }
             let weight = Cairo.FontWeight.NORMAL;
-            if(font.get_weight() >= 700)
-               weight = Cairo.FontWeight.BOLD;
+            try {//FIXME: For some reason, font.get_weight can throw an exception.
+               if(font.get_weight() >= 700)
+                  weight = Cairo.FontWeight.BOLD;
+            } catch(e) {}
             let familyDesc = font.get_family().split(", ");
             cr.selectFontFace(familyDesc[0], PANGO_STYLES[font.get_style()], weight);
             cr.setFontSize(fontSize);
@@ -2628,7 +2630,7 @@ GradientLabelMenuItem.prototype = {
             cr.stroke();
             cr.$dispose();
          } catch(e) {
-            Main.notify("err"+ e.message);
+            global.log("Err: " + e.message);
          }
       }
    },
