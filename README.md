@@ -3,8 +3,6 @@ Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
 
 I don't want donations, I work only for users and not for companies or communities that receive money or donations.
 
-This is a fork of an old extension I made for Cinnamon. The initial extension doesn't support Cinnamon anymore, as all extensions were `forked by Clement`
-
 Latest update: 24 September 2017
 
 ***
@@ -15,10 +13,10 @@ Special thanks to:
 - ![@jaszhix](https://github.com/jaszhix)                    Has helped to port the settings to gjs from python.
 - ![@mtwebster](https://github.com/mtwebster)                Has helped to implement it in the Cinnamon desktop.
 - ![@collinss](https://github.com/collinss)                  Has helped fix the behavior of firefox and thunderbird.
-- ![@rilian-la-te](https://github.com/rilian-la-te)          Understand and fix a lot of things.
+- ![@rilian-la-te](https://gitlab.com/rilian-la-te)          Understand and fix a lot of things.
 - ![Ubuntu devs](https://github.com/ubuntu/)                 The protocols and patches.
 - ![Cinnamon devs](https://github.com/linuxmint/cinnamon)    The settings, specially ![@JosephMcc](https://github.com/JosephMcc/)
-- ![Gnome devs](https://github.com/GNOME/gnome-shell)        The support of most of internal API and toolkit.
+- ![Gnome devs](https://gitlab.gnome.org/GNOME/gnome-shell)        The support of most of internal API and toolkit.
 
 Translators:
 --------------
@@ -33,12 +31,18 @@ Translators:
 - Russian (ru):   DragonicUA
 - Spanish (es):		Lester Carballo Pérez(lestcape@gmail.com)
 - Ukrainian (uk): Alice Liddell (e-liss@tuta.io)
+
 --------------
-![](https://raw.githubusercontent.com/lestcape/Gnome-Global-AppMenu/master/gnomeGlobalAppMenu%40lestcape/Capture.png)
+
+![](gnomeGlobalAppMenu%40lestcape/Capture.png)
 
 Was added initial support for Wayland.
 --------------
-The code to support Wayland can be found here: https://github.com/lestcape/unity-gtk-module It's just tested on Ubuntu 16.04 and probably will not work on any other places. The change will be merged with the implementation of [@rilian-la-te](https://github.com/rilian-la-te/) of his vala-panel-appmenu (https://github.com/rilian-la-te/vala-panel-appmenu), as this package is distribute on most of linux distros. You are free to copy this implementation and port it to the place you want, but the gnome global menu will STOP to used the unity-gtk-module in favor of the fork of unity-gtk-module of @rilian-la-te, as this implementation it's more general and is supported in more linux distibutions.
+The code to support Wayland can be found here: https://gitlab.com/lestcape/unity-gtk-module It's only tested on **Ubuntu 16.04** and probably will not work on any other place.
+The change will be merged with the implementation of [@rilian-la-te](https://gitlab.com/rilian-la-te/) of his [vala-panel-project](https://gitlab.com/vala-panel-project/),
+as this package is distribute on most of linux distros. You are free to copy this implementation and port it to the place you want,
+but the **Gnome-Global-AppMenu** will STOP to used [unity-gtk-module](https://launchpad.net/unity-gtk-module) in favor of the fork of [@rilian-la-te](https://gitlab.com/rilian-la-te/),
+called [appmenu-gtk-module](https://gitlab.com/vala-panel-project/vala-panel-appmenu) as this implementation it's more general and is supported in more linux distibutions.
 
 Known issues of the global menu on Wayland:
 --------------
@@ -94,7 +98,7 @@ Changelog
  - Was introduced a hack to disable the appmenu of gnome.
 
 0.6-Beta
- - Added Croatian language, thanks to https://github.com/muzena
+ - Added Croatian language, thanks to ![@muzena](https://github.com/muzena)
  - Added JAyatana support.
  - Added keyboard navigation.
  - Added effects.
@@ -150,17 +154,17 @@ In order to successfully resolve the issues you need to provide some data:
 
 To report bugs, request new features and make suggestions, please visit:
 
-https://github.com/lestcape/Gnome-Global-AppMenu/issues
+https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues
 
-You can also send us a pull request:
+You can also send us a merge requests:
 
-https://github.com/lestcape/Gnome-Global-AppMenu/pulls
+https://gitlab.com/lestcape/Gnome-Global-AppMenu/merge_requests
 
 Installation instructions:
 --------------
 1. Install the unity-gtk-module packages (explanation below).
 2. Restart your computer.
-3. Download this extension from its website: https://github.com/lestcape/Gnome-Global-AppMenu
+3. Download this extension from its website: https://gitlab.com/lestcape/Gnome-Global-AppMenu
 4. Unzip the downloaded file and copy the folder gnomeGlobalAppMenu@lestcape to ~/.local/share/gnome-shell/extensions/
 5. Enable the extension in Gnome Tweak Tool.
 6. Log out and then back in.
@@ -186,14 +190,12 @@ Uninstallation instructions:
 --------------
 1. Disable the extension.
 2. Reset the gsettings values:
-
   * ```gsettings reset org.gnome.settings-daemon.plugins.xsettings overrides```
   * ```gsettings reset org.gnome.settings-daemon.plugins.xsettings enabled-gtk-modules```
-
 3. If you don't use a global menu in other desktop, remove the previously installed packages as well.
 Restart your computer.
 
-==============
+--------------
 
 Thank you very much for using this product.
 Lester.
