@@ -9,14 +9,14 @@ Latest update: 24 September 2017
 Special thanks to:
 --------------
 
-- ![@rgcjonas](https://github.com/rgcjonas)                  The initial code.
-- ![@jaszhix](https://github.com/jaszhix)                    Has helped to port the settings to gjs from python.
-- ![@mtwebster](https://github.com/mtwebster)                Has helped to implement it in the Cinnamon desktop.
-- ![@collinss](https://github.com/collinss)                  Has helped fix the behavior of firefox and thunderbird.
-- ![@rilian-la-te](https://gitlab.com/rilian-la-te)          Understand and fix a lot of things.
-- ![Ubuntu devs](https://github.com/ubuntu/)                 The protocols and patches.
-- ![Cinnamon devs](https://github.com/linuxmint/cinnamon)    The settings, specially ![@JosephMcc](https://github.com/JosephMcc/)
-- ![Gnome devs](https://gitlab.gnome.org/GNOME/gnome-shell)        The support of most of internal API and toolkit.
+- [@rgcjonas](https://github.com/rgcjonas)                  The initial code.
+- [@jaszhix](https://github.com/jaszhix)                    Has helped to port the settings to gjs from python.
+- [@mtwebster](https://github.com/mtwebster)                Has helped to implement it in the Cinnamon desktop.
+- [@collinss](https://github.com/collinss)                  Has helped fix the behavior of firefox and thunderbird.
+- [@rilian-la-te](https://gitlab.com/rilian-la-te)          Understand and fix a lot of things.
+- [Ubuntu devs](https://github.com/ubuntu/)                 The protocols and patches.
+- [Cinnamon devs](https://github.com/linuxmint/cinnamon)    The settings, specially [@JosephMcc](https://github.com/JosephMcc/)
+- [Gnome devs](https://gitlab.gnome.org/GNOME/gnome-shell)        The support of most of internal API and toolkit.
 
 Translators:
 --------------
@@ -58,7 +58,7 @@ This extension integrates the Ubuntu-Unity Application Menu (Global Menu) suppor
 It's based on patches made by Giovanni Campagna:
 https://bugzilla.gnome.org/show_bug.cgi?id=652122
 
-Also used the same idea of the Gnome Shell extension made by ![@rgcjonas](https://github.com/rgcjonas) (with is now part of ubuntu code):
+Also used the same idea of the Gnome Shell extension made by [@rgcjonas](https://github.com/rgcjonas) (with is now part of ubuntu code):
 https://github.com/ubuntu/gnome-shell-extension-appindicator
 
 Known issues (Try at your own risk):
@@ -98,7 +98,7 @@ Changelog
  - Was introduced a hack to disable the appmenu of gnome.
 
 0.6-Beta
- - Added Croatian language, thanks to ![@muzena](https://github.com/muzena)
+ - Added Croatian language, thanks to [@muzena](https://github.com/muzena)
  - Added JAyatana support.
  - Added keyboard navigation.
  - Added effects.
