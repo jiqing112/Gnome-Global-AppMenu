@@ -248,17 +248,20 @@ const CellRendererKeybinding = new GObject.Class({
         let display = widget.get_display();
         let keymap = Gdk.Keymap.get_for_display(display);
         let [, keyval] = event.get_keyval();
-        let group = event.group;
         let [, accel_mods] = event.get_state();
+
+        let group = event.group;
         //gnome-shell-extension-prefs gnomeGlobalAppMenu@lestcape
-        //FIXME: Aparently gnome shell send a GdK.Event instead of a GDK.KeyEvent
-        if(group === undefined) {
+        //FIXME: Aparently gnome shell send a GdK.Event instead of a GDK.EventKey
+        group = (!group || (group === undefined)) ? 0 : group;
+        /*if(group === undefined) {
             group = 0;
+            //FIXME: Now this not work, on GS 3.18.5.
             let [ok, keys] = keymap.get_entries_for_keyval(keyval);
             if(ok && keys.length > 0) {
                 group = keys[0].group;
             }
-        }
+        }*/
         // HACK: we don't want to use SysRq as a keybinding (but we do
         // want Alt+Print), so we avoid translation from Alt+Print to SysRq
         let consumed_modifiers;
