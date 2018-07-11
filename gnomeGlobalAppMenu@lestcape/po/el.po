@@ -3,9 +3,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: POEditor.com\n"
+"X-Generator: Poedit 2.0.6\n"
 "Project-Id-Version: test\n"
 "Language: el\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 
 #: applet.js:261
 msgid "Gnome Global Application Menu"
@@ -49,268 +53,215 @@ msgstr "Δεν ήταν δυνατή η εύρεση του τρέχοντος �
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-
 #. size->description
-#: 
 msgid "Maximum size of the application name:"
 msgstr "Μέγιστο μέγεθος ονόματος εφαρμογής:"
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
-#: 
 msgid "Set the maximum size of the application name."
 msgstr "Ορίστε το μέγιστο μέγεθος του ονόματος της εφαρμογής."
 
 #. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
-#: 
 msgid "Characters"
 msgstr "Χαρακτήρες"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
-#: 
 msgid "Show a linear gradient effect in the application name"
 msgstr "Παρουσιάστε ένα φαινόμενο γραμμικής κλίσης στο όνομα της εφαρμογής"
 
 #. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
-#: 
 msgid "Select if you want to show a linear gradient effect in the application name."
 msgstr "Επιλέξτε εάν θέλετε να εμφανίσετε ένα γραμμικό αποτέλεσμα κλίσης στο όνομα της εφαρμογής."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
-#: 
 msgid "Submenu"
 msgstr "Υπομενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
-#: 
 msgid "Show icons in the menu items"
 msgstr "Εμφάνιση εικονιδίων στα στοιχεία μενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
-#: 
 msgid "Select if you want to show icons in the menu items."
 msgstr "Επιλέξτε εάν θέλετε να εμφανίζονται εικονίδια στα στοιχεία του μενού."
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-
 #. launcher->description
-#: 
 msgid "Align all menus with their launcher"
 msgstr "Ευθυγραμμίστε όλα τα μενού με το εκκινητήριό τους"
 
 #. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
-#: 
 msgid "Select if you want to align all menus with their launcher."
 msgstr "Επιλέξτε αν θέλετε να ευθυγραμμίσετε όλα τα μενού με το εκκινητήριό τους."
 
 #. globalAppMenu@lestcape->settings-schema.json->effect->description
-#: 
 msgid "Effect on opening and closing:"
 msgstr "Επίδραση στο άνοιγμα και το κλείσιμο:"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect->tooltip
-#: 
 msgid "Select the effect on the menu opening and closing."
 msgstr "Επιλέξτε το εφέ στο άνοιγμα και το κλείσιμο του μενού."
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
-#: 
 msgid "None"
 msgstr "Κανένα"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
-#: 
 msgid "Dispel"
 msgstr "Διασκορπίσμα"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
-#: 
 msgid "Hide Horizontal"
 msgstr "Απόκρυψη οριζόντια"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
-#: 
 msgid "Hide Vertical"
 msgstr "Απόκρυψη κάθετα"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
-#: 
 msgid "Scale"
 msgstr "Κλίμακα"
 
 #. configurableMenu@lestcape->settings-schema.json->effect->options
-#: 
 msgid "Windows"
 msgstr "Παράυρα"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->description
-#: 
 msgid "Duration of effect:"
 msgstr "Διάρκεια:"
 
 #. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
-#: 
 msgid "The time in seconds to perform the effect (more time is slower)."
 msgstr "Ο χρόνος σε δευτερόλεπτα για την εκτέλεση του εφέ (μεγαλύτερος χρόνος είναι πιο αργό)."
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
 #. mainmenu->description
-#: 
 msgid "Automatically activate the main menu"
 msgstr "Ενεργοποιήστε αυτόματα το κύριο μενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->automatic-active-
 #. mainmenu->tooltip
-#: 
 msgid "Select if you want to automatically activate the main menu."
 msgstr "Επιλέξτε εάν θέλετε να ενεργοποιήσετε αυτόματα το κύριο μενού."
 
 #. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->description
-#: 
 msgid "Open the menu when I move my mouse over it"
 msgstr "Ανοίξτε το μενού όταν μετακινώ το ποντίκι πάνω του"
 
 #. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
-#: 
 msgid "Enable opening the menu when the mouse enters the applet."
 msgstr "Ενεργοποιήστε το άνοιγμα του μενού όταν το ποντίκι εισέρχεται στη μικροεφαρμογή."
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
 #. icon->description
-#: 
 msgid "Desaturate the application icon"
 msgstr "Προσδιορίστε το εικονίδιο της εφαρμογής"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
-#: 
 msgid "Select if you want to desaturate the application icon."
 msgstr "Επιλέξτε εάν θέλετε να αποκορύξετε το εικονίδιο της εφαρμογής."
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-
 #. submenu->description
-#: 
 msgid "Automatically open the submenu"
 msgstr "Ανοίξτε αυτόματα το υπομενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
-#: 
 msgid "Select if you want to automatically open the submenu when the mouse is inside of the launcher."
 msgstr "Επιλέξτε εάν θέλετε να ανοίξετε αυτόματα το υπομενού όταν το ποντίκι είναι μέσα στο εκκινητή."
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-
 #. submenu->description
-#: 
 msgid "Automatically close the submenu"
 msgstr "Κλείστε αυτόματα το υπομενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
-#: 
 msgid "Select if you want to automatically close the submenu when the mouse is out of the launcher."
 msgstr "Επιλέξτε εάν θέλετε να κλείσετε αυτόματα το υπομενού όταν το ποντίκι είναι εκτός του εκκινητή."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
-#: 
 msgid "Show the application name in the panel"
 msgstr "Εμφανίστε το όνομα της εφαρμογής στην οθόνη"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
-#: 
 msgid "Select if you want to show the application name in the panel."
 msgstr "Επιλέξτε εάν θέλετε να εμφανίζεται το όνομα της εφαρμογής στην οθόνη."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
-#: 
 msgid "Main menu"
 msgstr "Κυρίως μενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->display-in-panel->description
-#: 
 msgid "Display the main menu in the panel"
 msgstr "Εμφάνιση του κύριου μενού στον πίνακα"
 
 #. globalAppMenu@lestcape->settings-schema.json->display-in-panel->tooltip
-#: 
 msgid "Select if you want to display the main menu in the panel."
 msgstr "Επιλέξτε εάν θέλετε να εμφανίσετε το κύριο μενού στον πίνακα."
 
 #. globalAppMenu@lestcape->settings-schema.json->head-menuitem->description
-#: 
 msgid "Menu items"
 msgstr "Στοιχεία μενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->head-support->description
-#: 
 msgid "Support"
 msgstr "Υποστήριξη"
 
 #. globalAppMenu@lestcape->settings-schema.json->head-application->description
-#: 
 msgid "Applications"
 msgstr "Εφαρμογές"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
-#: 
 msgid "Show the box pointers"
 msgstr "Δείξτε τους δείκτες του κουτιού"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
-#: 
 msgid "Select if you want to show the box pointers of all floating menus."
 msgstr "Επιλέξτε εάν θέλετε να εμφανίζονται οι δείκτες πλαισίου όλων των πλωτών μενού."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
-#: 
 msgid "Statically set the menu proxy environment variable (Experimental)"
 msgstr "Ρυθμίστε στατικά τη μεταβλητή περιβάλλοντος μεσολάβησης μενού (Πειραματική)"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
-#: 
 msgid "Select if you want to set statically the menu proxy environment variable."
 msgstr "Επιλέξτε εάν θέλετε να ορίσετε στατικά τη μεταβλητή περιβάλλοντος μεσολάβησης μενού."
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
-#: 
 msgid "Enable the support for JAyatana (Experimental)"
 msgstr "Ενεργοποιήστε την υποστήριξη για το JAyatana (Πειρματικό)"
 
 #. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
-#: 
 msgid "Select if you want to enable the support for JAyatana."
 msgstr "Επιλέξτε αν θέλετε να ενεργοποιήσετε την υποστήριξη για το JAyatana."
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
-#: 
 msgid "Show the application icon in the panel"
 msgstr "Εμφάνιση του εικονιδίου εφαρμογής στον πίνακα"
 
 #. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
-#: 
 msgid "Select if you want to show the application icon in the panel."
 msgstr "Επιλέξτε εάν θέλετε να εμφανίζεται το εικονίδιο εφαρμογής στον πίνακα."
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
-#: 
 msgid "Desaturate icons in the menu items"
 msgstr "Προσδιορίστε τα εικονίδια στα στοιχεία μενού"
 
 #. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
-#: 
 msgid "Select if you want to desaturate icons in the menu items."
 msgstr "Επιλέξτε εάν θέλετε να αφαιρέσετε τα επίπεδα των εικονιδίων στα στοιχεία του μενού."
 
 #. globalAppMenu@lestcape->metadata.json->description
-#: 
 msgid "Adds global application menu support to Cinnamon"
 msgstr "Προσθέτει παγκόσμια υποστήριξη το μενού εφαρμογών Cinnamon"
 
 #. globalAppMenu@lestcape->settings-schema.json->search-provider
-#: 
 msgid "Enable a search provider for the window menu actions"
 msgstr "Ενεργοποιήστε έναν πάροχο αναζήτησης για τις ενέργειες του μενού παραθύρων"
 
 #. globalAppMenu@lestcape->settings-schema.json->search-provider->tooltip
-#: 
 msgid "Select if you want to enable a search provider for searching the window menu actions."
 msgstr "Επιλέξτε εάν θέλετε να ενεργοποιήσετε έναν πάροχο αναζήτησης για αναζήτηση στις ενέργειες του μενού παραθύρων."
 
 #. globalAppMenu@lestcape->settings-schema.json->...
-#: 
 msgid "Keyboard shortcut to open and close the menu"
 msgstr "Συντομεύσεις πληκτρολογίου για να ανοίξετε και να κλείσετε το μενού"
-
