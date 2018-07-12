@@ -399,7 +399,6 @@ X11RegisterMenuWatcher.prototype = {
       this._ownName = null;
       this._ownNameId = null;
       this._appSysId = 0;
-      this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
       this._cancellable = new Gio.Cancellable;
       this._tracker = Shell.WindowTracker.get_default();
@@ -435,9 +434,6 @@ X11RegisterMenuWatcher.prototype = {
          if(this._appSysId == 0) {
             this._appSysId = this._appSys.connect('app-state-changed', Lang.bind(this, this._onAppMenuNotify));
          }
-         if(this._windowsCreatedId == 0) {
-             this._windowsCreatedId = global.display.connect('window-created', Lang.bind(this, this._updateWindowList));
-         }
          if(this._windowsChangedId == 0) {
             this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
          }
@@ -468,19 +464,21 @@ X11RegisterMenuWatcher.prototype = {
    },
 
    _onAppMenuNotify: function(appSys, targetAppSys) {
-      let isBusy = (targetAppSys != null &&
-                   (targetAppSys.get_state() == Shell.AppState.STARTING ||
-                    targetAppSys.get_busy()));
-      if (!isBusy) {
-         let windows = this._findWindowForApp(targetAppSys);
-         for(let pos in windows) {
-            let xid = windows[pos];
-            let windData = this._registeredWindows[xid];
-            if (windData.window && !windData.appMenu) {
-               this._tryToGetMenuClient(xid);
+      Mainloop.idle_add(Lang.bind(this, function() {
+         let isBusy = (targetAppSys != null &&
+                      (targetAppSys.get_state() == Shell.AppState.STARTING ||
+                       targetAppSys.get_busy()));
+         if (!isBusy) {
+            let windows = this._findWindowForApp(targetAppSys);
+            for(let pos in windows) {
+               let xid = windows[pos];
+               let windData = this._registeredWindows[xid];
+               if (windData.window && !windData.appMenu) {
+                  this._tryToGetMenuClient(xid);
+               }
             }
          }
-      }
+      }));
    },
 
    _findWindowForApp: function(targetAppSys) {
@@ -569,24 +567,26 @@ X11RegisterMenuWatcher.prototype = {
    },
 
    _updateWindowList: function() {
-      let current = global.get_window_actors();
-      let metaWindows = new Array();
-      for (let pos in current) {
-          let xid = this._guessWindowXId(current[pos].meta_window);
-          if(xid) {
-             if(xid in this._registeredWindows) {
-                this._registeredWindows[xid].window = current[pos].meta_window;
-             }
-             metaWindows.push(xid);
-          }
-      }
-      if (this.isWatching()) {
-         for (let xid in this._registeredWindows) {
-            if(metaWindows.indexOf(xid) == -1) {
-               this._unregisterWindows(xid);
+      Mainloop.idle_add(Lang.bind(this, function() {
+         let current = global.get_window_actors();
+         let metaWindows = new Array();
+         for (let pos in current) {
+            let xid = this._guessWindowXId(current[pos].meta_window);
+            if(xid) {
+               if(xid in this._registeredWindows) {
+                  this._registeredWindows[xid].window = current[pos].meta_window;
+               }
+               metaWindows.push(xid);
             }
          }
-      }
+         if (this.isWatching()) {
+            for (let xid in this._registeredWindows) {
+               if(metaWindows.indexOf(xid) == -1) {
+                  this._unregisterWindows(xid);
+               }
+            }
+         }
+      }));
    },
 
    _unregisterWindows: function(xid) {
@@ -835,10 +835,6 @@ X11RegisterMenuWatcher.prototype = {
       if(this._registeredWindows) {
          // This doesn't do any sync operation and doesn't allow us to hook up the event of being finished
          // which results in our unholy debounce hack (see extension.js)
-         if(this._windowsCreatedId > 0) {
-            global.display.disconnect(this._windowsCreatedId);
-            this._windowsCreatedId = 0;
-         }
          if(this._windowsChangedId > 0) {
             this._tracker.disconnect(this._windowsChangedId);
             this._windowsChangedId = 0;
@@ -873,7 +869,6 @@ GtkMenuWatcher.prototype = {
       this._registeredWindows = [];
       this._isWatching = false;
       this._appSysId = 0;
-      this._windowsCreatedId = 0;
       this._windowsChangedId = 0;
       this._tracker = Shell.WindowTracker.get_default();
       this._appSys = Shell.AppSystem.get_default();
@@ -883,9 +878,6 @@ GtkMenuWatcher.prototype = {
    watch: function() {
       if(!this.isWatching()) {
          this._updateWindowList();
-         if(this._windowsCreatedId == 0) {
-            this._windowsCreatedId = global.display.connect('window-created', Lang.bind(this, this._updateWindowList));
-         }
          if(this._windowsChangedId == 0) {
             this._windowsChangedId = this._tracker.connect('tracked-windows-changed', Lang.bind(this, this._updateWindowList));
          }
@@ -927,19 +919,21 @@ GtkMenuWatcher.prototype = {
    },
 
    _onAppMenuNotify: function(appSys, targetAppSys) {
-      let isBusy = (targetAppSys != null &&
-                   (targetAppSys.get_state() == Shell.AppState.STARTING ||
-                    targetAppSys.get_busy()));
-      if (!isBusy) {
-         let windows = this._findWindowForApp(targetAppSys);
-         for(let pos in windows) {
-            let index = windows[pos];
-            let windData = this._registeredWindows[index];
-            if (windData.window && !windData.appMenu) {
-               this._tryToGetMenuClient(windData.window);
+      Mainloop.idle_add(Lang.bind(this, function() {
+         let isBusy = (targetAppSys != null &&
+                      (targetAppSys.get_state() == Shell.AppState.STARTING ||
+                       targetAppSys.get_busy()));
+         if (!isBusy) {
+            let windows = this._findWindowForApp(targetAppSys);
+            for(let pos in windows) {
+               let index = windows[pos];
+               let windData = this._registeredWindows[index];
+               if (windData.window && !windData.appMenu) {
+                  this._tryToGetMenuClient(windData.window);
+               }
             }
          }
-      }
+      }));
    },
 
    _findWindowForApp: function(targetAppSys) {
@@ -1049,17 +1043,19 @@ GtkMenuWatcher.prototype = {
    },
 
    _updateWindowList: function() {
-      let current = global.get_window_actors();
-      let metaWindows = new Array();
-      for (let index in current) {
-         this._registerWindow(current[index].meta_window);
-         metaWindows.push(current[index].meta_window);
-      }
-      for (let index in this._registeredWindows) {
-         if(metaWindows.indexOf(this._registeredWindows[index].window) == -1) {
-            this._unregisterWindows(this._registeredWindows[index].window);
+      Mainloop.idle_add(Lang.bind(this, function() {
+         let current = global.get_window_actors();
+         let metaWindows = new Array();
+         for (let index in current) {
+            this._registerWindow(current[index].meta_window);
+            metaWindows.push(current[index].meta_window);
          }
-      }
+         for (let index in this._registeredWindows) {
+            if(metaWindows.indexOf(this._registeredWindows[index].window) == -1) {
+               this._unregisterWindows(this._registeredWindows[index].window);
+            }
+         }
+      }));
    },
 
    _unregisterWindows: function(window) {
@@ -1146,10 +1142,6 @@ GtkMenuWatcher.prototype = {
          // This doesn't do any sync operation and doesn't allow us to hook up the event of being finished
          // which results in our unholy debounce hack (see extension.js)
          this._isWatching = false;
-         if(this._windowsCreatedId > 0) {
-            global.display.disconnect(this._windowsCreatedId);
-            this._windowsCreatedId = 0;
-         }
          if(this._windowsChangedId > 0) {
             this._tracker.disconnect(this._windowsChangedId);
             this._windowsChangedId = 0;
