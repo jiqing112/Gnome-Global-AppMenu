@@ -7,256 +7,548 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-05-14 06:58-0500\n"
+"POT-Creation-Date: 2018-07-11 20:38-0500\n"
 "PO-Revision-Date: 2017-04-16 14:12-0500\n"
 "Last-Translator: Lester Carballo Pérez <lestcape@gmail.com>\n"
 "Language-Team: Lester Carballo Pérez <lestcape@gmail.com>\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: es\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Poedit 1.8.7.1\n"
 
-#: applet.js:261
+#. metadata.json->name
+#: extensionManager.js:305
 msgid "Gnome Global Application Menu"
 msgstr "Gnome Global Application Menu"
 
-#: applet.js:292
-msgid "You need restart your computer, to active the unity-gtk-module"
-msgstr "Es necesario reiniciar el equipo, para activar la unity-gtk-module"
+#: extensionManager.js:422
+#, javascript-format
+msgid "You need restart your computer, to active the %s backend"
+msgstr ""
 
-#: applet.js:423
+#: extensionManager.js:545 applet.js:906
+#, javascript-format
+msgid "Remove '%s'"
+msgstr ""
+
+#: extensionManager.js:560 applet.js:922
+msgid "About..."
+msgstr ""
+
+#: extensionManager.js:577 applet.js:944
+msgid "Configure..."
+msgstr ""
+
+#: extensionManager.js:681
 msgid "The environment variable cannot be changed"
 msgstr "La variable de entorno no se puede cambiar"
 
-#: applet.js:425
-msgid "The environment variable was set, a logout will be required to apply the changes"
-msgstr "Se estableció la variable de entorno, se requerirá un cierre de sesión para aplicar los cambios"
+#: extensionManager.js:683
+msgid ""
+"The environment variable was set, a logout will be required to apply the "
+"changes"
+msgstr ""
+"Se estableció la variable de entorno, se requerirá un cierre de sesión para "
+"aplicar los cambios"
 
-#: utils/environment.js:45
+#: extensionManager.js:844 extensionManager.js:847
+msgid ""
+"Only can be selected a unique modifier acelerator, not a convination or also "
+"not if include a key."
+msgstr ""
+
+#: prefs.js:167
+msgid "Ok"
+msgstr ""
+
+#: applet.js:383
+msgid "Comments:"
+msgstr ""
+
+#: applet.js:396
+msgid "Website:"
+msgstr ""
+
+#: applet.js:421
+msgid "Contributors:"
+msgstr ""
+
+#: applet.js:428
+msgid "Close"
+msgstr ""
+
+#: utils/environment.js:47
 msgid "Global Menu Environment Usage"
 msgstr "Uso de Global Menu Environment"
 
-#: utils/environment.js:46
+#: utils/environment.js:48
 msgid "Install environment variables"
 msgstr "Instalar variables de entorno"
 
-#: utils/environment.js:47
+#: utils/environment.js:49
 msgid "Uninstall environment variables"
 msgstr "Desintalar variables de entorno"
 
-#: utils/environment.js:139
-msgid "Please enter your password to configure the Menu Proxy environment variable"
-msgstr "Por favor, introduzca su contraseña para configurar la variable de entorno Menu Proxy"
+#: utils/environment.js:147
+msgid ""
+"Please enter your password to configure the Menu Proxy environment variable"
+msgstr ""
+"Por favor, introduzca su contraseña para configurar la variable de entorno "
+"Menu Proxy"
 
-#: utils/environment.js:150
+#: utils/environment.js:158
 msgid "Could not acquire root privileges"
 msgstr "No se pueden obtener privilegios de root"
 
-#: utils/environment.js:162
+#: utils/environment.js:170 utils/environment.js:174
 msgid "Could not find current file"
 msgstr "No se pudo encontrar el archivo actual"
 
-#. globalAppMenu@lestcape->settings-schema.json->max-app-name-
-#. size->description
-msgid "Maximum size of the application name:"
-msgstr "Tamaño máximo del nombre de la aplicación:"
+#: settings/xletSettings.js:111
+msgid "xlet, applet, desklet, extension, settings, configuration"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->tooltip
-msgid "Set the maximum size of the application name."
-msgstr "Establezca el tamaño máximo del nombre de la aplicación."
+#: settings/xletSettings.js:197
+msgid "Previous instance"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->max-app-name-size->units
-msgid "characters"
-msgstr "caracteres"
+#: settings/xletSettings.js:202
+msgid "Next instance"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->text-gradient->tooltip
-msgid "Show a linear gradient effect in the application name"
-msgstr "Mostrar un efecto de degradado lineal en el nombre de la aplicación"
+#: settings/xletSettings.js:459
+msgid "Select or enter file to export to"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->text-gradient->description
-msgid "Select if you want to show a linear gradient effect in the application name."
-msgstr "Seleccione si desea mostrar un efecto de degradado lineal en el nombre de la aplicación"
+#: settings/xletSettings.js:471 settings/xletSettings.js:499
+msgid "JSON files"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->head-submenu->description
-msgid "Submenu"
-msgstr "Submenú"
+#: settings/xletSettings.js:488
+msgid "Select a JSON file to import"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->description
-msgid "Show icons in the menu items"
-msgstr "Mostrar los iconos en los elementos del menú"
+#: settings/gSettingsWidgets.js:271
+msgid "Checking dependencies"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->show-item-icon->tooltip
-msgid "Select if you want to show icons in the menu items."
-msgstr "Seleccione si desea mostrar los iconos de los elementos del menú."
+#: settings/gSettingsWidgets.js:272
+#, javascript-format
+msgid "Please install: %s"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->align-menu-
-#. launcher->description
-msgid "Align all menus with his launcher"
-msgstr "Alinear todos los menús con su lanzador"
+#: settings/settingsWidgets.js:1234
+msgid "Sound files"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->align-menu-launcher->tooltip
-msgid "Select if you want to align all menus with his launcher."
-msgstr "Seleccione si desea alinear todos los menús con su lanzador."
+#: settings/settingsWidgets.js:1329
+msgid "Choose an Icon"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->effect->description
-msgid "Effect on opening and closing:"
-msgstr "Efecto sobre la apertura y cierre:"
+#: settings/settingsWidgets.js:1340
+msgid "Image files"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->effect->tooltip
-msgid "Select the effect on the menu opening and closing."
-msgstr "Seleccionar el efecto sobre la apertura y el cierre del menú."
-
-#. configurableMenu@lestcape->settings-schema.json->effect->options
+#. settings-schema.json->oversize-mode->options
+#. settings-schema.json->effect->options
+#: settings/chooserButtonWidgets.js:25
 msgid "None"
 msgstr "Ninguno"
 
-#. configurableMenu@lestcape->settings-schema.json->effect->options
-msgid "Dispel"
-msgstr "Desvanecer"
-
-#. configurableMenu@lestcape->settings-schema.json->effect->options
-msgid "Hide Horizontal"
-msgstr "Ocultar Horizontal"
-
-#. configurableMenu@lestcape->settings-schema.json->effect->options
-msgid "Hide Vertical"
-msgstr "Ocultar Vertical"
-
-#. configurableMenu@lestcape->settings-schema.json->effect->options
+#. settings-schema.json->effect->options
+#: settings/chooserButtonWidgets.js:26
 msgid "Scale"
 msgstr "Scalar"
 
-#. configurableMenu@lestcape->settings-schema.json->effect->options
-msgid "Windows"
-msgstr "Ventanas"
+#: settings/chooserButtonWidgets.js:27
+msgid "Fade"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->effect-time->description
-msgid "Duration of effect:"
-msgstr "Duración del efecto:"
+#: settings/chooserButtonWidgets.js:28
+msgid "Blend"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->effect-time->tooltip
-msgid "The time on seconds to perform the effect(More time is slower)."
-msgstr "El tiempo en segundos para realizar el efecto (Más tiempo es más lento)."
+#: settings/chooserButtonWidgets.js:29
+msgid "Move"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
-#. mainmenu->description
-msgid "Automatically activate the main menu"
-msgstr "Activar automáticamente el menú principal"
+#: settings/chooserButtonWidgets.js:30
+msgid "Fly up"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->automatic-active-
-#. mainmenu->tooltip
-msgid "Select if you want to automatically activate the main menu."
-msgstr "Seleccione si desea activar automáticamente el menú principal."
+#: settings/chooserButtonWidgets.js:31
+msgid "Fly down"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->description
-msgid "Open the menu when I move my mouse over it"
-msgstr "Abrir el menú cuando el ratón pase por encima."
+#: settings/chooserButtonWidgets.js:32
+msgid "Traditional"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->activate-on-hover->tooltip
-msgid "Enable opening the menu when the mouse enters the applet"
-msgstr "Habilitar abrir el menú cuando el ratón entra en el applet"
+#: settings/chooserButtonWidgets.js:258
+msgid "Select a date"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-
-#. icon->description
-msgid "Desaturate the application icon"
-msgstr "Desaturar el icono de la aplicación"
+#: settings/chooserButtonWidgets.js:276
+msgid "Today"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->desaturate-app-icon->tooltip
-msgid "Select if you want to desaturate the application icon"
-msgstr "Seleccione si desea desaturar el icono de la aplicación"
+#: settings/chooserButtonWidgets.js:303
+msgid "%B %e, %Y"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->open-active-
-#. submenu->description
-msgid "Automatically open the submenu"
-msgstr "Abrir automáticamente el submenú"
+#: settings/keybindingWidgets.js:190
+msgid "unassigned"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->open-active-submenu->tooltip
-msgid "Select if you want to automatically open the submenu when the mouse is inside of the launcher."
-msgstr "Seleccione si desea abrir automáticamente el submenú cuando el ratón está dentro del lanzador."
+#: settings/keybindingWidgets.js:217
+msgid "Pick an accelerator"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->close-active-
-#. submenu->description
-msgid "Automatically close the submenu"
-msgstr "Cerrar automáticamente el submenú"
+#: settings/keybindingWidgets.js:342
+#, javascript-format
+msgid ""
+"\n"
+"This key combination, '<b>%s</b>' cannot be used because it would become "
+"impossible to type using this key.\n"
+"\n"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->close-active-submenu->tooltip
-msgid "Select if you want to automatically close the submenu when the mouse is out of the launcher."
-msgstr "Seleccione si desea cerrar automáticamente el submenú cuando el ratón está fuera del lanzador."
+#: settings/keybindingWidgets.js:343
+msgid ""
+"Please try again with a modifier key such as Control, Alt or Super (Windows "
+"key) at the same time.\n"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->show-app-name->description
-msgid "Show the application name in the panel"
-msgstr "Mostrar el nombre de la aplicación en el panel"
+#: settings/modules/cg_settings.js:35
+msgid "Manage Cinnamon settings"
+msgstr ""
 
-#. globalAppMenu@lestcape->settings-schema.json->show-app-name->tooltip
-msgid "Select if you want to show the application name in the panel."
-msgstr "Seleccione si desea mostrar el nombre de la aplicación en el panel."
-
-#. globalAppMenu@lestcape->settings-schema.json->head-mainmenu->description
-msgid "Main menu"
-msgstr "Menú principal"
-
-#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->description
-msgid "Display the main menu in the panel"
-msgstr "Muestra el menú principal en el panel"
-
-#. globalAppMenu@lestcape->settings-schema.json->display-in-panel->tooltip
-msgid "Select if you want to display the main menu in the panel."
-msgstr "Seleccione si desea mostrar el menú principal en el panel."
-
-#. globalAppMenu@lestcape->settings-schema.json->head-menuitem->description
-msgid "Menu items"
-msgstr "Elementos del menú"
-
-#. globalAppMenu@lestcape->settings-schema.json->head-support->description
+#. settings-schema.json->head-support->description
 msgid "Support"
 msgstr "Soporte"
 
-#. globalAppMenu@lestcape->settings-schema.json->head-application->description
+#. settings-schema.json->enable-environment->description
+msgid "Statically set the menu proxy environment variable (Experimental)"
+msgstr ""
+"Establecer estáticamente la variable de entorno de proxy de menú "
+"(Experimental)"
+
+#. settings-schema.json->enable-environment->tooltip
+msgid ""
+"Select if you want to set statically the menu proxy environment variable."
+msgstr ""
+"Seleccione si desea establecer de forma estática la variable de entorno de "
+"proxy de menú."
+
+#. settings-schema.json->enable-jayantana->description
+msgid "Enable the support for JAyatana (Experimental)"
+msgstr ""
+
+#. settings-schema.json->enable-jayantana->tooltip
+msgid "Select if you want to enable the support for JAyatana."
+msgstr ""
+
+#. settings-schema.json->replace-appmenu->description
+msgid "Use the extension as a replace of Gnome AppMenu (Experimental)"
+msgstr ""
+
+#. settings-schema.json->replace-appmenu->tooltip
+msgid "Select if you want to use the extension as a replace of Gnome AppMenu."
+msgstr ""
+
+#. settings-schema.json->synchronize-panel->description
+msgid ""
+"Allow to synchronize the menus with others in the same panel (Experimental)"
+msgstr ""
+
+#. settings-schema.json->synchronize-panel->tooltip
+msgid ""
+"Select if you want to synchronize the menus with others in the same panel."
+msgstr ""
+
+#. settings-schema.json->head-application->description
 msgid "Applications"
 msgstr "Aplicaciones"
 
-#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->description
-msgid "Show the boxpointers"
-msgstr "Mostrar los boxpointers"
-
-#. globalAppMenu@lestcape->settings-schema.json->show-boxpointer->tooltip
-msgid "Select if you want to show the boxpointer of all floating menus."
-msgstr "Seleccione si desea mostrar los boxpointer de todos los menús flotantes."
-
-#. globalAppMenu@lestcape->settings-schema.json->enable-environment->description
-msgid "Statically set the menu proxy environment variable (Experimental)"
-msgstr "Establecer estáticamente la variable de entorno de proxy de menú (Experimental)"
-
-#. globalAppMenu@lestcape->settings-schema.json->enable-environment->tooltip
-msgid "Select if you want to set statically the menu proxy environment variable."
-msgstr "Seleccione si desea establecer de forma estática la variable de entorno de proxy de menú."
-
-#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->description
-msgid "Enable the support for JAyantana (Experimental)"
-msgstr "Habilitar el soporte para JAyantana (Experimental)"
-
-#. globalAppMenu@lestcape->settings-schema.json->enable-jayantana->tooltip
-msgid "Select if you want to enable the support for JAyantana."
-msgstr "Seleccione si desea habilitar el soporte para JAyantana."
-
-#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->description
+#. settings-schema.json->show-app-icon->description
 msgid "Show the application icon in the panel"
 msgstr "Mostrar el icono de la aplicación en el panel"
 
-#. globalAppMenu@lestcape->settings-schema.json->show-app-icon->tooltip
+#. settings-schema.json->show-app-icon->tooltip
 msgid "Select if you want to show the application icon in the panel."
 msgstr "Seleccione si desea mostrar el icono de la aplicación en el panel."
 
-#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->description
+#. settings-schema.json->desaturate-app-icon->description
+msgid "Desaturate the application icon"
+msgstr "Desaturar el icono de la aplicación"
+
+#. settings-schema.json->desaturate-app-icon->tooltip
+msgid "Select if you want to desaturate the application icon."
+msgstr ""
+
+#. settings-schema.json->show-app-name->description
+msgid "Show the application name in the panel"
+msgstr "Mostrar el nombre de la aplicación en el panel"
+
+#. settings-schema.json->show-app-name->tooltip
+msgid "Select if you want to show the application name in the panel."
+msgstr "Seleccione si desea mostrar el nombre de la aplicación en el panel."
+
+#. settings-schema.json->used-window-title->description
+msgid "Show the window title instead of the application name in the panel"
+msgstr ""
+
+#. settings-schema.json->used-window-title->tooltip
+msgid ""
+"Select if you want to show the window title instead of the application name "
+"in the panel."
+msgstr ""
+
+#. settings-schema.json->text-gradient->description
+msgid "Show a linear gradient effect in the application name"
+msgstr "Mostrar un efecto de degradado lineal en el nombre de la aplicación"
+
+#. settings-schema.json->text-gradient->tooltip
+msgid ""
+"Select if you want to show a linear gradient effect in the application name."
+msgstr ""
+"Seleccione si desea mostrar un efecto de degradado lineal en el nombre de la "
+"aplicación"
+
+#. settings-schema.json->max-app-name-size->units
+msgid "characters"
+msgstr "caracteres"
+
+#. settings-schema.json->max-app-name-size->description
+msgid "Maximum size of the application name:"
+msgstr "Tamaño máximo del nombre de la aplicación:"
+
+#. settings-schema.json->max-app-name-size->tooltip
+msgid "Set the maximum size of the application name."
+msgstr "Establezca el tamaño máximo del nombre de la aplicación."
+
+#. settings-schema.json->head-hudmenu->description
+msgid "Hud controller"
+msgstr ""
+
+#. settings-schema.json->enable-search-provider->description
+msgid "Enable the HUD Gnome search provider"
+msgstr ""
+
+#. settings-schema.json->enable-search-provider->tooltip
+msgid ""
+"Select if you want to enable the HUD Gnome search provider for searching the "
+"window menu actions."
+msgstr ""
+
+#. settings-schema.json->hud-overlay-key->description
+msgid "Keyboard shortcut to open and close the hud menu"
+msgstr ""
+
+#. settings-schema.json->num-items->units
+msgid "items"
+msgstr ""
+
+#. settings-schema.json->num-items->description
+msgid "Maximum number of items:"
+msgstr ""
+
+#. settings-schema.json->num-items->tooltip
+msgid ""
+"The maximum number of items that will be displayed in the HUD menu (more is "
+"slower)."
+msgstr ""
+
+#. settings-schema.json->head-mainmenu->description
+msgid "Main menu"
+msgstr "Menú principal"
+
+#. settings-schema.json->global-overlay-key->description
+msgid "Keyboard shortcut to open and close the menu"
+msgstr ""
+
+#. settings-schema.json->oversize-mode->description
+msgid "Apply this mode when the panel is oversized:"
+msgstr ""
+
+#. settings-schema.json->oversize-mode->tooltip
+msgid ""
+"Select the action to take when the panel menu oversize the available space."
+msgstr ""
+
+#. settings-schema.json->oversize-mode->options
+msgid "Fake Menu"
+msgstr ""
+
+#. settings-schema.json->oversize-mode->options
+msgid "Auto Scrolling"
+msgstr ""
+
+#. settings-schema.json->oversize-mode->options
+msgid "Wrap Text"
+msgstr ""
+
+#. settings-schema.json->display-in-panel->description
+msgid "Display the main menu in the panel"
+msgstr "Muestra el menú principal en el panel"
+
+#. settings-schema.json->display-in-panel->tooltip
+msgid "Select if you want to display the main menu in the panel."
+msgstr "Seleccione si desea mostrar el menú principal en el panel."
+
+#. settings-schema.json->automatic-active-mainmenu->description
+msgid "Automatically activate the main menu"
+msgstr "Activar automáticamente el menú principal"
+
+#. settings-schema.json->automatic-active-mainmenu->tooltip
+msgid "Select if you want to automatically activate the main menu."
+msgstr "Seleccione si desea activar automáticamente el menú principal."
+
+#. settings-schema.json->activate-on-hover->description
+msgid "Open the menu when I move my mouse over it"
+msgstr "Abrir el menú cuando el ratón pase por encima."
+
+#. settings-schema.json->activate-on-hover->tooltip
+msgid "Enable opening the menu when the mouse enters the applet."
+msgstr ""
+
+#. settings-schema.json->shortcut-modifier->description
+msgid "Modifier shortcut to open and close the menu of the items"
+msgstr ""
+
+#. settings-schema.json->underline-shortcut->description
+msgid "Underline the selected shortcut characters"
+msgstr ""
+
+#. settings-schema.json->underline-shortcut->tooltip
+msgid "Allow to underline the selected shortcut characters."
+msgstr ""
+
+#. settings-schema.json->allow-shortcut-colors->description
+msgid "Allow to set a color for the selected shortcut characters"
+msgstr ""
+
+#. settings-schema.json->allow-shortcut-colors->tooltip
+msgid "Allow to set a color for the selected shortcut characters."
+msgstr ""
+
+#. settings-schema.json->shortcut-color->description
+msgid "Set the shortcut color"
+msgstr ""
+
+#. settings-schema.json->shortcut-color->tooltip
+msgid "Set a color to realce the character shortcut"
+msgstr ""
+
+#. settings-schema.json->head-submenu->description
+msgid "Submenu"
+msgstr "Submenú"
+
+#. settings-schema.json->open-active-submenu->description
+msgid "Automatically open the submenu"
+msgstr "Abrir automáticamente el submenú"
+
+#. settings-schema.json->open-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically open the submenu when the mouse is "
+"inside of the launcher."
+msgstr ""
+"Seleccione si desea abrir automáticamente el submenú cuando el ratón está "
+"dentro del lanzador."
+
+#. settings-schema.json->close-active-submenu->description
+msgid "Automatically close the submenu"
+msgstr "Cerrar automáticamente el submenú"
+
+#. settings-schema.json->close-active-submenu->tooltip
+msgid ""
+"Select if you want to automatically close the submenu when the mouse is out "
+"of the launcher."
+msgstr ""
+"Seleccione si desea cerrar automáticamente el submenú cuando el ratón está "
+"fuera del lanzador."
+
+#. settings-schema.json->show-boxpointer->description
+msgid "Show the boxpointers"
+msgstr "Mostrar los boxpointers"
+
+#. settings-schema.json->show-boxpointer->tooltip
+msgid "Select if you want to show the boxpointer of all floating menus."
+msgstr ""
+"Seleccione si desea mostrar los boxpointer de todos los menús flotantes."
+
+#. settings-schema.json->align-menu-launcher->description
+msgid "Align all menus with his launcher"
+msgstr "Alinear todos los menús con su lanzador"
+
+#. settings-schema.json->align-menu-launcher->tooltip
+msgid "Select if you want to align all menus with his launcher."
+msgstr "Seleccione si desea alinear todos los menús con su lanzador."
+
+#. settings-schema.json->effect->description
+msgid "Effect on opening and closing:"
+msgstr "Efecto sobre la apertura y cierre:"
+
+#. settings-schema.json->effect->tooltip
+msgid "Select the effect on the menu opening and closing."
+msgstr "Seleccionar el efecto sobre la apertura y el cierre del menú."
+
+#. settings-schema.json->effect->options
+msgid "Dispel"
+msgstr "Desvanecer"
+
+#. settings-schema.json->effect->options
+msgid "Hide Horizontal"
+msgstr "Ocultar Horizontal"
+
+#. settings-schema.json->effect->options
+msgid "Hide Vertical"
+msgstr "Ocultar Vertical"
+
+#. settings-schema.json->effect->options
+msgid "Windows"
+msgstr "Ventanas"
+
+#. settings-schema.json->effect-time->units
+msgid "seconds"
+msgstr ""
+
+#. settings-schema.json->effect-time->description
+msgid "Duration of effect:"
+msgstr "Duración del efecto:"
+
+#. settings-schema.json->effect-time->tooltip
+msgid "The time on seconds to perform the effect (more time is slower)."
+msgstr ""
+
+#. settings-schema.json->head-menuitem->description
+msgid "Menu items"
+msgstr "Elementos del menú"
+
+#. settings-schema.json->show-item-icon->description
+msgid "Show icons in the menu items"
+msgstr "Mostrar los iconos en los elementos del menú"
+
+#. settings-schema.json->show-item-icon->tooltip
+msgid "Select if you want to show icons in the menu items."
+msgstr "Seleccione si desea mostrar los iconos de los elementos del menú."
+
+#. settings-schema.json->desaturate-item-icon->description
 msgid "Desaturate icons in the menu items"
 msgstr "Desaturar los iconos de los elementos del menú"
 
-#. globalAppMenu@lestcape->settings-schema.json->desaturate-item-icon->tooltip
+#. settings-schema.json->desaturate-item-icon->tooltip
 msgid "Select if you want to desaturate icons in the menu items."
 msgstr "Seleccione si desea desaturar los iconos de los elementos del menú."
 
-#. globalAppMenu@lestcape->metadata.json->description
-msgid "Adds global application menu support to Cinnamon"
-msgstr "Añadir soporte del menú global de aplicaciones a Cinnamon"
+#. metadata.json->comments
+msgid ""
+"This is a Gnome Shell extension to provide a global application menu "
+"integration on the Gnome Shell desktop enviroment"
+msgstr ""
+
+#. metadata.json->description
+msgid "A Gnome Shell extension to provide a global application menu."
+msgstr ""
