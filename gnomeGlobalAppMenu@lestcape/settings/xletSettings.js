@@ -108,7 +108,7 @@ const XLetSidePage = new GObject.Class({
     Extends: SettingsWidgets.SidePage,
 
     _init: function(argv, window, context_box, module) {
-        let keywords = _("xlet, applet, desklet, extension, settings, configuration");
+        let keywords = _("extension, settings, configuration");
         this.parent("Settings", "gnome-settings", keywords, 2, context_box, false, false, "", argv, window, module);
         this.type = "extension";/*argv[1]*/;
         this.uuid = argv[2];
@@ -380,7 +380,7 @@ const XLetSidePage = new GObject.Class({
         // if the first key is not of type 'header' or type 'section' we need to make a new section
         let section, widget;
         if (!(first_key.type in ["header", "section"])) {
-            section = page.add_section("Settings for %s".format(this.uuid));
+            section = page.add_section(_("Settings for %s").format(this.uuid));
         }
 
         for (let key in settings_map) {

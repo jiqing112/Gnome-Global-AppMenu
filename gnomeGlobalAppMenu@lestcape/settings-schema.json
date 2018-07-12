@@ -184,7 +184,7 @@
         "default": false,
         "indent": true,
         "description": "Allow to set a color for the selected shortcut characters",
-        "tooltip": "Allow to set a color for the selected shortcut characters."
+        "tooltip": "Select if you want to allow set a color for the selected shortcut characters."
     },
     "shortcut-color": {
         "type": "colorchooser",

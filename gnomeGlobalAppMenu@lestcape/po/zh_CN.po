@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-11 20:38-0500\n"
+"POT-Creation-Date: 2018-07-11 23:06-0500\n"
 "PO-Revision-Date: 2017-04-16 14:13-0500\n"
 "Last-Translator: Losywee <Losywee@gmail.com>\n"
 "Language-Team: OSPCNT <Losywee@gmail.com>\n"
@@ -18,6 +18,39 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Poedit 1.8.7.1\n"
 
+#: applet.js:383
+msgid "Comments:"
+msgstr ""
+
+#: applet.js:396
+msgid "Website:"
+msgstr ""
+
+#: applet.js:421
+msgid "Contributors:"
+msgstr ""
+
+#: applet.js:428
+msgid "Close"
+msgstr ""
+
+#: applet.js:906 extensionManager.js:545
+#, javascript-format
+msgid "Remove '%s'"
+msgstr ""
+
+#: applet.js:922 extensionManager.js:560
+msgid "About..."
+msgstr ""
+
+#: applet.js:944 extensionManager.js:577
+msgid "Configure..."
+msgstr ""
+
+#: prefs.js:167
+msgid "Ok"
+msgstr ""
+
 #. metadata.json->name
 #: extensionManager.js:305
 msgid "Gnome Global Application Menu"
@@ -26,19 +59,6 @@ msgstr "Gnome 全局应用菜单"
 #: extensionManager.js:422
 #, javascript-format
 msgid "You need restart your computer, to active the %s backend"
-msgstr ""
-
-#: extensionManager.js:545 applet.js:906
-#, javascript-format
-msgid "Remove '%s'"
-msgstr ""
-
-#: extensionManager.js:560 applet.js:922
-msgid "About..."
-msgstr ""
-
-#: extensionManager.js:577 applet.js:944
-msgid "Configure..."
 msgstr ""
 
 #: extensionManager.js:681
@@ -57,53 +77,8 @@ msgid ""
 "not if include a key."
 msgstr ""
 
-#: prefs.js:167
-msgid "Ok"
-msgstr ""
-
-#: applet.js:383
-msgid "Comments:"
-msgstr ""
-
-#: applet.js:396
-msgid "Website:"
-msgstr ""
-
-#: applet.js:421
-msgid "Contributors:"
-msgstr ""
-
-#: applet.js:428
-msgid "Close"
-msgstr ""
-
-#: utils/environment.js:47
-msgid "Global Menu Environment Usage"
-msgstr ""
-
-#: utils/environment.js:48
-msgid "Install environment variables"
-msgstr ""
-
-#: utils/environment.js:49
-msgid "Uninstall environment variables"
-msgstr ""
-
-#: utils/environment.js:147
-msgid ""
-"Please enter your password to configure the Menu Proxy environment variable"
-msgstr ""
-
-#: utils/environment.js:158
-msgid "Could not acquire root privileges"
-msgstr ""
-
-#: utils/environment.js:170 utils/environment.js:174
-msgid "Could not find current file"
-msgstr ""
-
 #: settings/xletSettings.js:111
-msgid "xlet, applet, desklet, extension, settings, configuration"
+msgid "extension, settings, configuration"
 msgstr ""
 
 #: settings/xletSettings.js:197
@@ -112,6 +87,11 @@ msgstr ""
 
 #: settings/xletSettings.js:202
 msgid "Next instance"
+msgstr ""
+
+#: settings/xletSettings.js:383
+#, javascript-format
+msgid "Settings for %s"
 msgstr ""
 
 #: settings/xletSettings.js:459
@@ -133,18 +113,6 @@ msgstr ""
 #: settings/gSettingsWidgets.js:272
 #, javascript-format
 msgid "Please install: %s"
-msgstr ""
-
-#: settings/settingsWidgets.js:1234
-msgid "Sound files"
-msgstr ""
-
-#: settings/settingsWidgets.js:1329
-msgid "Choose an Icon"
-msgstr ""
-
-#: settings/settingsWidgets.js:1340
-msgid "Image files"
 msgstr ""
 
 #. settings-schema.json->oversize-mode->options
@@ -205,20 +173,65 @@ msgstr ""
 #: settings/keybindingWidgets.js:342
 #, javascript-format
 msgid ""
-"\n"
 "This key combination, '<b>%s</b>' cannot be used because it would become "
-"impossible to type using this key.\n"
-"\n"
+"impossible to type using this key."
 msgstr ""
 
 #: settings/keybindingWidgets.js:343
 msgid ""
 "Please try again with a modifier key such as Control, Alt or Super (Windows "
-"key) at the same time.\n"
+"key) at the same time."
+msgstr ""
+
+#: settings/settingsWidgets.js:1234
+msgid "Sound files"
+msgstr ""
+
+#: settings/settingsWidgets.js:1329
+msgid "Choose an Icon"
+msgstr ""
+
+#: settings/settingsWidgets.js:1340
+msgid "Image files"
 msgstr ""
 
 #: settings/modules/cg_settings.js:35
-msgid "Manage Cinnamon settings"
+msgid "Manage the extension settings"
+msgstr ""
+
+#: utils/environment.js:47
+msgid "Global Menu Environment Usage"
+msgstr ""
+
+#: utils/environment.js:48
+msgid "Install environment variables"
+msgstr ""
+
+#: utils/environment.js:49
+msgid "Uninstall environment variables"
+msgstr ""
+
+#: utils/environment.js:147
+msgid ""
+"Please enter your password to configure the Menu Proxy environment variable"
+msgstr ""
+
+#: utils/environment.js:158
+msgid "Could not acquire root privileges"
+msgstr ""
+
+#: utils/environment.js:170 utils/environment.js:174
+msgid "Could not find current file"
+msgstr ""
+
+#. metadata.json->comments
+msgid ""
+"This is a Gnome Shell extension to provide a global application menu "
+"integration on the Gnome Shell desktop enviroment"
+msgstr ""
+
+#. metadata.json->description
+msgid "A Gnome Shell extension to provide a global application menu."
 msgstr ""
 
 #. settings-schema.json->head-support->description
@@ -421,7 +434,8 @@ msgid "Allow to set a color for the selected shortcut characters"
 msgstr ""
 
 #. settings-schema.json->allow-shortcut-colors->tooltip
-msgid "Allow to set a color for the selected shortcut characters."
+msgid ""
+"Select if you want to allow set a color for the selected shortcut characters."
 msgstr ""
 
 #. settings-schema.json->shortcut-color->description
@@ -527,13 +541,3 @@ msgstr "减淡子菜单图标"
 #. settings-schema.json->desaturate-item-icon->tooltip
 msgid "Select if you want to desaturate icons in the menu items."
 msgstr "选择是否减淡子菜单图标。"
-
-#. metadata.json->comments
-msgid ""
-"This is a Gnome Shell extension to provide a global application menu "
-"integration on the Gnome Shell desktop enviroment"
-msgstr ""
-
-#. metadata.json->description
-msgid "A Gnome Shell extension to provide a global application menu."
-msgstr ""

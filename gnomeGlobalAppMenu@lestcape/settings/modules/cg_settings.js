@@ -32,7 +32,7 @@ const Module = new GObject.Class({
     _init: function() {
         this.handler = null;
         this.name = "settings";
-        this.comment = _("Manage Cinnamon settings");
+        this.comment = _("Manage the extension settings");
         this.category = "prefs";
     },
 

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Global Application Menu 0.1-Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-11 20:38-0500\n"
-"PO-Revision-Date: 2018-07-11 22:39-0500\n"
+"POT-Creation-Date: 2018-07-11 23:06-0500\n"
+"PO-Revision-Date: 2018-07-11 23:09-0500\n"
 "Last-Translator: Lester Carballo Pérez <lestcape@gmail.com>\n"
 "Language-Team: Lester Carballo Pérez <lestcape@gmail.com>\n"
 "Language: es\n"
@@ -17,6 +17,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Poedit 2.0.6\n"
+
+#: applet.js:383
+msgid "Comments:"
+msgstr "Comentarios:"
+
+#: applet.js:396
+msgid "Website:"
+msgstr "Sitio web:"
+
+#: applet.js:421
+msgid "Contributors:"
+msgstr "Colaboradores:"
+
+#: applet.js:428
+msgid "Close"
+msgstr "Cerrar"
+
+#: applet.js:906 extensionManager.js:545
+#, javascript-format
+msgid "Remove '%s'"
+msgstr "Elimina '%s'"
+
+#: applet.js:922 extensionManager.js:560
+msgid "About..."
+msgstr "Acerca de..."
+
+#: applet.js:944 extensionManager.js:577
+msgid "Configure..."
+msgstr "Configurar..."
+
+#: prefs.js:167
+msgid "Ok"
+msgstr "Aceptar"
 
 #. metadata.json->name
 #: extensionManager.js:305
@@ -27,19 +60,6 @@ msgstr "Gnome Global Application Menu"
 #, javascript-format
 msgid "You need restart your computer, to active the %s backend"
 msgstr "Necesita reiniciar su computadora para activar el sistema de fondo %s"
-
-#: extensionManager.js:545 applet.js:906
-#, javascript-format
-msgid "Remove '%s'"
-msgstr "Elimina '%s'"
-
-#: extensionManager.js:560 applet.js:922
-msgid "About..."
-msgstr "Acerca de..."
-
-#: extensionManager.js:577 applet.js:944
-msgid "Configure..."
-msgstr "Configurar..."
 
 #: extensionManager.js:681
 msgid "The environment variable cannot be changed"
@@ -61,56 +81,9 @@ msgstr ""
 "Solo se puede seleccionar un acelerador de modificador exclusivo, no una "
 "combinación de teclas, ni tampoco se puede incluir una sola tecla."
 
-#: prefs.js:167
-msgid "Ok"
-msgstr "Aceptar"
-
-#: applet.js:383
-msgid "Comments:"
-msgstr "Comentarios:"
-
-#: applet.js:396
-msgid "Website:"
-msgstr "Sitio web:"
-
-#: applet.js:421
-msgid "Contributors:"
-msgstr "Colaboradores:"
-
-#: applet.js:428
-msgid "Close"
-msgstr "Cerrar"
-
-#: utils/environment.js:47
-msgid "Global Menu Environment Usage"
-msgstr "Uso de Global Menu Environment"
-
-#: utils/environment.js:48
-msgid "Install environment variables"
-msgstr "Instalar variables de entorno"
-
-#: utils/environment.js:49
-msgid "Uninstall environment variables"
-msgstr "Desintalar variables de entorno"
-
-#: utils/environment.js:147
-msgid ""
-"Please enter your password to configure the Menu Proxy environment variable"
-msgstr ""
-"Por favor, introduzca su contraseña para configurar la variable de entorno "
-"Menu Proxy"
-
-#: utils/environment.js:158
-msgid "Could not acquire root privileges"
-msgstr "No se pueden obtener privilegios de root"
-
-#: utils/environment.js:170 utils/environment.js:174
-msgid "Could not find current file"
-msgstr "No se pudo encontrar el archivo actual"
-
 #: settings/xletSettings.js:111
-msgid "xlet, applet, desklet, extension, settings, configuration"
-msgstr "extensión, configuración"
+msgid "extension, settings, configuration"
+msgstr "extensión, configuración, configuración"
 
 #: settings/xletSettings.js:197
 msgid "Previous instance"
@@ -119,6 +92,11 @@ msgstr "Instancia anterior"
 #: settings/xletSettings.js:202
 msgid "Next instance"
 msgstr "Siguiente instancia"
+
+#: settings/xletSettings.js:383
+#, javascript-format
+msgid "Settings for %s"
+msgstr "Configuraciones para %s"
 
 #: settings/xletSettings.js:459
 msgid "Select or enter file to export to"
@@ -140,18 +118,6 @@ msgstr "Comprobando dependencias"
 #, javascript-format
 msgid "Please install: %s"
 msgstr "Por favor instala: %s"
-
-#: settings/settingsWidgets.js:1234
-msgid "Sound files"
-msgstr "Archivos de sonido"
-
-#: settings/settingsWidgets.js:1329
-msgid "Choose an Icon"
-msgstr "Elige un icono"
-
-#: settings/settingsWidgets.js:1340
-msgid "Image files"
-msgstr "Archivos de imagen"
 
 #. settings-schema.json->oversize-mode->options
 #. settings-schema.json->effect->options
@@ -211,27 +177,75 @@ msgstr "Elige un acelerador"
 #: settings/keybindingWidgets.js:342
 #, javascript-format
 msgid ""
-"\n"
 "This key combination, '<b>%s</b>' cannot be used because it would become "
-"impossible to type using this key.\n"
-"\n"
+"impossible to type using this key."
 msgstr ""
-"\n"
-"Esta combinación de teclas, '<b>%s</ b>' no se puede usar porque sería "
-"imposible escribir con esta tecla.\n"
-"\n"
+"Esta combinación de teclas, '<b>%s</b>' no se puede usar porque sería "
+"imposible escribir con esta tecla."
 
 #: settings/keybindingWidgets.js:343
 msgid ""
 "Please try again with a modifier key such as Control, Alt or Super (Windows "
-"key) at the same time.\n"
+"key) at the same time."
 msgstr ""
 "Intente de nuevo con una tecla modificadora como Control, Alt o Super (tecla "
-"de Windows) al mismo tiempo.\n"
+"de Windows) al mismo tiempo."
+
+#: settings/settingsWidgets.js:1234
+msgid "Sound files"
+msgstr "Archivos de sonido"
+
+#: settings/settingsWidgets.js:1329
+msgid "Choose an Icon"
+msgstr "Elige un icono"
+
+#: settings/settingsWidgets.js:1340
+msgid "Image files"
+msgstr "Archivos de imagen"
 
 #: settings/modules/cg_settings.js:35
-msgid "Manage Cinnamon settings"
-msgstr "Administrar la configuración de Cinnamon"
+msgid "Manage the extension settings"
+msgstr "Administrar la configuración de la extensión"
+
+#: utils/environment.js:47
+msgid "Global Menu Environment Usage"
+msgstr "Uso de Global Menu Environment"
+
+#: utils/environment.js:48
+msgid "Install environment variables"
+msgstr "Instalar variables de entorno"
+
+#: utils/environment.js:49
+msgid "Uninstall environment variables"
+msgstr "Desintalar variables de entorno"
+
+#: utils/environment.js:147
+msgid ""
+"Please enter your password to configure the Menu Proxy environment variable"
+msgstr ""
+"Por favor, introduzca su contraseña para configurar la variable de entorno "
+"Menu Proxy"
+
+#: utils/environment.js:158
+msgid "Could not acquire root privileges"
+msgstr "No se pueden obtener privilegios de root"
+
+#: utils/environment.js:170 utils/environment.js:174
+msgid "Could not find current file"
+msgstr "No se pudo encontrar el archivo actual"
+
+#. metadata.json->comments
+msgid ""
+"This is a Gnome Shell extension to provide a global application menu "
+"integration on the Gnome Shell desktop enviroment"
+msgstr ""
+"Esta es una extensión Gnome Shell para proporcionar una integración del menú "
+"global de aplicaciones en el entorno de escritorio Gnome Shell"
+
+#. metadata.json->description
+msgid "A Gnome Shell extension to provide a global application menu."
+msgstr ""
+"Una extensión de Gnome Shell para proporcionar un menú global de aplicación."
 
 #. settings-schema.json->head-support->description
 msgid "Support"
@@ -454,10 +468,11 @@ msgstr ""
 "seleccionados"
 
 #. settings-schema.json->allow-shortcut-colors->tooltip
-msgid "Allow to set a color for the selected shortcut characters."
+msgid ""
+"Select if you want to allow set a color for the selected shortcut characters."
 msgstr ""
-"Permitir establecer un color para los caracteres de acceso directo "
-"seleccionados."
+"Seleccione si desea permitir establecer un color para los caracteres de "
+"acceso directo seleccionados."
 
 #. settings-schema.json->shortcut-color->description
 msgid "Set the shortcut color"
@@ -568,16 +583,3 @@ msgstr "Desaturar los iconos de los elementos del menú"
 #. settings-schema.json->desaturate-item-icon->tooltip
 msgid "Select if you want to desaturate icons in the menu items."
 msgstr "Seleccione si desea desaturar los iconos de los elementos del menú."
-
-#. metadata.json->comments
-msgid ""
-"This is a Gnome Shell extension to provide a global application menu "
-"integration on the Gnome Shell desktop enviroment"
-msgstr ""
-"Esta es una extensión Gnome Shell para proporcionar una integración del menú "
-"global de aplicaciones en el entorno de escritorio Gnome Shell"
-
-#. metadata.json->description
-msgid "A Gnome Shell extension to provide a global application menu."
-msgstr ""
-"Una extensión de Gnome Shell para proporcionar un menú global de aplicación."

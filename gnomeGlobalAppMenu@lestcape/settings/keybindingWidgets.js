@@ -339,8 +339,8 @@ const CellRendererKeybinding = new GObject.Class({
                     transient_for: this.a_widget.get_toplevel(),
                 });
                 dialog.set_default_size(400, 200);
-                let msg = _("\nThis key combination, \'<b>%s</b>\' cannot be used because it would become impossible to type using this key.\n\n");
-                msg += _("Please try again with a modifier key such as Control, Alt or Super (Windows key) at the same time.\n");
+                let msg = "\n" + _("This key combination, \'<b>%s</b>\' cannot be used because it would become impossible to type using this key.") + "\n\n";
+                msg += _("Please try again with a modifier key such as Control, Alt or Super (Windows key) at the same time.") + "\n";
                 dialog.set_markup(msg.format(accel_label));
                 dialog.show_all();
                 let response = dialog.run();
