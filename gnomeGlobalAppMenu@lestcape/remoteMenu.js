@@ -130,11 +130,13 @@ const RemoteMenuItemMapper = new Lang.Class({
 
         this._trackerItem.bind_property('visible', this.menuItem.actor, 'visible', GObject.BindingFlags.SYNC_CREATE);
 
+        this._trackerItem.connect('notify::icon', Lang.bind(this, this._updateIcon));
         this._trackerItem.connect('notify::label', Lang.bind(this, this._updateLabel));
         this._trackerItem.connect('notify::sensitive', Lang.bind(this, this._updateSensitivity));
         this._trackerItem.connect('notify::role', Lang.bind(this, this._updateRole));
         this._trackerItem.connect('notify::toggled', Lang.bind(this, this._updateDecoration));
 
+        this._updateIcon();
         this._updateLabel();
         this._updateSensitivity();
         this._updateRole();
@@ -142,6 +144,10 @@ const RemoteMenuItemMapper = new Lang.Class({
         this.menuItem.connect('destroy', function() {
             trackerItem.run_dispose();
         });
+    },
+
+    _updateIcon() {
+        this.menuItem.setGIcon(this._trackerItem.icon);
     },
 
     _updateLabel: function() {
