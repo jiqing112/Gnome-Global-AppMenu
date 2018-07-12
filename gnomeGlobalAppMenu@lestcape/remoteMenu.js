@@ -146,7 +146,7 @@ const RemoteMenuItemMapper = new Lang.Class({
         });
     },
 
-    _updateIcon() {
+    _updateIcon: function() {
         this.menuItem.setGIcon(this._trackerItem.icon);
     },
 
