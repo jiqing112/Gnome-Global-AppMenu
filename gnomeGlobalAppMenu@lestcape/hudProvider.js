@@ -84,18 +84,16 @@ const HudSearchProvider = new Lang.Class({
     },
 
     _onAppmenuChanged: function(indicator, window)  {
-        if(this.currentWindow != window) {
-            this.appData = null;
-            this.currentWindow = window;
-            if(this.currentWindow && this.indicator && this.isEnabled) {
-                let app = this.indicator.getAppForWindow(window);
-                if(app) {
-                    this.appData = {
-                        "icon": this.indicator.getIconForWindow(window),
-                        "label": app.get_name(),
-                        "dbusMenu": this.indicator.getMenuForWindow(window)
-                    };
-                }
+        this.appData = null;
+        this.currentWindow = window;
+        if(this.currentWindow && this.indicator && this.isEnabled) {
+            let app = this.indicator.getAppForWindow(window);
+            if(app) {
+                this.appData = {
+                    "icon": this.indicator.getIconForWindow(window),
+                    "label": app.get_name(),
+                    "dbusMenu": this.indicator.getMenuForWindow(window)
+                };
             }
         }
     },

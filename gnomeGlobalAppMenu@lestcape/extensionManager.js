@@ -396,7 +396,6 @@ MyApplet.prototype = {
              }
              if(this._indicatorId == 0) {
                  this._indicatorId = this.indicatorDbus.connect('appmenu-changed', Lang.bind(this, this._onAppmenuChanged));
-                 //this._onAppmenuChanged(this.indicatorDbus, this.currentWindow);
              }
              if(this._showsAppMenuId == 0) {
                  this._showsAppMenuId = this._gtkSettings.connect('notify::gtk-shell-shows-app-menu',
