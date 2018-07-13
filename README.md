@@ -38,9 +38,9 @@ Translators:
 
 Was added initial support for Wayland.
 --------------
-The code to support Wayland can be found here: https://gitlab.com/lestcape/unity-gtk-module It's only tested on **Ubuntu 16.04** and probably will not work on any other place.
+The code to support Wayland can be found here: https://gitlab.com/lestcape/unity-gtk-module It's only tested on **Ubuntu 16.04** and **Ubuntu 18.04**. This probably will not work on any other place.
 The change will be merged with the implementation of [@rilian-la-te](https://gitlab.com/rilian-la-te/) of his [vala-panel-project](https://gitlab.com/vala-panel-project/),
-as this package is distribute on most of linux distros. You are free to copy this implementation and port it to the place you want,
+as this package is distribute on most of linux distros (but for now is not working there). You are free to copy this implementation and port it to the place you want,
 but the **Gnome-Global-AppMenu** will STOP to used [unity-gtk-module](https://launchpad.net/unity-gtk-module) in favor of the fork of [@rilian-la-te](https://gitlab.com/rilian-la-te/),
 called [appmenu-gtk-module](https://gitlab.com/vala-panel-project/vala-panel-appmenu) as this implementation it's more general and is supported in more linux distibutions.
 
@@ -67,6 +67,7 @@ Known issues (Try at your own risk):
 * There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
 * For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
 * Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative applications instead).
+* This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu, or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications. We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
 
 Experimental JAyatana support (Try at your own risk):
 --------------
@@ -162,29 +163,32 @@ https://gitlab.com/lestcape/Gnome-Global-AppMenu/merge_requests
 
 Installation instructions:
 --------------
-1. Install the unity-gtk-module packages (explanation below).
-2. Restart your computer.
-3. Download this extension from its website: https://gitlab.com/lestcape/Gnome-Global-AppMenu
-4. Unzip the downloaded file and copy the folder gnomeGlobalAppMenu@lestcape to ~/.local/share/gnome-shell/extensions/
-5. Enable the extension in Gnome Tweak Tool.
-6. Log out and then back in.
+1. To get QT menus to work, install your distribution's qt4 and qt5 (if exists) appmenu packages. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install appmenu-qt**.
+2. Install the unity-gtk-module or appmenu-gtk-module packages as your choice (explanation below). **If both are installed appmenu-gtk-module will have the preference**.
+3. If you want support for java applications install the jayatana pakage. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install jayatana**.
+4. Restart your computer.
+5. Download this extension from its website: https://gitlab.com/lestcape/Gnome-Global-AppMenu
+6. Unzip the downloaded file and copy the **sub**folder gnomeGlobalAppMenu@lestcape (**NOT the MASTER folder**) to ~/.local/share/gnome-shell/extensions/
+7. Restart Gnome Shell.
+8. Enable the extension in Gnome Tweak Tool.
+9. Log out and then back in.
 
-unity-gtk-module:
+Install appmenu-gtk-module:
 --------------
-This extension is designed to be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to
-be used on Unity desktop.
+This extension is designed to be used with the  [**appmenu-gtk-module**](https://gitlab.com/vala-panel-project/vala-panel-appmenu/tree/master/subprojects/appmenu-gtk-module)
+fork of the [**unity-gtk-module**](https://launchpad.net/unity-gtk-module) package and also this is the preferable package if both are installed. As this package is distributed
+with the **Mate Desktop**. It can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
+**sudo apt-get install appmenu-gtk-module**.
 
-You will probably need to use some equivalent packages depending on your specific distro.
+Install unity-gtk-module:
+--------------
+This extension can be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to
+be used on Unity desktop. But you will probably need to use some equivalent packages depending on your specific distro.
 
-* Ubuntu users, be happy, you don't need to do anything if unity is working. :)
-* Mint users, all Ubuntu packages that we needed are availables on Mint repositories as well and can be installed.
-  - Minimum requirements: sudo apt-get install unity-gtk2-module unity-gtk3-module
-* Arch users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
-* Fedora users, the unity-gtk-modules are in the official repositories.
-
-This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu, or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications.
-
-We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
+* **Debian** users, there are not any compiled version for Debian.
+* **Ubuntu and Fedora** users, the unity-gtk-modules are in the official repositories, but please see: In Fedora, the Gtk2 applications are not patched propertly.
+* **Arch** users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
+* **Wayland** users, the official unity-gtk-module have not support for Wayland. A source code of unity-gtk-module with Wayland support can be found here: https://gitlab.com/lestcape/unity-gtk-module
 
 Uninstallation instructions:
 --------------
