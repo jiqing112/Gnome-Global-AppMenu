@@ -795,7 +795,7 @@ X11RegisterMenuWatcher.prototype = {
          this._registeredWindows[xid].appMenu = null;
          this._registeredWindows[xid].fail = false;
       }
-      Mainloop.timeout_add(200, Lang.bind(this, function() {
+      Mainloop.timeout_add(500, Lang.bind(this, function() {
          this._updateWindowList();
          let isBusy = this._isXIdBusy(xid);
          if (!isBusy) {
