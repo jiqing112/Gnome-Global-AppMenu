@@ -596,9 +596,7 @@ X11RegisterMenuWatcher.prototype = {
          if(xid) {
             if(xid in this._registeredWindows) {
                this._registeredWindows[xid].window = current[pos].meta_window;
-               if ((!this._registeredWindows[xid].appMenu) && (!this._isXIdBusy(xid))) {
-                  this._tryToGetMenuClient(xid);
-               }
+               this._tryToGetMenuClient(xid);
             }
             metaWindows.push(xid);
          }
@@ -690,7 +688,9 @@ X11RegisterMenuWatcher.prototype = {
             (this._registeredWindows[xid].sender)) {
             // FIXME JAyantana is slow, we need to wait for it a little.
             GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
-               this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
+               if (!this._isXIdBusy(xid)) {
+                   this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
+               }
             }));
          } else {
             this._registeredWindows[xid].fail = true;
@@ -798,9 +798,12 @@ X11RegisterMenuWatcher.prototype = {
          this._registeredWindows[xid].appMenu = null;
          this._registeredWindows[xid].fail = false;
       }
-      Mainloop.timeout_add(200, Lang.bind(this, function() {
+      Mainloop.timeout_add(200, Lang.bind(this, function(xid) {
          this._updateWindowList();
-      }));
+         /*if ((!this._registeredWindows[xid].appMenu) && (!this._isXIdBusy(xid))) {
+             this._tryToGetMenuClient(xid);
+         }*/
+      }, xid));
    },
 
    // NOTE: we prefer to use the window's XID but this is not stored
@@ -1145,16 +1148,7 @@ GtkMenuWatcher.prototype = {
             windowData["fail"] = false;
             this._registeredWindows.push(windowData);
          }
-         let isBusy = true;
-         if (appTracker) {
-            let appSys = this._appSys.lookup_app(appTracker.get_id());
-            isBusy = (appSys != null &&
-                     (appSys.get_state() == Shell.AppState.STARTING ||
-                      appSys.get_busy()));
-         }
-         if (!isBusy) { 
-             this._tryToGetMenuClient(window);
-         }
+         this._tryToGetMenuClient(window);
       }
    },
 
@@ -1165,12 +1159,26 @@ GtkMenuWatcher.prototype = {
             (this._registeredWindows[index].sender)) {
             // FIXME Some app can be slow, we need to wait for it a little.
             GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
-               this._getMenuClient(window, Lang.bind(this, this._onMenuClientReady));
+               if (!this._isWindowBusy(window)) {
+                  this._getMenuClient(window, Lang.bind(this, this._onMenuClientReady));
+               }
             }));
          } else {
             this._registeredWindows[index].fail = true;
          }
       }  
+   },
+
+   _isWindowBusy: function(window) {
+      let isBusy = true;
+      let appTracker = this._tracker.get_window_app(window);
+      if(appTracker && (GTK_BLACKLIST.indexOf(appTracker.get_id()) == -1)) {
+         let appSys = this._appSys.lookup_app(appTracker.get_id());
+         isBusy = (appSys != null &&
+                  (appSys.get_state() == Shell.AppState.STARTING ||
+                   appSys.get_busy()));
+      }
+      return isBusy;
    },
 
    destroy: function() {
