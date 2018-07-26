@@ -3,7 +3,7 @@ Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
 
 We don't want donations, we work only for users and not for companies or communities that receive money or donations.
 
-Latest update: 24 September 2017
+Latest update: 24 September 2017 See the [Changelog](CHANGELOG)
 
 ***
 Special thanks to:
@@ -62,56 +62,6 @@ or if is not exported properly. We also can't do anything if you used an alterna
 We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
 * In Wayland, dosen't not work with the gnome-terminal application as this application have his particular implementation, this bug is in his side.
 * In Wayland, will not work for windows that are not a GtkApplicationWindow.
-
-
-Changelog
---------------
-0.7-Beta
- - Initialized the support into the Gnome Shell enviroment.
- - A lot of bug fixed to work inside gnome shell.
- - A lot of translation was added. Thank to different peoples.
- - The settings was ported to gjs.
- - Added a gnome shell provider to search for menu actions.
- - Added a hud-menu to search for menu action.
- - Was improved the support to have several dbusmenu providers.
- - More experimental options was added, but they remain incomplete.
- - Was ported to our API the appmenu of gnome-shell.
- - Was introduced a hack to disable the appmenu of gnome.
-
-0.6-Beta
- - Added Croatian language, thanks to [@muzena](https://github.com/muzena)
- - Added JAyatana support.
- - Added keyboard navigation.
- - Added effects.
- - Added vector box: https://github.com/linuxmint/Cinnamon/issues/1775.
- - Improved the menu speed (preload kde menu when is possible).
- - Fixed some issues.
-
-0.5-Beta
- - Fixed Firefox, Thunderbird and Mint Update Manager.
- - Some little performance improvement.
- - Removed the utility file.
-
-0.4-Beta
- - Now the gtk submenu will be updated when opening (will fix some other problems for Open Office).
- - Fixed the extension domain translation.
- - Corrections in the submenus operations.
- - Fixed other internal problems.
-
-0.3-Beta
- - Don't show icon on the panel submenu item, is ugly and out of the standard.
- - Use a Shell radiobutton instead of an special text.
- - Try to add more gtk icons using the action context (could be wrong).
- - Add an option to desaturate the internal items icon.
- - Fixed the extension instance id problem in settings.
- - Try to fix Open Office (Is possible that will not show the menu on some contexts).
-
-0.2-Beta
-  - Not crash the Shell when firefox drop the menu.
-  - Fixed xchat and possible other gtk applications.
-
-0.1-Beta
-  - Initial release.
 
 This program is free software:
 --------------
