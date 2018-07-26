@@ -176,18 +176,20 @@ Installation instructions:
 Install appmenu-gtk-module:
 --------------
 This extension is designed to be used with the  [**appmenu-gtk-module**](https://gitlab.com/vala-panel-project/vala-panel-appmenu/tree/master/subprojects/appmenu-gtk-module)
-fork of the [**unity-gtk-module**](https://launchpad.net/unity-gtk-module) package and also this is the preferable package if both are installed. As this package is distributed
+fork of the [**unity-gtk-module**](https://launchpad.net/unity-gtk-module) packages and also this is the preferable package if both are installed. As this package is distributed
 with the **Mate Desktop**. It can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
-**sudo apt-get install appmenu-gtk-module**.
+**sudo apt-get install appmenu-gtk2-module appmenu-gtk3-module**.
+
 
 Install unity-gtk-module:
 --------------
-This extension can be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to
-be used on Unity desktop. But you will probably need to use some equivalent packages depending on your specific distro.
+This extension can be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to be used on Unity desktop.
+But you will probably need to use some equivalent packages depending on your specific distro. Install it in Ubuntu 18.04, for example, involves typing
+**sudo apt-get install unity-gtk2-module unity-gtk3-module**.
 
-* **Debian** users, there are not any compiled version for Debian.
-* **Ubuntu and Fedora** users, the unity-gtk-modules are in the official repositories, but please see: In Fedora, the Gtk2 applications are not patched propertly.
-* **Arch** users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
+* **Debian** and **Arch** users, there are not any compiled version for Debian.
+* **Ubuntu and Fedora** users, the unity-gtk-modules are in the official repositories, but please see: In Fedora, the Gtk2 applications are not patched to work propertly.
+*
 * **Wayland** users, the official unity-gtk-module have not support for Wayland. A source code of unity-gtk-module with Wayland support can be found here: https://gitlab.com/lestcape/unity-gtk-module
 
 Uninstallation instructions:
