@@ -1,7 +1,7 @@
 Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
 --------------
 
-I don't want donations, I work only for users and not for companies or communities that receive money or donations.
+We don't want donations, we work only for users and not for companies or communities that receive money or donations.
 
 Latest update: 24 September 2017
 
@@ -36,19 +36,6 @@ Translators:
 
 ![](gnomeGlobalAppMenu%40lestcape/Capture.png)
 
-Was added initial support for Wayland.
---------------
-The code to support Wayland can be found here: https://gitlab.com/lestcape/unity-gtk-module It's only tested on **Ubuntu 16.04** and **Ubuntu 18.04**. This probably will not work on any other place.
-The change will be merged with the implementation of [@rilian-la-te](https://gitlab.com/rilian-la-te/) of his [vala-panel-project](https://gitlab.com/vala-panel-project/),
-as this package is distribute on most of linux distros (but for now is not working there). You are free to copy this implementation and port it to the place you want,
-but the **Gnome-Global-AppMenu** will STOP to used [unity-gtk-module](https://launchpad.net/unity-gtk-module) in favor of the fork of [@rilian-la-te](https://gitlab.com/rilian-la-te/),
-called [appmenu-gtk-module](https://gitlab.com/vala-panel-project/vala-panel-appmenu) as this implementation it's more general and is supported in more linux distibutions.
-
-Known issues of the global menu on Wayland:
---------------
-- The menu dosen't not work in the gnome-terminal application, as there are not support on gnome wayland for the gtk-shell-show-menubar property of the gtk settings when we use the XSettings binding.
-- The menu will not work for windows that are not a GtkApplicationWindow.
-
 Description
 --------------
 **Warning:** This is a third-party extension, not official.
@@ -67,22 +54,15 @@ Known issues (Try at your own risk):
 * There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
 * For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
 * Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative applications instead).
-* This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu, or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications. We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
+* The java applications support with JAyatana is experimental and buggy. 
+What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main window. Luckily, a Shell restart after opening a java application would fix the problem in most cases.
+Also, Jayatana do not reuse the same menu item id's for all layout-updates and this fact will casue a menu flicker while componets are rendering all again.
+* This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu,
+or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications.
+We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
+* In Wayland, dosen't not work with the gnome-terminal application as this application have his particular implementation, this bug is in his side.
+* In Wayland, will not work for windows that are not a GtkApplicationWindow.
 
-Experimental JAyatana support (Try at your own risk):
---------------
-JAyatana is buggy and was removed intentionally from IntelliJ IDEA, Ubuntu 15.04 and others.
-
-Currently you can use the JAyatana support as an option inside the extension. This will work for some java applications only and for others with several problems or even will not work at all. Sometimes you'll have to restart the Shell to see the menu, like for example with JDownloader.
-
-I really don't know if this is caused by an improper handling of the JavaEmbeddedFrame by Mutter (The Gnome Shell Windows Manager), if it's a specific behavior/bugs of JAyatana or whatever. What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main windows and some time not. So, a Shell restart after opening JDownloader would fix the problem in most cases, it's also possible that you'll need to kill the JDownloader process and open the application again in the others. To remove the experimental tag, the JAyatana project will need to implement this stuff at less:
-
-1. Use the same sender in the DbusMenu implementation for the same windows and not a new one.
-2. Use the same menu item id for all layout-updates and not a new one.
-
-This is because force reload of all items is pretty hard for javascript.
-
-Aditionally, we need to find out how to resolve the JavaEmbeddedFrame situation.
 
 Changelog
 --------------
@@ -177,10 +157,10 @@ Install appmenu-gtk-module:
 --------------
 This extension is designed to be used with the  [**appmenu-gtk-module**](https://gitlab.com/vala-panel-project/vala-panel-appmenu/tree/master/subprojects/appmenu-gtk-module)
 fork of the [**unity-gtk-module**](https://launchpad.net/unity-gtk-module) packages and also this is the preferable package if both are installed. As this package is distributed
-with the **Mate Desktop**, it can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
+with the [**Mate Desktop**](https://mate-desktop.org), it can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
 **sudo apt-get install appmenu-gtk2-module appmenu-gtk3-module**.
 
-* **Ubuntu**, **Debian** and **Arch** users, this packages are in the official repositories.
+* **Ubuntu**, **Debian** and **Fedora** users, this packages are in the official repositories.
 * **Arch** users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
 * **Wayland** users, we are working to support wayland, but the version that exist in the official repository of your distro, probably won't work with wayland yet.
 
