@@ -163,7 +163,7 @@ https://gitlab.com/lestcape/Gnome-Global-AppMenu/merge_requests
 
 Installation instructions:
 --------------
-1. To get QT menus to work, install your distribution's qt4 and qt5 (if exists) appmenu packages. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install appmenu-qt**.
+1. To get QT menus to work, install your distribution's appmenu-qt packages. But please note that the appmenu-qt5 (if exist) is buggy and is not needed or recommended, because qt5 have this functionality embedded. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install appmenu-qt**.
 2. Install the unity-gtk-module or appmenu-gtk-module packages as your choice (explanation below). **If both are installed appmenu-gtk-module will have the preference**.
 3. If you want support for java applications install the jayatana pakage. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install jayatana**.
 4. Restart your computer.
@@ -177,9 +177,12 @@ Install appmenu-gtk-module:
 --------------
 This extension is designed to be used with the  [**appmenu-gtk-module**](https://gitlab.com/vala-panel-project/vala-panel-appmenu/tree/master/subprojects/appmenu-gtk-module)
 fork of the [**unity-gtk-module**](https://launchpad.net/unity-gtk-module) packages and also this is the preferable package if both are installed. As this package is distributed
-with the **Mate Desktop**. It can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
+with the **Mate Desktop**, it can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
 **sudo apt-get install appmenu-gtk2-module appmenu-gtk3-module**.
 
+* **Ubuntu**, **Debian** and **Arch** users, this packages are in the official repositories.
+* **Arch** users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
+* **Wayland** users, we are working to support wayland, but the version that exist in the official repository of your distro, probably won't work with wayland yet.
 
 Install unity-gtk-module:
 --------------
@@ -187,9 +190,8 @@ This extension can be used with the standard gtk modules packages (https://launc
 But you will probably need to use some equivalent packages depending on your specific distro. Install it in Ubuntu 18.04, for example, involves typing
 **sudo apt-get install unity-gtk2-module unity-gtk3-module**.
 
-* **Debian** and **Arch** users, there are not any compiled version for Debian.
-* **Ubuntu and Fedora** users, the unity-gtk-modules are in the official repositories, but please see: In Fedora, the Gtk2 applications are not patched to work propertly.
-*
+* **Debian** and **Arch** users, there are not any compiled version.
+* **Ubuntu** and **Fedora** users, this packages are in the official repositories, but please see: In Fedora, the Gtk2 applications are not patched to work propertly.
 * **Wayland** users, the official unity-gtk-module have not support for Wayland. A source code of unity-gtk-module with Wayland support can be found here: https://gitlab.com/lestcape/unity-gtk-module
 
 Uninstallation instructions:
