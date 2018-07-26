@@ -1,15 +1,25 @@
 Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
 --------------
 
-We don't want donations, we work only for users and not for companies or communities that receive money or donations.
-
 Latest update: 24 September 2017 See the [Changelog](CHANGELOG)
 
-***
+![](gnomeGlobalAppMenu%40lestcape/Capture.png)
+
+Description:
+--------------
+
+This extension is [free software](LICENSE) and integrates the **Global Menu** (**Application Menu** and **Menu Bar**) support into the Gnome Shell desktop.
+It's based on the [patches](https://bugzilla.gnome.org/show_bug.cgi?id=652122) made by [Giovanni Campagna](https://gitlab.gnome.org/gcampagna)
+and also used the same idea of the [Gnome Shell Extension](https://github.com/ubuntu/gnome-shell-extension-appindicator)
+made by [@rgcjonas](https://github.com/rgcjonas) (with is now part of the ubuntu code).
+
+**Warning:** This is a not official third-party extension. We also don't want donations as we work only for users, not for companies or communities that receive money or donations.<br />
+
 Special thanks to:
 --------------
 
-- [@rgcjonas](https://github.com/rgcjonas)                  The initial code.
+- [@gcampagna](https://gitlab.gnome.org/gcampagna)          The initial idea of support DbusMenu in Gnome Shell.
+- [@rgcjonas](https://github.com/rgcjonas)                  The first extension with the DbusMenu code.
 - [@jaszhix](https://github.com/jaszhix)                    Has helped to port the settings to gjs from python.
 - [@mtwebster](https://github.com/mtwebster)                Has helped to implement it in the Cinnamon desktop.
 - [@collinss](https://github.com/collinss)                  Has helped fix the behavior of firefox and thunderbird.
@@ -34,62 +44,34 @@ Translators:
 
 --------------
 
-![](gnomeGlobalAppMenu%40lestcape/Capture.png)
-
-Description
---------------
-**Warning:** This is a third-party extension, not official.
-
-This extension integrates the Ubuntu-Unity Application Menu (Global Menu) support into the Gnome Shell desktop.
-
-It's based on patches made by Giovanni Campagna:
-https://bugzilla.gnome.org/show_bug.cgi?id=652122
-
-Also used the same idea of the Gnome Shell extension made by [@rgcjonas](https://github.com/rgcjonas) (with is now part of ubuntu code):
-https://github.com/ubuntu/gnome-shell-extension-appindicator
-
 Known issues (Try at your own risk):
 --------------
-* Not all apps are tested, so the extension may take ages to load and freeze Gnome Shell forever.
-* There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
-* For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
-* Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative applications instead).
-* The java applications support with JAyatana is experimental and buggy. 
-What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main window. Luckily, a Shell restart after opening a java application would fix the problem in most cases.
-Also, Jayatana do not reuse the same menu item id's for all layout-updates and this fact will casue a menu flicker while componets are rendering all again.
-* This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu,
+* (**General Applications**) Not all apps are tested, so the extension may take ages to load and freeze Gnome Shell forever.
+* (**General Applications**) There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
+* (**General Applications**) For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
+* (**General Applications**) This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu,
 or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications.
 We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
-* In Wayland, dosen't not work with the gnome-terminal application as this application have his particular implementation, this bug is in his side.
-* In Wayland, will not work for windows that are not a GtkApplicationWindow.
+* (**Gnome Applications**) Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative applications like [Nemo](https://github.com/linuxmint/nemo) instead).
+* (**Java Applications**) The java applications support with JAyatana is experimental and buggy. 
+What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main window. Luckily, a Shell restart after opening a java application would fix the problem in most cases.
+Also, Jayatana do not reuse the same menu item id's for all layout-updates and this fact will casue a menu flicker while componets are rendering all again.
+* (**Wayland Applications**) In Wayland, dosen't not work with the gnome-terminal application as this application have his particular implementation, this bug is in his side.
+* (**Wayland Applications**) In Wayland, will not work for windows that are not a GtkApplicationWindow.
 
-This program is free software:
---------------
-You can redistribute it and/or modify it under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 2 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with this program.
-If not, see http://www.gnu.org/licenses/.
-
-Guidelines for bug reports
+Guidelines for bug reports:
 --------------
 Unfortunately, this extension is not completely bug free and will probably never be.
 In order to successfully resolve the issues you need to provide some data:
 
 * Your distribution, Shell version and extension version (something like "latest git" or "latest from spices" is sufficient).
+* What package you use, examples: appmenu-gtk-module, unity-gtk-module, appmenu-qt, appmenu-qt5 and jayatana.
 * Instructions how to reproduce it. **This is the single most important point**. Bugs that [can't be reproduced](http://xkcd.com/583/) can't be fixed either.
-* Bugs which don't provide the necessary information may be closed as "invalid" without prior notice.
 
-To report bugs, request new features and make suggestions, please visit:
+To report bugs, request new features and make suggestions, please create a new report [here](https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues).
+Also you can send us a merge requests [here](https://gitlab.com/lestcape/Gnome-Global-AppMenu/merge_requests).
 
-https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues
-
-You can also send us a merge requests:
-
-https://gitlab.com/lestcape/Gnome-Global-AppMenu/merge_requests
+**Please note:** Bugs which don't provide the necessary information may be closed as "invalid" without prior notice.
 
 Installation instructions:
 --------------
