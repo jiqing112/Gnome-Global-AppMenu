@@ -10,8 +10,8 @@ Description:
 
 This extension is [free software](LICENSE) and integrates the **Global Menu** (**Application Menu** and **Menu Bar**) support into the Gnome Shell desktop.
 It's based on the [patches](https://bugzilla.gnome.org/show_bug.cgi?id=652122) made by [Giovanni Campagna](https://gitlab.gnome.org/gcampagna)
-and also used the same idea of the [Gnome Shell Extension](https://github.com/ubuntu/gnome-shell-extension-appindicator)
-made by [@rgcjonas](https://github.com/rgcjonas) (with is now part of the ubuntu code).
+and also used the same idea of the [Gnome Shell Extension AppIndicator](https://github.com/ubuntu/gnome-shell-extension-appindicator)
+made by [@rgcjonas](https://github.com/rgcjonas) (which is now part of the ubuntu code).
 
 **Warning:** This is a not official third-party extension. We also don't want donations as we work only for users, not for companies or communities that receive money or donations.<br />
 
@@ -31,33 +31,36 @@ Special thanks to:
 Translators:
 --------------
 - Croatian (hr):	gogo (trebelnik2@gmail.com)
-- Dutch (nl_NL):  Tim Visée ()
-- English (en):		Lester Carballo Pérez(lestcape@gmail.com)
+- Dutch (nl_NL):  Tim Visée
+- English (en):		Lester Carballo Pérez (lestcape@gmail.com)
 - French (fr):		Maestroschan
 - Galician (gl):  Fran Diéguez (fran.dieguez@mabishu.com)
 - German (de):		Lesik (Lesik@users.noreply.github.com)
 - Hungarian (hu): Balázs Úr (urbalazs@gmail.com)
 - Italian (it):   Matteo Iervasi (matteoiervasi@gmail.com)
 - Russian (ru):   DragonicUA
-- Spanish (es):		Lester Carballo Pérez(lestcape@gmail.com)
+- Spanish (es):		Lester Carballo Pérez (lestcape@gmail.com)
 - Ukrainian (uk): Alice Liddell (e-liss@tuta.io)
 
 --------------
 
 Known issues (Try at your own risk):
 --------------
-* (**General Applications**) Not all apps are tested, so the extension may take ages to load and freeze Gnome Shell forever.
+* (**General Applications**)Not all apps have been tested and for the untested applications, it is possible a failure caused by a bug in the extension,
+please, report it if is working in Unity. Also, in some exceptional untested cases the extension may take ages to load and freeze Gnome Shell forever.
 * (**General Applications**) There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
-* (**General Applications**) For some untested applications, it is possible a failure caused by a bug in the extension. Please, report it if is working in Unity.
-* (**General Applications**) This extension can only read the standard Dbus menu structure (Gtk/Kde), so we can't resolve or patch directly any problematic application that not export the menu,
-or if is not exported properly. We also can't do anything if you used an alternative internally implementation that not export the DBus menu structure for some applications.
-We are happy to include the support to any alternative implementation, if is provided an appropriate Dbus menu structure.
-* (**Gnome Applications**) Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative applications like [Nemo](https://github.com/linuxmint/nemo) instead).
+* (**General Applications**) This extension can only read the standard Dbus menu structure of Gtk and Qt applications· So, we can't resolve or patch directly
+any problematic application that not export the menu, or if is not exported properly. We also can't do anything if you used an alternative internally
+implementation that not export the DBus menu structure for some applications. We are happy to include the support to any alternative implementation,
+if is provided an appropriate Dbus menu structure.
+* (**Gnome Applications**) Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative
+applications like [Nemo](https://github.com/linuxmint/nemo) instead).
 * (**Java Applications**) The java applications support with JAyatana is experimental and buggy. 
 What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main window. Luckily, a Shell restart after opening a java application would fix the problem in most cases.
 Also, Jayatana do not reuse the same menu item id's for all layout-updates and this fact will casue a menu flicker while componets are rendering all again.
-* (**Wayland Applications**) In Wayland, dosen't not work with the gnome-terminal application as this application have his particular implementation, this bug is in his side.
-* (**Wayland Applications**) In Wayland, will not work for windows that are not a GtkApplicationWindow.
+This last problem has been tried to solve in the [jayatana fork](https://gitlab.com/vala-panel-project/vala-panel-appmenu/tree/master/subprojects/jayatana) of @rilian-la-te.
+* (**Wayland Applications**) The extension will not work in Wayland, for the Gtk Windows that are not a GtkApplicationWindow. Also, the gnome-terminal application doesn't work in Wayland and
+like this app already handled all the menu bar mechanism from inside himself, we can not do anything from our side to resolve that situation.
 
 Guidelines for bug reports:
 --------------
@@ -75,11 +78,12 @@ Also you can send us a merge requests [here](https://gitlab.com/lestcape/Gnome-G
 
 Installation instructions:
 --------------
-1. To get QT menus to work, install your distribution's appmenu-qt packages. But please note that the appmenu-qt5 (if exist) is buggy and is not needed or recommended, because qt5 have this functionality embedded. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install appmenu-qt**.
-2. Install the unity-gtk-module or appmenu-gtk-module packages as your choice (explanation below). **If both are installed appmenu-gtk-module will have the preference**.
-3. If you want support for java applications install the jayatana pakage. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install jayatana**.
+1. To get **Qt** menus to work, install your distribution's appmenu-qt packages. But please note that the appmenu-qt5 (if exist) is buggy and is not needed or recommended,
+because qt5 have this functionality embedded. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install appmenu-qt**.
+2. To get Gtk(2/3) menus to work, install the appmenu-gtk-module or unity-gtk-module packages as your choice (explanation below). **If both are installed appmenu-gtk-module will have the preference**.
+3. To get java  menus to work, install the [**jayatana](https://code.google.com/archive/p/java-swing-ayatana/) pakage. In Ubuntu 18.04, for example, this involves typing **sudo apt-get install jayatana**.
 4. Restart your computer.
-5. Download this extension from its website: https://gitlab.com/lestcape/Gnome-Global-AppMenu
+5. Download this extension from its [**website**](https://gitlab.com/lestcape/Gnome-Global-AppMenu/-/archive/master/Gnome-Global-AppMenu-master.zip).
 6. Unzip the downloaded file and copy the **sub**folder gnomeGlobalAppMenu@lestcape (**NOT the MASTER folder**) to ~/.local/share/gnome-shell/extensions/
 7. Restart Gnome Shell.
 8. Enable the extension in Gnome Tweak Tool.
@@ -89,22 +93,22 @@ Install appmenu-gtk-module:
 --------------
 This extension is designed to be used with the  [**appmenu-gtk-module**](https://gitlab.com/vala-panel-project/vala-panel-appmenu/tree/master/subprojects/appmenu-gtk-module)
 fork of the [**unity-gtk-module**](https://launchpad.net/unity-gtk-module) packages and also this is the preferable package if both are installed. As this package is distributed
-with the [**Mate Desktop**](https://mate-desktop.org), it can be installed from the same source where you can install the Mate Desktop. In Ubuntu 18.04, for example, this involves typing
-**sudo apt-get install appmenu-gtk2-module appmenu-gtk3-module**.
+with the [**Mate Desktop**](https://mate-desktop.org), it can be installed from the same source where you can install this desktop environment. In Ubuntu 18.04, for example,
+this involves typing **sudo apt-get install appmenu-gtk2-module appmenu-gtk3-module**.
 
 * **Ubuntu**, **Debian** and **Fedora** users, this packages are in the official repositories.
-* **Arch** users, you will need to use the rilian-la-te source (https://aur.archlinux.org/packages/?SeB=m&K=rilian).
+* **Arch** users, you will need to use the @rilian-la-te [**source**](https://aur.archlinux.org/packages/?SeB=m&K=rilian).
 * **Wayland** users, we are working to support wayland, but the version that exist in the official repository of your distro, probably won't work with wayland yet.
 
 Install unity-gtk-module:
 --------------
-This extension can be used with the standard gtk modules packages (https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to be used on Unity desktop.
+This extension can be used with the standard [**gtk modules packages**](https://launchpad.net/unity-gtk-module) and patches that Ubuntu provide to be used on Unity desktop.
 But you will probably need to use some equivalent packages depending on your specific distro. Install it in Ubuntu 18.04, for example, involves typing
 **sudo apt-get install unity-gtk2-module unity-gtk3-module**.
 
 * **Debian** and **Arch** users, there are not any compiled version.
 * **Ubuntu** and **Fedora** users, this packages are in the official repositories, but please see: In Fedora, the Gtk2 applications are not patched to work propertly.
-* **Wayland** users, the official unity-gtk-module have not support for Wayland. A source code of unity-gtk-module with Wayland support can be found here: https://gitlab.com/lestcape/unity-gtk-module
+* **Wayland** users, the official unity-gtk-module have not support for Wayland. A source code of unity-gtk-module with Wayland support can be found [**here**](https://gitlab.com/lestcape/unity-gtk-module).
 
 Uninstallation instructions:
 --------------
