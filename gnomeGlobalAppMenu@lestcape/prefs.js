@@ -144,12 +144,12 @@ function init() {
         return new Gio.Settings({ settings_schema: schemaObj });
     };
 
-    global.rootdatadir = MyExtension.dir.get_path();
+    global.rootdatadir = MyExtension.dir.get_parent().get_parent().get_path();
     global.userclassicdatadir = GLib.build_filenamev([GLib.get_user_data_dir(), Config.USER_INSTALL_FOLDER]);
     global.remoteSettings = new SettingsDbusClient.ClientSettings();
 
     let iconTheme = Gtk.IconTheme.get_default();
-    iconTheme.append_search_path(global.rootdatadir);
+    iconTheme.append_search_path(MyExtension.dir.get_path());
 
     global.notify = function(summary, body, iconName) {
         if(!iconName || (iconName === undefined))
