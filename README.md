@@ -46,7 +46,7 @@ Translators:
 
 Known issues (Try at your own risk):
 --------------
-* (**General Applications**)Not all apps have been tested and for the untested applications, it is possible a failure caused by a bug in the extension,
+* (**General Applications**) Not all apps have been tested and for the untested applications, it is possible a failure caused by a bug in the extension,
 please, report it if is working in Unity. Also, in some exceptional untested cases the extension may take ages to load and freeze Gnome Shell forever.
 * (**General Applications**) There are some unsupported apps that can't be integrated into the extension, like Blender, which has its own GUI toolkit.
 * (**General Applications**) This extension can only read the standard Dbus menu structure of Gtk and Qt applications· So, we can't resolve or patch directly

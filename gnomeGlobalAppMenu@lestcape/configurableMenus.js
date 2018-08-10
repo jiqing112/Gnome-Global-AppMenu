@@ -17,6 +17,7 @@
 const Shell = imports.gi.Shell;
 const Clutter = imports.gi.Clutter;
 const Gtk = imports.gi.Gtk;
+const Gio = imports.gi.Gio;
 const Pango = imports.gi.Pango;
 const Meta = imports.gi.Meta;
 const Cairo = imports.cairo;
