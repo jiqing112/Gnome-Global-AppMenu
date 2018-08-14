@@ -53,8 +53,9 @@ please, report it if is working in Unity. Also, in some exceptional untested cas
 any problematic application that not export the menu, or if is not exported properly. We also can't do anything if you used an alternative internally
 implementation that not export the DBus menu structure for some applications. We are happy to include the support to any alternative implementation,
 if is provided an appropriate Dbus menu structure.
-* (**Gnome Applications**) Some Gnome applications like Nautilus, remove the possibility to export the menu in recent versions (you can use alternative
-applications like [Nemo](https://github.com/linuxmint/nemo) instead).
+* (**Gnome Applications**) Some Gnome applications, remove the possibility to export the menubar in "recently" versions. As a "solution" you can use
+some alternative applications instead. For example, use [Nemo](https://github.com/linuxmint/nemo) instead of [Nautilus](https://gitlab.gnome.org/GNOME/nautilus)
+and use [okular](https://okular.kde.org) instead of [evince](https://gitlab.gnome.org/GNOME/evince).
 * (**Java Applications**) The java applications support with JAyatana is experimental and buggy. 
 What occurs is that sometimes the JavaEmbeddedFrame can steal the menu to the main window. Luckily, a Shell restart after opening a java application would fix the problem in most cases.
 Also, Jayatana do not reuse the same menu item id's for all layout-updates and this fact will casue a menu flicker while componets are rendering all again.
