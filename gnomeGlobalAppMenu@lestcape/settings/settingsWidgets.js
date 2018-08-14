@@ -6,7 +6,6 @@
 
 const Gettext = imports.gettext;
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
@@ -770,8 +769,8 @@ const SpinButton = new GObject.Class({
             this.timer = null;
         }
         if (this.timer)
-            Mainloop.source_remove(this.timer);
-        this.timer = Mainloop.timeout_add(300, Lang.bind(this, applyValues));
+            GLib.source_remove(this.timer);
+        this.timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, Lang.bind(this, applyValues));
     },
 });
 
@@ -967,8 +966,8 @@ const Range = new GObject.Class({
             this.timer = null;
         }
         if (this.timer)
-            Mainloop.source_remove(this.timer);
-        this.timer = Mainloop.timeout_add(300, Lang.bind(this, applyValues));
+            GLib.source_remove(this.timer);
+        this.timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, Lang.bind(this, applyValues));
     },
 
     on_scroll_event: function(widget, event) {

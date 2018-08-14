@@ -5,7 +5,6 @@
  */
 
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 const Gettext = imports.gettext;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -132,7 +131,7 @@ const XLetSidePage = new GObject.Class({
                         }
                     }
                 }
-                Mainloop.timeout_add(1000, Lang.bind(this, function() {
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, Lang.bind(this, function() {
                     let id = 0;
                     if(this.selected_instance || (this.selected_instance !== undefined))
                         id = this.selected_instance.id

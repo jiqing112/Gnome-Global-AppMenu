@@ -10,7 +10,6 @@ const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 
 const SettingsWidgets = cimports.settings.settingsWidgets;
 
@@ -194,9 +193,9 @@ const JSONSettingsHandler = new GObject.Class({
 
     resume_monitor: function() {
         if (this.resume_timeout) { // integer
-            Mainloop.source_remove(this.resume_timeout);
+            GLib.source_remove(this.resume_timeout);
         }
-        this.resume_timeout = Mainloop.timeout_add(2000, Lang.bind(this, this.do_resume));
+        this.resume_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, Lang.bind(this, this.do_resume));
     },
 
     do_resume: function() {

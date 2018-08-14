@@ -6,7 +6,6 @@
 const Lang = imports.lang;
 const Cairo = imports.cairo;
 const Gettext = imports.gettext;
-const Mainloop = imports.mainloop;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
@@ -359,14 +358,14 @@ const EffectMenuItem = new GObject.Class({
             this.elapsed = 0;
             this.drawing.queue_draw();
 
-            this.timer = Mainloop.timeout_add(ANIMATION_FRAME_RATE, Lang.bind(this, this.advance_animation));
+            this.timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ANIMATION_FRAME_RATE, Lang.bind(this, this.advance_animation));
         }
     },
 
     stop_animation: function(args) {
         this.animating = false;
         if (this.timer) {
-            Mainloop.source_remove(this.timer);
+            GLib.source_remove(this.timer);
             this.timer = null;
         }
 
@@ -732,13 +731,13 @@ const TweenMenuItem = new GObject.Class({
         this.arrow.queue_draw();
         this.graph.queue_draw();
 
-        this.timer = Mainloop.timeout_add(ANIMATION_FRAME_RATE, Lang.bind(this, this.advance_animation));
+        this.timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ANIMATION_FRAME_RATE, Lang.bind(this, this.advance_animation));
     },
 
     stop_animation: function(args) {
         this.animating = false;
         if (this.timer) {
-            Mainloop.source_remove(this.timer);
+            GLib.source_remove(this.timer);
             this.timer = null;
         }
 

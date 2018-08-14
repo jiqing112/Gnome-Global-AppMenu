@@ -8,7 +8,6 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
-const Mainloop = imports.mainloop;
 
 const Search = imports.ui.search;
 const Main = imports.ui.main;
@@ -148,7 +147,7 @@ GlobalMenuSearch.prototype = {
                 this._activeMenuItem = menuItems[0];
                 this._activeMenuItem.setActive(true);
             }
-            Mainloop.idle_add(Lang.bind(this, function() {
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                 for(let pos = 11; pos < menuItems.length; pos++) {
                     this.itemsBox.addMenuItem(menuItems[pos]);
                 }

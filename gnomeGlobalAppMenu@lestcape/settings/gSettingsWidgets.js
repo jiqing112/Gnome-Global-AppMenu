@@ -5,7 +5,6 @@
  */
 const Lang = imports.lang;
 const Gettext = imports.gettext;
-const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -122,10 +121,10 @@ const BinFileMonitor = new GObject.Class({
 
     queue_emit_changed: function(file, other, event_type, data) { //data=null
         if (this.changed_id > 0) {
-            Mainloop.source_remove(this.changed_id);
+            GLib.source_remove(this.changed_id);
             this.changed_id = 0;
         }
-        this.changed_id = Mainloop.idle_add(Lang.bind(this, this._emit_changed));
+        this.changed_id = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._emit_changed));
     },
 });
 Signals.addSignalMethods(BinFileMonitor.prototype);
@@ -181,7 +180,7 @@ const DependencyCheckInstallButton = new GObject.Class({
 
         this.connect("destroy", Lang.bind(this, this._on_destroy));
 
-        Mainloop.idle_add(Lang.bind(this, this.check));
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this.check));
     },
 
     check: function() {
@@ -194,7 +193,7 @@ const DependencyCheckInstallButton = new GObject.Class({
                 break;
             }
         }
-        Mainloop.idle_add(Lang.bind(this, this.on_check_complete, success));
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this.on_check_complete, success));
 
         return false;
     },
@@ -206,12 +205,12 @@ const DependencyCheckInstallButton = new GObject.Class({
 
     start_pulse: function() {
         this.cancel_pulse();
-        this.progress_source_id = Mainloop.timeout_add(200, Lang.bind(this, this.pulse_progress));
+        this.progress_source_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, Lang.bind(this, this.pulse_progress));
     },
 
     cancel_pulse: function() {
         if (this.progress_source_id > 0) {
-            Mainloop.source_remove(this.progress_source_id);
+            GLib.source_remove(this.progress_source_id);
             this.progress_source_id = 0;
         }
     },

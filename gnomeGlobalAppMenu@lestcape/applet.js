@@ -1,6 +1,5 @@
 const Lang = imports.lang;
 const Signals = imports.signals;
-const Mainloop = imports.mainloop;
 const Gettext = imports.gettext;
 const St = imports.gi.St;
 const Pango = imports.gi.Pango;
@@ -766,7 +765,7 @@ Applet.prototype = {
     // should only be called by appletManager
     _onAppletAddedToPanel: function(userEnabled) {
         /*if (userEnabled) {
-            Mainloop.timeout_add(300, Lang.bind(this, function() {
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, Lang.bind(this, function() {
                 let [x, y] = this.actor.get_transformed_position();
                 let [w, h] = this.actor.get_transformed_size();
                 let flashspot = new Flashspot.Flashspot({ x : x, y : y, width: w, height: h});

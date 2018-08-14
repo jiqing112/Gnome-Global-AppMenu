@@ -2,7 +2,7 @@
 const Lang = imports.lang;
 const St = imports.gi.St;
 const Main = imports.ui.main;
-const Mainloop = imports.mainloop;
+const GLib = imports.gi.GLib;
 
 const MyExtension = imports.misc.extensionUtils.getCurrentExtension();
 const ExtensionManager = MyExtension.imports.extensionManager;
@@ -16,7 +16,7 @@ function init() {
 function enable() {
     if(!applet) {
         applet = ExtensionManager.main(MyExtension.metadata, St.Side.TOP, Main.panel.actor.height, 1);
-        Mainloop.idle_add(Lang.bind(this, function () {
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function () {
             applet._onAppletAddedToPanel(false);
             applet.setOrientation(St.Side.TOP);
             return false;

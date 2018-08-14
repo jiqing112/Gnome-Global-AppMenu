@@ -23,7 +23,6 @@ const Gtk = imports.gi.Gtk;
 const GObject = imports.gi.GObject;
 const GIRepository = imports.gi.GIRepository;
 
-const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const Signals = imports.signals;
 
@@ -686,12 +685,9 @@ X11RegisterMenuWatcher.prototype = {
       if((xid in this._registeredWindows) && (!this._registeredWindows[xid].appMenu)) {
          if((this._registeredWindows[xid].menubarObjectPath) &&
             (this._registeredWindows[xid].sender)) {
-            // FIXME JAyantana is slow, we need to wait for it a little.
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
-               if (!this._isXIdBusy(xid)) {
-                   this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
-               }
-            }));
+            if (!this._isXIdBusy(xid)) {
+               this._getMenuClient(xid, Lang.bind(this, this._onMenuClientReady));
+            }
          } else {
             this._registeredWindows[xid].fail = true;
          }
@@ -798,7 +794,7 @@ X11RegisterMenuWatcher.prototype = {
          this._registeredWindows[xid].appMenu = null;
          this._registeredWindows[xid].fail = false;
       }
-      Mainloop.timeout_add(200, Lang.bind(this, function(xid) {
+      GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, Lang.bind(this, function(xid) {
          this._updateWindowList();
          /*if ((!this._registeredWindows[xid].appMenu) && (!this._isXIdBusy(xid))) {
              this._tryToGetMenuClient(xid);
@@ -1082,7 +1078,7 @@ GtkMenuWatcher.prototype = {
    _updateWindowList: function() {
       // Note: In idle, because Mutter set the windows attribute when Gtk set it
       // and this is after create the window.
-      Mainloop.idle_add(Lang.bind(this, function() {
+      GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
          let current = global.get_window_actors();
          let metaWindows = new Array();
          for (let index in current) {
@@ -1157,12 +1153,9 @@ GtkMenuWatcher.prototype = {
       if((index != -1) && (!this._registeredWindows[index].appMenu)) {
          if((this._registeredWindows[index].menubarObjectPath) &&
             (this._registeredWindows[index].sender)) {
-            // FIXME Some app can be slow, we need to wait for it a little.
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
-               if (!this._isWindowBusy(window)) {
-                  this._getMenuClient(window, Lang.bind(this, this._onMenuClientReady));
-               }
-            }));
+            if (!this._isWindowBusy(window)) {
+               this._getMenuClient(window, Lang.bind(this, this._onMenuClientReady));
+            }
          } else {
             this._registeredWindows[index].fail = true;
          }

@@ -22,7 +22,6 @@ const GLib = imports.gi.GLib;
 const Shell = imports.gi.Shell;
 const Lang = imports.lang;
 const Gettext = imports.gettext;
-const Mainloop = imports.mainloop;
 
 const Main = imports.ui.main;
 const Panel = imports.ui.panel;
@@ -954,7 +953,7 @@ MyApplet.prototype = {
       // FIXME: We want to know what is the correct timeout????
       // When really the compositor is in an idle state
       //let timeout = 1000;
-      //Mainloop.timeout_add(timeout, Lang.bind(this, function(dbusMenu, newLabel, newIcon, newMenu, app) {
+      //GLib.timeout_add(GLib.PRIORITY_DEFAULT, timeout, Lang.bind(this, function(dbusMenu, newLabel, newIcon, newMenu, app) {
          if(dbusMenu && !newMenu) {
             let menuManager = new ConfigurableMenus.ConfigurableMenuManager(this);
             newMenu = this.menuFactory.buildShellMenu(dbusMenu, this, this.orientation, menuManager);
@@ -1007,7 +1006,7 @@ MyApplet.prototype = {
 
    _updateMenuForWindow: function(idle) {
       if (idle === true) {
-         Mainloop.idle_add(Lang.bind(this, function() {
+         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
             if(this.currentWindow) {
                if(this.indicatorDbus && (this.currentWindow != this.sendWindow)) {
                   this.indicatorDbus.updateMenuForWindow(this.currentWindow);

@@ -18,6 +18,7 @@ const Shell = imports.gi.Shell;
 const Clutter = imports.gi.Clutter;
 const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Pango = imports.gi.Pango;
 const Meta = imports.gi.Meta;
 const Cairo = imports.cairo;
@@ -26,7 +27,6 @@ const Atk = imports.gi.Atk;
 const Lang = imports.lang;
 const Params = imports.misc.params;
 const Signals = imports.signals;
-const Mainloop = imports.mainloop;
 const DND = imports.ui.dnd;
 const Tweener = imports.ui.tweener;
 const Main = imports.ui.main;
@@ -71,7 +71,7 @@ const ScrollBox = new Lang.Class({
 
     _doScrolling: function() {
         if(this._timeOutScroll) {
-            Mainloop.source_remove(this._timeOutScroll);
+            GLib.source_remove(this._timeOutScroll);
             this._timeOutScroll = null;
             if(this._actorScrolling && this.auto_scrolling &&
                this._auto_scrolling_id || (this._auto_scrolling_id !== undefined)) {
@@ -91,13 +91,13 @@ const ScrollBox = new Lang.Class({
                             speed = speed*(ay - my);
                         let val = vAdjustment.get_value();
                         vAdjustment.set_value(val - speed);
-                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                        this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doScrolling));
                     } else if((my > ay + ah - dMin)&&(my < ay + ah + dMax)) {
                         if(ay + ah < my)
                             speed = speed*(my - ay - ah);
                         let val = vAdjustment.get_value();
                         vAdjustment.set_value(val + speed);
-                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                        this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doScrolling));
                     }
                 } else if ((hAdjustment.upper > hAdjustment.page_size) && (my < ay + ah) && (my > ay)) {
                     if((mx < ax + dMin) && (mx > ax - dMax)) {
@@ -105,13 +105,13 @@ const ScrollBox = new Lang.Class({
                             speed = speed*(ax - mx);
                         let val = hAdjustment.get_value();
                         hAdjustment.set_value(val - speed);
-                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                        this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doScrolling));
                     } else if((mx > ax + aw - dMin)&&(mx < ax + aw + dMax)) {
                         if(ax + aw < mx)
                             speed = speed*(mx - ax - aw);
                         let val = hAdjustment.get_value();
                         hAdjustment.set_value(val + speed);
-                        this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                        this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doScrolling));
                     }
                 }
             }
@@ -133,7 +133,7 @@ const ScrollBox = new Lang.Class({
             let [aw, ah] = [this._actorScrolling.get_width(), this._actorScrolling.get_height()];
             if((mx < ax + aw)&&(mx > ax)&&((my < ay + dMin)&&(my > ay - dMax))||
                ((my > ay + ah - dMin)&&(my < ay + ah + dMax))) {
-                this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doScrolling));
             }
         } else if(hAdjustment.upper > hAdjustment.page_size) {
             this._actorScrolling = actor;
@@ -144,7 +144,7 @@ const ScrollBox = new Lang.Class({
             let [aw, ah] = [this._actorScrolling.get_width(), this._actorScrolling.get_height()];
             if((my < ay + ah)&&(my > ay)&&((mx < ax + dMin)&&(mx > ax - dMax))||
                ((mx > ax + aw - dMin)&&(mx < ax + aw + dMax))) {
-                this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doScrolling));
+                this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doScrolling));
             }
         }
     },
@@ -383,7 +383,7 @@ ScrollItemsBox.prototype = {
 
    _doHorizontalScroll: function() {
       if(this._timeOutScroll > 0)
-         Mainloop.source_remove(this._timeOutScroll);
+         GLib.source_remove(this._timeOutScroll);
       this._timeOutScroll = 0;
       if((this.hScrollSignals)&&(this.hScrollSignals[this.hScroll] > 0)) {
          let dMin = 10;
@@ -398,14 +398,14 @@ ScrollItemsBox.prototype = {
                   speed = 20*speed*(ax - mx)/dMax;
                let val = this.hScroll.get_hscroll_bar().get_adjustment().get_value();
                this.hScroll.get_hscroll_bar().get_adjustment().set_value(val - speed);
-               this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doHorizontalScroll));
+               this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doHorizontalScroll));
             }
             else if((mx > ax + aw - dMin)&&(mx < ax + aw + dMax)) {
                if(ax + aw < mx)
                   speed = 20*speed*(mx - ax - aw)/dMax;
                let val = this.hScroll.get_hscroll_bar().get_adjustment().get_value();
                this.hScroll.get_hscroll_bar().get_adjustment().set_value(val + speed);
-               this._timeOutScroll = Mainloop.timeout_add(100, Lang.bind(this, this._doHorizontalScroll));
+               this._timeOutScroll = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, Lang.bind(this, this._doHorizontalScroll));
             }
          }
       }
@@ -1649,7 +1649,7 @@ VectorBoxBlocker.prototype = {
 
    _disconnectLoop: function() {
       if(this._updateLoopId > 0) {
-         Mainloop.source_remove(this._updateLoopId);
+         GLib.source_remove(this._updateLoopId);
          this._updateLoopId = 0;
       }
    },
@@ -1700,7 +1700,7 @@ VectorBoxBlocker.prototype = {
          if(this._srcActor == source)
             this._p0.x = mx; this._p0.y = my; //Update triagle
          this._disconnectLoop();
-         this._updateLoopId = Mainloop.timeout_add(this._timeOut, Lang.bind(this, this._tryToRelease));
+         this._updateLoopId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._timeOut, Lang.bind(this, this._tryToRelease));
       }
       return false;
    },
@@ -3594,7 +3594,7 @@ ConfigurableMenuManager.prototype = {
                      this.emit('close-menu', this._activeMenu);
                   }
                }
-               Mainloop.idle_add(Lang.bind(this, function() {
+               GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                   this._associateManager._menus[pos].menu.open(true);
                }));
                return false;
@@ -3785,8 +3785,8 @@ ConfigurableMenuManager.prototype = {
          let topMenu = menu.getTopMenu();
          if((this._isFloating(menu)) && (this.grabbed) && (topMenu) && (topMenu.actor.get_parent() == Main.uiGroup)) {
             this._disconnectTimeOut();
-            //this._lastMenuTimeOut = Mainloop.timeout_add(500, Lang.bind(this, function() {
-            this._lastMenuTimeOut = Mainloop.idle_add(Lang.bind(this, function() {
+            //this._lastMenuTimeOut = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, Lang.bind(this, function() {
+            this._lastMenuTimeOut = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                this._disconnectTimeOut();
                let focus = global.stage.key_focus;
                if((focus) && (menu.actor) && (!menu.actor.contains(focus)) &&
@@ -3799,7 +3799,7 @@ ConfigurableMenuManager.prototype = {
 
    _disconnectTimeOut: function() {
       if(this._lastMenuTimeOut > 0) {
-         Mainloop.source_remove(this._lastMenuTimeOut);
+         GLib.source_remove(this._lastMenuTimeOut);
          this._lastMenuTimeOut = 0;
       }
    },
@@ -5416,7 +5416,7 @@ ConfigurableMenu.prototype = {
             this._scroll.get_hscroll_bar().visible = !this._scroll.auto_scrolling;
             this._scroll.vscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
             this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
-            Mainloop.idle_add(Lang.bind(this, function() {
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                let [topMinHeight, topNaturalHeight] = this.actor.get_preferred_height(-1);
                let [topMinWidth, topNaturalWidth] = this.actor.get_preferred_width(-1);
                let topThemeNode = this.actor.get_theme_node();
@@ -6272,7 +6272,7 @@ ConfigurableGridSection.prototype = {
             columnIndex++;
          }
       }
-      //Mainloop.idle_add(Lang.bind(this, this._allocateMenu));
+      //GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._allocateMenu));
       this._relayoutBlocked = false;
       this._visibleItemsChange = false;
    },
@@ -6798,7 +6798,7 @@ ConfigurableGridSection.prototype = {
    _allocateMore: function() {
       if(this._isInScroll) {
          this.box.queue_relayout();
-         Mainloop.timeout_add(50, Lang.bind(this, this._allocateMore));
+         GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, Lang.bind(this, this._allocateMore));
       }
    },
 
@@ -7030,7 +7030,7 @@ ConfigurableGridSection.prototype = {
          for(let i = 0; i < size; i++) {
             visibleItems[i].actor.show();
          }
-         Mainloop.idle_add(Lang.bind(this, this._setVisibleInternal, visibleItems, size));
+         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._setVisibleInternal, visibleItems, size));
          this._visibleItemsChange = true;
       } else {
          for(let i = 0; i < visibleItems; i++) {
@@ -7374,8 +7374,8 @@ ConfigurableGridSection.prototype = {
                x += this._getItemWidth() + spacing;
             }
          }
-         //Mainloop.idle_add(Lang.bind(this, this._setVisibleAllocation, first));
-         //Mainloop.idle_add(Lang.bind(this, this._setVisibleInternalAllocation, first));
+         //GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._setVisibleAllocation, first));
+         //GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._setVisibleInternalAllocation, first));
      // }
    },
 
@@ -7392,7 +7392,7 @@ ConfigurableGridSection.prototype = {
          this.box.set_skip_paint(this._visibleItems[i].actor, false);
       }
       if(20+number < this._visibleItems.length)
-         Mainloop.idle_add(Lang.bind(this, this._setVisibleAllocation, 20+number));
+         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._setVisibleAllocation, 20+number));
       this._visibleItemsChange = true;
    },
 
@@ -7425,7 +7425,7 @@ ConfigurableGridSection.prototype = {
                this.box.set_skip_paint(children[i].actor, false);
             //}
          }
-         //Mainloop.timeout_add(50, Lang.bind(this, this._allocateMore));
+         //GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, Lang.bind(this, this._allocateMore));
       }
    },
 
@@ -7939,7 +7939,7 @@ ConfigurableMenuApplet.prototype = {
          this._scroll.get_hscroll_bar().visible = !this._scroll.auto_scrolling;
          this._scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
          this._scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
-         Mainloop.idle_add(Lang.bind(this, function() {
+         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
             let [topMinWidth, topNaturalWidth] = this.actor.get_preferred_width(-1);
             let topThemeNode = this.actor.get_theme_node();
             let topMaxWidth = topThemeNode.get_max_width();
@@ -8240,7 +8240,7 @@ ConfigurableMenuApplet.prototype = {
                 menuItem.actor.add_style_pseudo_class('active');
                 // FIXME: We don't want to forced the focus here. How to resolved it?
                 // Aparently it's a fact of give a litle time...
-                Mainloop.idle_add(Lang.bind(this, function() {
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
                    if (this._activeMenuItem && this._activeMenuItem.active) {
                       this._activeMenuItem.active = false;
                       this._activeMenuItem.setActive(true);
@@ -8265,7 +8265,7 @@ ConfigurableMenuApplet.prototype = {
       } else {
          ConfigurableMenu.prototype.addMenuItem.call(this, menuItem, params, position);
       }
-      Mainloop.idle_add(Lang.bind(this, function() {
+      GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function() {
          if(this._shorcut && this.actor)
             this._createShortcuts();
       }));
@@ -8988,7 +8988,7 @@ MenuFactory.prototype = {
       // The shell menu
       shellItem = this._createShellItem(factoryMenu, launcher, orientation, menuManager);
       this._menuManager.push(menuManager);
-      //Mainloop.timeout_add(1, Lang.bind(this, function(shellItem, factoryMenu) {
+      //GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1, Lang.bind(this, function(shellItem, factoryMenu) {
           this._attachToMenu(shellItem, factoryMenu);
       //}, shellItem, factoryMenu));
       return shellItem;
@@ -9033,7 +9033,7 @@ MenuFactory.prototype = {
          factoryItem.shellItem = shellItem;
 
          // Initially create children on idle, to not stop Shell mainloop?
-         Mainloop.idle_add(Lang.bind(this, this._createChildrens, shellItem));
+         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, this._createChildrens, shellItem));
          //this._createChildrens(shellItem);
 
          // Now, connect various events
