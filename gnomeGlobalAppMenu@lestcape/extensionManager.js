@@ -619,6 +619,8 @@ MyApplet.prototype = {
             if(index != -1) {
                Main.panel.statusArea.appMenu.menu = null;
                if(Main.panel.statusArea.appMenu.actor) {
+                  // This crash in the container actor, but it will be fixed
+                  // as recenlty versions of the shell have not a container.
                   Main.panel.statusArea.appMenu.destroy();
                }
                //Main.panel.statusArea['appMenu'] = null;

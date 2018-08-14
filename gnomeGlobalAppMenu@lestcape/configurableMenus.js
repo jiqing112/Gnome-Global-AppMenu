@@ -3251,6 +3251,7 @@ ConfigurablePopupSubMenuMenuItem.prototype = {
          }
          if(this._withMenu && this.menu) {
             this.menu.destroy();
+            this.menu = null;
          }
          ConfigurableBasicPopupMenuItem.prototype.destroy.call(this);
          this.actor = null;
