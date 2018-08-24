@@ -1,4 +1,4 @@
-Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta
+Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta is [**discontinued again**](https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues/116)
 --------------
 
 Latest update: 24 September 2017 See the [Changelog](CHANGELOG)
@@ -13,7 +13,8 @@ It's based on the [patches](https://bugzilla.gnome.org/show_bug.cgi?id=652122) m
 and also used the same idea of the [Gnome Shell Extension AppIndicator](https://github.com/ubuntu/gnome-shell-extension-appindicator)
 made by [@rgcjonas](https://github.com/rgcjonas) (which is now part of the ubuntu code).
 
-**Warning:** This is a not official third-party extension. We also don't want donations as we work only for users, not for companies or communities that receive money or donations.<br />
+**Warning:** This is a not official third-party extension. We also don't want donations as we work only for users, not for companies or communities that
+receive money or donations.<br />
 
 Special thanks to:
 --------------
