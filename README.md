@@ -1,8 +1,8 @@
-我昨天刚在逼乎上看到这个gnome全局菜单，感觉很酷，跟mac很像，我也在寻找一些把gnome打造成mac样式的办法，想着顺手翻译一下，但是万万没想到，就在昨晚上作者说这个项目停止更新了，卧槽。  
+我昨天刚在逼乎上看到这个gnome全局菜单，感觉很酷，跟mac很像，我也在寻找一些把gnome打造成mac样式的办法，想着顺手翻译一下，但是万万没想到，就在昨晚上作者说这个项目停止更新了，卧槽。我只能说，大哥，你等我翻译完你再停止维护阿，我这才刚看到这个牛逼插件，我自己还没装上呢。  
 
 [**discontinued again**](https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues/116)  
 
-翻译过来的  
+停止更新的原因大概是“GTK +不再支持通用可加载模块”，虽然我也不懂这些，原文翻译你看看吧  
 
 [**项目再次停止更新**](https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues/116) 
 
