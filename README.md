@@ -4,7 +4,7 @@
 
 停止更新的原因大概是“GTK +不再支持通用可加载模块”，虽然我也不懂这些，原文翻译你看看吧  
 
-[**项目再次停止更新**](https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues/116) 
+[**项目再次停止更新**](https://github.com/jiqing112/Gnome-Global-AppMenu/issues/1) 
 
 Gnome Shell Extension: Gnome Global Application Menu v0.7-Beta is [**discontinued again**](https://gitlab.com/lestcape/Gnome-Global-AppMenu/issues/116)
 --------------
